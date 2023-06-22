@@ -1,0 +1,918 @@
+# Mô hình Machine learning khả diễn
+
+## Giới thiệu
+
+Trong công việc hằng ngày, người bác sĩ Sản Phụ khoa thường phải đưa ra những quyết định lâm sàng. Hầu hết những quyết định này mang tính chất nhị phân, như xác định chẩn đoán, tiên lượng nguy cơ đối với thai kì, dự báo khả năng thành công của một can thiệp điều trị.., dựa vào các thông tin thu nhận được tại thời điểm đó. 
+
+Công việc hỗ trợ sinh sản cho bệnh nhân hiếm muộn đặt người bác sĩ vào một tiến trình phức tạp hơn, với diễn tiến kéo dài qua nhiều bước và nhiều quyết định phải đưa ra hơn tại mỗi bước, gồm đánh giá cơ bản, chọn lựa hình thức can thiệp, điều chỉnh yếu tố kỹ thuật ở mỗi công đoạn trong chu kì, từ kích thích buồng trứng, chuẩn bị nội mạc, trưởng thành noãn, thu hoạch noãn, thụ tinh nhân tạo, đánh giá phẩm chất phôi, lưu trữ phôi, đến chuyển phôi - theo dõi thai kì đến khi sinh nở. Không chỉ người bác sĩ nhưng chính bệnh nhân cũng có nhu cầu dự báo về khả năng thành công ở từng giai đoạn, liệu có nên áp dụng một kỹ thuật can thiệp cụ thể hay không ? Những quyết định này có thể ảnh hưởng tích cực hay tiêu cực đối với chi phí và hiệu quả điều trị cũng như tâm lý của bệnh nhân và uy tín của dịch vụ y tế.
+
+Để có thể đưa ra quyết định chính xác, trong tâm trí người bác sĩ phải thực hiện nhiều phân tích và kiểm định. Quy trình này là thủ công nhưng cần nhanh chóng và kịp thời. Các tổ chức chuyên môn thường đưa ra giải pháp nhằm hỗ trợ người bác sĩ, đơn giản hóa phân tích, suy luận bằng những hệ thống quy tắc, bảng kiểm, khuyến cáo, lưu đồ chẩn đoán, phác đồ can thiệp/điều trị, những công cụ lượng giá nhanh như quy tắc phân loại, thang điểm, bộ câu hỏi, mẹo nhớ... Bản thân người bác sĩ cũng tự tích lũy kinh nghiệm để hình thành các quy tắc chủ quan với độ nhạy và chính xác nhất định. Một cách tiếp cận khác là bằng khoa học thống kê, dựa vào dữ liệu để thiết lập các mô hình tiên lượng.
+
+Trong thời đại số hóa, đã xuất hiện thêm nhiều phương tiện mới như bệnh án điện tử, công nghệ chẩn đoán và xét nghiệm mới, thiết bị liên lạc và tra cứu cá nhân như máy tính cá nhân, smartphone và tablet PC được kết nối mạng Internet... Với hệ thống hiện đại này, người bác sĩ trở thành một đối tượng giao tiếp trong mạng lưới thông tin và tiếp nhận thêm một hình thức hỗ trợ mới do máy tính thực hiện - đó là những quy luật quyết định dựa vào kỹ thuật Machine learning (máy học). 
+
+Khác với những quy luật được xây dựng từ kinh nghiệm chủ quan và phân tích thủ công trước kia, quy luật tiên lượng Machine learning được tạo ra từ dữ liệu thực nghiệm, được tối ưu hóa, tự động hóa và có khả năng phân tích lượng thông tin lớn và đa chiều, vượt khỏi khả năng phân tích thủ công của con người.
+
+Với nhu cầu và ứng dụng tân tiến này, Machine learning [@zumel2014] được du nhập vào hệ thống phương pháp nghiên cứu y học trong tất cả chuyên khoa và trở thành trào lưu nổi bật trong một thập kỉ vừa qua. Các thuật toán Machine learning hiện đại như Random Forest, XGboost, Deep neural network... đã chứng tỏ hiệu quả vượt trội so với các mô hình thống kê cổ điển, và dần được công nhận như một giải pháp chính thống, thay thế cho mô hình hồi quy tuyến tính và hồi quy logistic trong những nghiên cứu về mô hình tiên lượng và thiết lập quy luật chẩn đoán. 
+
+Tuy hiệu quả hơn về độ chính xác, các mô hình Machine learning lại đặt ra một trở ngại, đó là giới hạn về tính tường minh và khả năng diễn giải. Mô hình càng chính xác thì lại càng phức tạp về cấu trúc và cơ chế vận hành, đến mức chúng trở thành những hộp đen (blackbox models). Người dùng không thể đánh giá về độ tin cậy và hợp lý của kết quả tiên lượng mà các mô hình này sinh ra. Ngành khoa học dữ liệu đã nỗ lực giải quyết vấn đề này và gần đây đã đạt nhiều thành tựu đáng kể khi xây dựng được một số kỹ thuật diễn giải mô hình phổ quát và hiệu quả, như LIME (Local Interpretable Model-Agnostic Explanations của Ribeiro năm 2016) hoặc SHAP (SHapley Additive exPlanations của Lundberg và Lee năm 2017) [@lundberg2020local2global]. Từ đây sinh ra một nhánh chuyên đề mới là Machine learning khả diễn (explainable machine learning) [@molnar2022]. 
+
+Kỹ thuật Machine learning khả diễn cho phép trả lời nhiều câu hỏi quan trọng khi vận dụng mô hình Machine learning vào thực tiễn, ở cả cấp độ quần thể và cá thể: Cơ chế vận hành của mô hình như thế nào ? (Dựa trên cơ sở nào mô hình đưa ra kết quả hiện thời ?), vai trò của mỗi thông số dữ liệu đã đóng góp như thế nào vào kết quả dự báo ? cơ chế này có phù hợp không với quy luật sinh lý bệnh ?...
+
+Không chỉ có lợi cho bệnh nhân và bác sĩ lâm sàng, kỹ thuật Machine learning khả diễn còn mở ra một cơ hội mới cho nghiên cứu y học, vì nó cho phép nhà khoa học sử dụng bất cứ mô hình Machine learning nào, ngay cả những mô hình phức tạp nhất - như một công cụ suy diễn thống kê mới, thay thế cho những công cụ truyền thống như mô hình hồi quy tuyến tính hoặc hồi quy logistic, nhằm khảo sát vai trò của mỗi thông số lâm sàng đối với kết quả.
+
+Trong chương này, chúng ta sẽ cùng nhau tìm hiểu về phương pháp suy diễn thống kê hiện đại sử dụng mô hình Machine learning khả diễn thông qua một nghiên cứu có thực.
+
+## Bối cảnh của thí nghiệm
+
+Ta sẽ áp dụng phương pháp Machine learning khả diễn để giải quyết một nghiên cứu với mục tiêu kép: Tiên lượng và Diễn dịch. Ta sẽ xây dựng một mô hình Machine learning để dự báo khả năng thụ thai lâm sàng thành công (clinical pregnancy), dựa vào các thông số về phẩm chất và hình thái học của phôi, sau đó dùng kỹ thuật diễn giải mô hình SHAP để khảo sát vai trò đóng góp của mỗi biến số trong mô hình đối với kết quả tiên lượng.
+
+Thí nghiệm được tiến hành trên một bộ dữ liệu có thực từ nghiên cứu của Kemal Ozgur và cộng sự tại Thổ Nhĩ Kỳ (J Assist Reprod Genet. 2021 May;38(5):1077-1087. doi: 10.1007/s10815-021-02110-7.). Nghiên cứu này có mục tiêu khảo sát vai trò của một số đặc tính của blastocyte như tỷ lệ tạo phôi, tuổi phôi, expansion, hình thái trophectoderm cho phép tiên lượng khả năng thụ thai lâm sàng thành công trong quy trình chuyển phôi đông lạnh.
+
+```{r,message = FALSE,warning=FALSE}
+# Thao tác dữ liệu và đồ họa
+library(tidyverse)
+
+# Machine learning
+library(tidymodels)
+library(SHAPforxgboost)
+
+# Đồ họa
+library(lvplot)
+library(GGally)
+library(patchwork)
+```
+
+Dữ liệu này đặt ra một bài toán phân loại 2 nhãn (nhị phân) với mục tiêu dự báo khả năng thụ thai lâm sàng thành công tại thời điểm ngay sau công đoạn thụ tinh nhân tạo và trước công đoạn chuyển phôi. 
+
+Ngoài 5 thông số nền là Tuổi của người phụ nữ, mức độ dự trữ buồng trứng (AFC), loại vô sinh nguyên phát hay thứ phát (Prim_Inf), loại kỹ thuật kích hoạt trưởng thành noãn (Trigger: h=hCG, a = agonist hay d=dual trigger) và tỷ lệ tạo phôi (blasturation rate), dữ liệu đầu vào của mô hình còn xét thêm 8 thông số về hình thái và sự phát triển của phôi, bao gồm:
+
++ Day_BVitrif = day of blastocyst vitrification (tuổi của phôi), hay thời điểm việc đánh giá mức độ phát triển của blastocyte được tiến hành: vào ngày thứ 4 (±100 giờ), ngày thứ 5 (±116 giờ) hoặc ngày thứ 6 (±140 giờ).
+
++ Blast_size = khả năng tăng trưởng về kích thước của blastocyte, một biến số rời rạc theo thang điểm từ 1 đến 5: 
+
+(1) blastocyst rất sớm với blastocoel chiếm không quá một nửa phôi; 
+
+(2) blastocyst sớm với blastocoel chiếm hơn một nửa phôi; 
+
+(3) blastocyst đầy đủ với blastocoel hoàn toàn lấp đầy phôi; 
+
+(4) blastocyst mở rộng với blastocoel tăng kích thước phôi và giảm độ dày của vỏ; 
+
+và (5) blastocyst nở với các tế bào trophoblast bắt đầu phình lên qua vỏ (Giá trị tham chiếu = 3). 
+
++ dSize: sự thay đổi của kích thước này, biến giả định lượng, rời rạc gồm 3 bậc giá trị : -1 = co rút, 0 = không đổi và 1 = tăng kích thước (giá trị tham chiếu = 0)
+
++ Blast_ICM = phẩm chất về hình thái (inner cell mass quality) được đánh giá theo các tiêu chí sau: 
+
+(a) nhiều tế bào chặt chẽ; 
+
+(b) vài tế bào được nhóm lại thoáng hơn; 
+
+và (c) rất ít tế bào. 
+
++ Blast_TE: phân loại phẩm chất trophectoderm, được đánh giá theo các tiêu chí sau: 
+
+(a) nhiều tế bào tạo thành một mô liên kết chặt chẽ; 
+
+(b) vài tế bào tạo thành một mô liên kết thoáng hơn; 
+
+và (c) rất ít tế bào lớn.
+
+Hai biến này thuộc loại định tính rời rạc gồm 3 bậc giá trị a,b,c.
+
++ dICM và dTE: sự thay đổi về hình thái, một biến giả định lượng gồm 3 bậc giá trị rời rạc: -1 = giảm, 1= tăng và 0 = không thay đổi (giá trị tham chiếu = 0).
+
+Sau đây là tên viết tắt của các biến trên trong dữ liệu gốc:
+
+```{r}
+df = read.csv('Blastocyte_quality.csv', 
+              sep = ';', dec = ',', 
+              fileEncoding = 'UTF-8-BOM')%>%na.omit()
+
+names(df)
+```
+
+## Kế hoạch phân tích: 
+
+Thí nghiệm này cần dùng các thư viện sau đây:
+
++ Như thường lệ, hệ sinh thái tidyverse là nền tảng cho việc thao tác trên dữ liệu (các thư viện tidyr, dplyr) và đồ họa thống kê (ggplot2).
+
++ Cho phân tích Machine learning, ta sẽ dùng thuật toán Extreme gradient boosting nên cần thư viện xgboost, ngoài ra quy trình huấn luyện và kiểm định mô hình Machine learning sẽ được thi hành theo một pipeline (chuỗi công đoạn liền mạch), được hỗ trợ bằng thư viện tidymodels.
+
++ Ta dùng thư viện SHAPforxgboost và shapviz để thực hiện diễn giải mô hình bằng kỹ thuật SHAP.
+
++ Ngoài ra, ta sẽ dùng thư viện lvplot để vẽ một phiên bản của biểu đồ boxplot
+
+Quy trình phân tích gồm 6 bước được tóm tắt trong sơ đồ sau:
+
+![](Blast_protocol.pdf){width=75%}
+
++ Bước 1: Trước khi tạo mô hình Machine learning, ta cần thăm dò dữ liệu. Mục tiêu của công đoạn này nhằm hình thành một khái niệm ban đầu về cấu trúc và nội dung của dữ liệu, bao gồm: đặc tính phân bố của các biến, và quan hệ tiềm ẩn giữa chúng với kết quả mà ta cần tiên lượng/phân loại.
+
++ Bước 2: Theo quy ước, thí nghiệm mô hình Machine learning luôn gồm 2 công đoạn: thiết lập mô hình và kiểm định hiệu năng của mô hình này. Để đảm bảo tính khách quan và độ tin cậy của kết quả, mô hình phải được kiểm định một cách độc lập trên dữ liệu mới mà nó chưa từng "thấy" qua trong quá trình huấn luyện. Do đó, công đoạn huấn luyện và kiểm định mô hình sẽ dùng 2 tập dữ liệu riêng biệt (train set và test set), được phân chia ngẫu nhiên từ tập dữ liệu gốc.
+
++ Bước 3: Một quy trình kiểm chứng chéo lặp lại (repeated k folds cross-validation) cần được thực hiện nhằm chứng minh trạng thái tối ưu và ổn định của một thiết kế mô hình (thuật toán và các tham số kỹ thuật), trước khi áp dụng thiết kế này để tạo ra mô hình thực sự. Quy trình này được tiến hành trên tập dữ liệu huấn luyện (train set).
+
++ Bước 4: Đây là công đoạn xây dựng mô hình thực sự. Đầu tiên một mô hình sẽ được khởi tạo, sau đó sẽ được khớp với toàn bộ dữ liệu trong tập train set, tiến trình huấn luyện dừng lại khi mô hình đạt hiệu năng tối ưu.
+
++ Bước 5: Mô hình cuối cùng sẽ được kiểm định một cách độc lập trên dữ liệu tập kiểm định (test set).
+
++ Bước 6: Áp dụng kỹ thuật SHAP để diễn giải cơ chế của mô hình, đánh giá mức độ quan trọng của các biến số trong mô hình, ở cấp độ quần thể hoặc cá thể.
+
+## Chuẩn bị và thăm dò dữ liệu
+
+Dữ liệu gốc sau khi tải vào R, sẽ được biên tập lại như sau:
+
++ Chuyển 2 biến định tính Blast_ICM và Blast_TE (vốn có 3 bậc giá trị a,b,c) thành định dạng factor.
+
++ Chuyển định dạng biến Prim_Inf (loại hiếm muộn) thành factor, sau đó áp dụng hàm recode_factor để c mã hóa lại giá trị 0 = "Primary" và 1 = "Secondary" 
+
++ Làm tương tự cho biến Trigger, ta mã hóa lại tên đầy đủ của phương pháp trigger: a = Agonist, h = hCG và d = Dual.
+
+Việc chuyển dạng các biến số có bản chất định tính thành factor cho phép thực hiện chính xác và đồng bộ các quy trình sơ chế dữ liệu trong thư viện recipes, ví dụ tạo dummy variable cho toàn bộ biến định tính.
+
++ Cuối cùng ta thay đổi định dạng dữ liệu cho biến ClinPreg (chính là biến kết quả trong mô hình) từ int (0,1) thành factor. Lưu ý rằng cho mô hình phân loại (classification) XGboost yêu cầu biến kết quả phải có định dạng factor.
+
+```{r}
+df$Blast_ICM = as.factor(df$Blast_ICM)
+df$Blast_TE = as.factor(df$Blast_TE)
+
+df$Prim_Inf %<>% as.factor()%>%
+  recode_factor(.,`0` = "Primary",
+                `1` = "Secondary")
+
+df$Trigger%<>% as.factor()%>%
+  recode_factor(.,`a` = "Agonist", 
+                `h` = "hCG",
+                `d` = "Dual")
+
+df$ClinPreg = as.factor(df$ClinPreg)
+```
+
+Đây là cấu trúc của dữ liệu gốc sau khi biên tập:
+
+```{r}
+str(df)
+```
+
+Tiếp theo, ta sẽ thăm dò dữ liệu một cách trực quan sử dụng các biểu đồ thống kê phù hợp riêng cho nhóm biến liên tục và biến định tính. Các biểu đồ này giúp chúng ta hình dung về (1) đặc tính phân bố của biến, và (2) mối liên hệ giữa các biến này và biến kết quả (thai lâm sàng).
+
+### Các thông số định tính, rời rạc
+
+Để khảo sát phân bố (tần suất) và liên hệ giữa các biến định tính, ta vẽ biểu đồ stacked bar bằng hàm geom_bar với tham số stat="count", position="fill".
+
+```{r}
+class_pals = c('#fc0341','#03adfc')
+
+df%>%mutate(Day = factor(.$Day_BVitrif),
+            Size = factor(.$Blast_size),
+            Size_chang = factor(.$dSize),
+            ICM_chang = factor(.$dICM),
+            TE_chang = factor(.$Blast_TE))%>%
+  gather(Day,Size,Blast_TE,Blast_ICM,
+         Size_chang,ICM_chang,TE_chang,
+         Prim_Inf,Trigger,
+            key="Feature",
+            value="Status")%>%
+  ggplot(aes(x=Status,
+             fill=ClinPreg))+
+  geom_bar(stat="count",
+           position="fill",
+           alpha=0.5,
+           col="black")+
+  coord_flip()+
+  scale_y_continuous(labels=NULL)+
+  theme_bw()+
+  facet_wrap(~Feature,scales="free",ncol=3)+
+  scale_fill_manual(values=class_pals)
+```
+
+Chú thích: Các biểu đồ cột chồng (stacked bar plots) trình bày phân phối của 9 biến định tính/rời rạc, và liên hệ giữa các biến này với kết cục thai lâm sàng (thành công: màu xanh, thất bại: màu đỏ).
+
+Hình ảnh này cho cảm nhận rằng một số đặc tính về hình thái của phôi như Tuổi phôi (Day), ICM, TE có thể liên hệ với kết quả thai lâm sàng (vì có sự tương phản rõ về tỷ lệ thai lâm sàng ở mỗi phân nhóm), ngược lại các yếu tố như phương pháp trigger, kích thước phôi thì có vẻ không ảnh hưởng đến kết quả về thai lâm sàng.
+
+### Các biến số liên tục
+
+Cho các biến liên tục, ta có thể dùng biểu đồ mật độ phân phối (hàm geom_density) để so sánh đặc tính phân phối của biến đó giữa 2 phân nhóm kết cục thai lâm sàng:
+
+```{r}
+df%>%tidyr::gather(Age,BMI,AFC,Blasturation, 
+                   key = "Feature", 
+                   value = "Score")%>%
+  ggplot()+
+  geom_density(aes(x=Score,
+                   fill=ClinPreg),
+               alpha=0.5)+
+  theme_bw(10)+
+  scale_fill_manual(values=class_pals)+
+  facet_wrap(~ Feature,
+             ncol=2,
+             scales = "free")
+```
+
+Kết quả cho thấy mức độ tương phản rất thấp về phân phối của Age, AFC, BMI và lệ tạo phôi giữa 2 nhóm kết cục, điều này gợi ý rằng việc tiên lượng kết quả có thai từ các biến này sẽ là một tác vụ khó khăn. 
+
+Mối liên hệ giữa các biến số liên tục với khả năng đạt được thai lâm sàng còn có thể được khảo sát bằng đồ thị của hàm logistic (hay một mô hình GLM với phân phối nhị thức). Để làm việc này, đầu tiên ta tạo một hàm binomial_smooth dựa trên hàm geom_smooth với mô hình logistic ước lượng kết quả y=xác suất thai lâm sàng, theo giá trị một biến liên tục x và có sử dụng hàm b-spline bậc 3 để tái hiện được quy luật phi tuyến tính giữa y và x nếu có.
+
+```{r}
+binomial_smooth <- function(...) {
+  geom_smooth(method = "glm", 
+              formula = y ~ splines::bs(x,3),
+              method.args = list(family = "binomial"), ...)
+}
+
+df%>%tidyr::gather(Age,BMI,AFC,Blasturation,
+                   key = "Feature", 
+                   value = "Score")%>%
+  mutate(CP = as.numeric(ClinPreg)-1)%>%
+  ggplot(aes(x=Score,
+             y=CP)
+         )+
+  geom_point(aes(color = CP),
+               alpha=0.3)+
+  binomial_smooth(color = "black",
+                  fill = "red",
+                  alpha = 0.4)+
+  theme_bw(10)+
+  scale_color_gradient(low=class_pals[1],
+                       high=class_pals[2])+
+  facet_wrap(~ Feature,
+             ncol=2,
+             scales = "free")
+```
+
+Kết quả cho thấy : biến AFC tương quan thuận tương đối rõ nét với xác suất thai lâm sàng, biến Age có tương quan nghịch đáng kể; tỷ lệ tạo phôi cũng có liên hệ với xác suất kết cục nhưng theo một quy luật phức tạp hơn và hiệu ứng yếu. Giá trị BMI không có liên hệ đáng kể với xác suất kết cục thai lâm sàng.
+
+Cuối cùng, ta có thể dùng một số dạng biểu đồ 2 chiều (tán xạ, hồi quy và mật độ phân phối) để khảo sát hiệu ứng của quan hệ tương tác giữa 2 biến liên tục đối với biến kết quả. Ta có thể dùng thư viện GGally để dựng hệ thống biểu đồ này.
+
+```{r,cache =T}
+plotfuncmid <- function(data,mapping){
+  p <- ggplot(data = data,
+              mapping=mapping)+
+    geom_density(aes(fill=data$ClinPreg),
+                 alpha=0.3,
+                 color="black")+
+    scale_fill_manual(values=class_pals)
+  p
+}
+
+plotfuncLow <- function(data,mapping){
+  p <- ggplot(data = data,
+              mapping=mapping)+
+    stat_density2d(geom="polygon",
+                   aes(fill=data$ClinPreg,
+                       alpha = ..level..))+
+    scale_fill_manual(values=class_pals)+
+    scale_color_manual(values=class_pals)
+  p
+}
+
+plotfuncUp <- function(data,mapping){
+  p <- ggplot(data = data,
+              mapping=mapping)+
+    geom_jitter(size = 0.05,
+                alpha = 0.1,
+                aes(color=data$ClinPreg))+
+    geom_smooth(se=T,
+                alpha=0.5,
+                size = 0.5,
+                aes(color=data$ClinPreg, 
+                    fill = data$ClinPreg)
+                )+
+    scale_color_manual(values=class_pals)+
+    scale_fill_manual(values=class_pals)
+  p
+}
+
+library(GGally)
+
+ggpairs(data = df,
+        columns=c(2:4,10,12,14),
+        lower=list(continuous=plotfuncLow),
+        diag=list(continuous=plotfuncmid),
+        upper = list(continuous=plotfuncUp))+
+  theme_bw(5)
+```
+
+Kết quả phân tích trực quan cho thấy sự kết hợp/tương tác với nhau giữa một số biến, ví dụ Tuổi người mẹ và tuổi phôi, tuổi và BMI, tuổi và AFC, vv... có thể tạo hiệu ứng phân lập về kết cục thai lâm sàng (trong không gian dữ liệu 2 chiều). Ngoài ra, ta cũng nhận ra rằng hiện tượng tự tương quan lẫn nhau giữa các biến số là rất hiếm, ngoại trừ một số cặp biến có tương quan thuận hiển nhiên như Age và BMI, kích thước và tuổi phôi, hoặc tương quan nghịch như AFC và Age (những hiệu ứng tương quan này cũng khá yếu).
+
+## Phân chia dữ liệu
+
+Kể từ lúc này, ta sẽ áp dụng nguyên tắc về chuỗi công đoạn liền mạch và theo trình tự (tidying) cho mô hình thống kê mà tác giả Max Kuhn đặt ra, thông qua hệ thống thư viện tidymodels [@kuhn2022].
+
+Công đoạn đầu tiên là phân chia dữ liệu. Từ dữ liệu gốc gồm 1136 đơn vị cá thể (instances), chúng ta sẽ phân chia ngẫu nhiên thành 2 tập dữ liệu độc lập: tập huấn luyện (train subset) có tỷ lệ kích thước lớn hơn (70%, n=795) dùng để dựng mô hình và tập dữ liệu kiểm định (test subset) có kích thước nhỏ hơn dùng để kiễm định mô hình (30%, n=341). 
+
+Việc phân chia này được thực hiện bằng hàm initial_split(prop = 0.7) để tạo ra danh sách chọn mẫu, sau đó áp dụng 2 hàm training và testing lên danh sách để tạo ra 2 dataframe train_data và test_data.
+
+```{r}
+set.seed(12345)
+init_split = df%>%initial_split(prop = 0.7)
+
+train_data <- training(init_split)
+test_data <- testing(init_split)
+```
+
+## Thiết lập mô hình phân loại
+
+### Bước 3a) Công đoạn sơ chế dữ liệu
+
+Công đoạn tiếp theo của quy trình là sơ chế dữ liệu, mục tiêu là tạo ra cấu trúc dữ liệu đầu vào cho mô hình Machine learning. Công đoạn sơ chế dữ liệu được thực hiện bằng hàm recipe() của thư viện recipes (thuộc về hệ thống tidymodels). Ta cần cung cấp cho hàm recipe() hai thông tin: dataframe dữ liệu gốc, và công thức của mô hình theo cú pháp: "Tên biến kết quả ~ tên các biến độc lập". Hàm này sẽ tạo ra một cấu trúc có ý nghĩa như "bản phác thảo kế hoạch/công thức nấu ăn" cơ bản cho thí nghiệm. 
+
+Từ công thức mô hình, recipe nhận diện được vai trò của các biến trong dữ liệu, thí dụ trong trường hợp này, khi dùng công thức: "ClinPreg ~ . ", hàm recipe sẽ nhận ra ClinPreg là biến kết quả (response), và tất cả những biến còn lại có vai trò yếu tố dự báo (predictors), và thí nghiệm sẽ được tiến hành trên train_data. 
+
+Sau đó, ta có thể tùy chỉnh, thêm vào những công đoạn hoán chuyển dữ liệu khác, thông qua các hàm "step_xxx". Như trong trường hợp hiện thời, ta muốn chuyển mỗi bậc giá trị của toàn bộ biến định tính thành biến nhị phân bằng hàm step_dummy(all_nominal_predictors()). Kỹ thuật này gọi là "nhị phân hóa biến định tính". Thí dụ biến Blast_ICM sẽ được chuyển thành 3 biến nhị phân Blast_ICM_a, Blast_ICM_b và Blast_ICM_c.
+
+```{r}
+train_recipe <- 
+  recipe(ClinPreg ~ ., 
+         data = train_data) %>% 
+  step_dummy(all_nominal_predictors())
+```
+
+### Khởi tạo mô hình XGBoost
+
+Thực ra, thí nghiệm machine learning đều có nguyên lý rất đơn giản. Mục tiêu đặt ra là thiết lập và tối ưu hóa một hàm cho phép liên kết giữa một tập dữ liệu đầu vào (các biến số hay còn gọi là thuộc tính - features) và một kết quả (outcome). Cho bài toán phân loại 2 nhãn (binary classification task) hiện thời, kết quả là một giá trị xác suất cho nhãn positive (xác suất thụ thai lâm sàng thành công). Hàm thống kê này sẽ được khớp (fit) với dữ liệu, trong tiến trình huấn luyện thuật toán của mô hình sẽ "học" thông tin từ dữ liệu đầu vào và tự tối ưu hóa hiệu năng của nó bằng cách giảm thiểu giá trị của hàm mất mát (loss function), cho đến khi đạt trạng thái tối ưu, ổn định.
+
+Quy trình phân tích hồi quy logistic trong thống kê cổ điển là một trường hợp đặc biệt, hàm thống kê là mô hình tuyến tính. Phương pháp Machine learning có nhiều loại thuật toán mô hình cho chúng ta lựa chọn và XGboost chỉ là một trong các công cụ mô hình này. Trong phạm vi giới hạn của tài liệu dành cho bác sĩ lâm sàng, chúng tôi sẽ không trình bày quá sâu về lý thuyết của mô hình XGboost, nhưng chỉ mô tả khái quát cho phép bạn đọc hình dung về cơ chế hoạt động và những ưu điểm của loại mô hình này.
+
+Extreme Gradient Boosting (XGBoost) [@xgb] là một thuật toán Machine learning được phát triển bởi tác giả Chen và đồng nghiệp tại hãng dữ liệu DMLC vào năm 2014. Đây là một mô hình tập hợp với cấu trúc gồm nhiều đơn vị cây quyết định (decision tree). 
+
+Cây quyết định là một hệ thống quy luật phân chia dữ liệu được biểu diễn thành sơ đồ hình cây phân nhánh. Mỗi nút phân nhánh đặt ra một câu hỏi có tính nhị phân liên quan đến 1 biến số X: Giá trị biến số X cao hơn hay thấp hơn 1 ngưỡng t. Nếu X < t, ta rẽ nhánh sang trái, nếu X > t ta rẽ sang phải. Mỗi nhánh có thể dẫn đến một câu hỏi khác, hoặc một nhãn phân loại.
+
+Bên trong mô hình XGboost gồm rất nhiều cây quyết định, mỗi cây được xây dựng tuần tự và liên kết với nhau nhằm khắc phục sai lầm của cây trước đó, từ đó tăng cường liên tục hiệu quả tiên lượng và giảm thiểu lỗi dự báo (thuật toán gradient boosting).
+
+Ở mỗi lượt huấn luyện, thuật toán XGboost sẽ chọn ngẫu nhiên một tập con từ dữ liệu huấn luyện, và tạo ra một cây quyết định, cây này có thể có độ sâu khác nhau tùy thuộc vào thông số được thiết lập nhưng vẫn là một quy luật yếu. Mỗi cây quyết định sẽ được đánh giá bằng cách tính toán hàm mất mát trên tập dữ liệu huấn luyện. Hàm mất mát này được tính bằng cách so sánh giá trị dự đoán của cây quyết định với giá trị thực tế của nhãn kết quả đích. XGBoost sử dụng phương pháp gradient boosting để tối ưu hóa hàm mất mát. Phương pháp này cập nhật cây quyết định mới bằng cách tính toán gradient của hàm mất mát và cập nhật các trọng số của cây để giảm thiểu giá trị của hàm này. XGBoost còn sử dụng các kỹ thuật điều chỉnh (regularization) như L1, L2 và giản lược cây quyết định (pruning), cùng một số giới hạn khác do người dùng đặt ra như tốc độ huấn luyện (learning rate), kết thúc huấn luyện sớm, giới hạn số cây tối đa và độ sâu của cây...  để ngăn ngừa hiện tượng mô hình quá khớp với dữ liệu. Tiến trình huấn luyện dừng lại khi hiệu năng mô hình đạt trạng thái tối ưu và không còn khả năng gia tăng hơn nữa. Khi vận hành để tiên lượng kết quả, mô hình XGboost tập hợp tất cả những cây quyết định bên trong nó, nhờ sức mạnh của số đông nên dù mỗi cây quyết định có hiệu năng yếu nhưng khi kết hợp với nhau sẽ tạo ra kết quả tiên lượng chính xác.
+
+Trong quy trình "tidying model", mô hình là một bộ phận độc lập, được khởi tạo riêng và ráp nối vào quy trình khi vận hành. Ta khởi tạo mô hình XGBoost bằng hàm boost_tree của thư viện tidymodels. Ta có thể thay mô hình XGboost bằng 1 mô hình khác như Random Forest. Các tham số kỹ thuật (hyper parameters) khác sẽ được mô tả trong hàm này. 
+
+Cho mô hình xgboost hiện tại, ta đặt các tham số kỹ thuật gồm:
+
++ engine = "xgboost": Thư viện tidymodel cho phép tùy chọn nhiều thuật toán khác nhau của mỗi loại mô hình qua tham số "engine", thí dụ với mô hình cây tập hợp ta có thể chọn dùng thuật toán Random Forest, xgboost hoặc LightGBM,
+
++ mode = "classification": xác định mục tiêu của bài toán là phân loại
+
++ trees = số lượng cây quyết định, ta chọn giá trị 500
+
++ tree_depth = độ sâu tối đa của mỗi cây quyết định, ta chọn giá trị = 10. Lưu ý rằng giá trị quá cao có thể cần thiết cho độ chính xác cao nhưng dễ gây hiện tượng overfitting.
+
++ learn_rate = tốc độ huấn luyện. Tốc độ cao đầy nhanh tiến trình huấn luyện (mô hình sớm đi đến trạng thái tối ưu), nhưng hiệu năng có thể kém, tốc độ thấp cho phép cải thiện hiệu năng sau mỗi lượt một cách tinh tế hơn nhưng làm chậm tiến trình huấn luyện.
+
+```{r}
+xgboost_model <- boost_tree(
+  mode = "classification",
+  trees = 500,
+  tree_depth = 5,
+  sample_size = 0.8,
+  learn_rate = 0.01,
+  engine = "xgboost")
+```
+
+### Tạo workflow
+
+Sau khi đã có recipe (bản kế hoạch cho quy trình) và model (mô hình), ta sẽ kết hợp 2 bộ phận này lại để tạo ra quy trình (workflow) như sau:
+
++ Dùng hàm workflow() để khởi tạo một quy trình rỗng
+
++ dùng hàm add_recipe() để đưa recipe vào quy trình
+
++ dùng hàm add_model() để đưa model vào quy trình
+
+```{r}
+clinpreg_wf <- workflow() %>%
+  add_recipe(train_recipe) %>%
+  add_model(xgboost_model)
+```
+
+Đến đây, ta tạm dừng một chút để tìm hiểu về công đoạn kiểm định chéo, trước khi dựng mô hình thực sự. 
+
+### Thực hiện kiểm định chéo lặp lại 10x10
+
+Kiểm định chéo (cross-validation) là một kỹ thuật cho phép đánh giá khách quan, phổ quát và chính xác hiệu năng của một thiết kế mô hình. Bộ dữ liệu ban đầu sẽ được chia ngẫu nhiên thành k khối (block) riêng biệt, một bản thiết kế mô hình xác định sẽ được khớp với dữ liệu của (k-1) khối, và kiểm định trên 1 khối còn lại, quy trình này được lặp lại k lần, và ta ước tính hiệu năng trung bình của k phiên bản mô hình khác nhau.
+
+Ví dụ trong trường hợp này ta lặp lại 10 lần quy trình kiểm định chéo 10 khối (10x10 CV) để tạo ra 100 phiên bản mô hình khác nhau, mỗi phiên bản đều được kiểm định độc lập. Như vậy ở mỗi lượt, đều đảm bảo rằng mô hình được kiểm tra trên dữ liệu mới mà nó chưa từng thấy qua trong quá trình huấn luyện (tính khách quan và phổ quát). Việc phân chia ngẫu nhiên và lặp lại nhiều lượt đảm bảo toàn bộ dữ liệu đều được dùng cho cả 2 công đoạn, và ta có thể chắc chắn về kết quả kiểm định (tính phổ quát và chính xác).
+
+## Các tiêu chí hiệu năng mô hình phân loại nhị phân
+
+Trước khi tiến hành quy trình này, ta sẽ tìm hiểu về những tiêu chí nào sẽ được dùng để đánh giá hiệu năng của mô hình phân loại nhị phân.
+
+Đầu tiên, ta có thể dùng Confusion matrix (tạm dịch: ma trận tương hợp/nhầm lẫn): bản chất của nó là 1 bảng chéo 2x2, trình bày tỷ lệ tương hợp và bất xứng giữa quan sát thực tế và kết quả phân loại của quy luật cần kiểm tra, hay nói cách khác, tỷ lệ phân bố của 4 tổ hợp: TP (True Positive: phát hiện đúng), TN (True Negative: loại trừ đúng), FP (False positive: phát hiện nhầm) và FN (False negative: loại trừ nhầm). Đây là một hình thức trình bày kết quả đơn giản nhưng lại cung cấp lượng thông tin rất lớn. Thực vậy, đường chéo của confusion matrix cho ta thấy ngay lập tức giá trị của độ nhạy (Sensitivity, góc dưới phải), và độ đặc hiệu (Specificity: góc trên trái). Hơn nữa, TP,TN,FP,FN là 4 chỉ số cơ bản, từ đó cho phép suy ra kết quả của hầu hết những chỉ số khác. Do đó chỉ cần trình bày confusion matrix, ta cung cấp cho người đọc tất cả thông tin cần thiết để tính tất cả những chỉ số quy ước nhằm đánh giá hiệu năng phân loại.
+
+Lưu ý rằng ở đây tác giả sử dụng thuật ngữ "Phát hiện/Loại trừ" thay vì dịch sát nghĩa Dương tính/Âm tính Thật và Giả như một số tài liệu thống kê hay dùng, vì cách dịch đó không rõ nghĩa: Positive hay Negative chỉ là tên gọi của 2 nhãn giá trị, mang tính quy ước (trong ngữ cảnh về một xét nghiệm chẩn đoán) và có ý nghĩa tương đối tùy theo mục tiêu của người dùng. Chính mục đích hành động phân loại mới có ý nghĩa thực sự. Như vậy, Positive dùng cho điều ta quan tâm tìm kiếm/cần phát hiện, và Negative cho hành động loại trừ (thứ còn lại). Ta nên diễn đạt TP là “chẩn đoán/phát hiện đúng/trúng”, TN là “loại trừ đúng”, FP là “chẩn đoán/phát hiện nhầm/sai”, FN là “bỏ sót, loại trừ nhầm/sai”.
+
+Trong thực hành, người ta quan tâm đến tính hữu dụng của mô hình, hai chỉ số đo lường tính hữu dụng là độ nhạy và độ đặc hiệu.Độ nhạy (sensitivity) đo lường khả năng phát hiện đúng cá thể Positive khi áp dụng quy luật cho một quần thể chứa toàn đối tượng Positive. Như vậy, Sensitivity chính là True positive rate (TPR):
+
+$$TPR = Sensitivity = \frac{TP}{TP+FN} = \frac{TP}{\sum Positive}$$
+Độ đặc hiệu (Specificity) đo lường khả năng loại trừ đúng cá thể Negative, khi áp dụng quy luật cho một tập hợp toàn bộ đều thuộc loại Negative; như vậy Specificity chính là True negative rate (TNR).
+
+$$TNR = Specificity = \frac{TN}{TN+FP} = \frac{TN}{\sum Negative}$$
+Ta có nhận xét thú vị như sau về 2 chỉ số trên: Sensitivity và Specificity có tính chất giao hoán. Chúng chỉ mang ý nghĩa tương đối vì được quy ước bởi mục tiêu của hành động phân loại (điều ta muốn xác nhận/loại trừ). Sensitivity và Specificity luôn phải đi cặp với nhau, vì chúng bổ sung cho nhau.
+
+Cho mục tiêu chẩn đoán, người bác sĩ thường muốn phát hiện bất thường/bệnh lý (và loại trừ trạng thái bình thường), tuy nhiên sự thay đổi bất thường của một điểm số tiên lượng có thể biểu hiện theo 2 chiều (tăng hoặc giảm so với 1 ngưỡng cắt), tùy cơ chế sinh lý bệnh học. Thí dụ:trong bệnh lý Tiền Sản giật, giá trị bất thường của Placental protein 13 là gia tăng, trong khi bất thường của placental growth factor (PIGF) lại là giảm.
+
+Cho mô hình phân loại, vấn đề khá đơn giản, điểm số tiên lượng là xác suất $p_1$ của nhãn Positive (ở đây: xác suất thụ thai lâm sàng thành công), chỉ có thể dao động trong khoảng 0-1, và ngưỡng cắt quyết định thường là 0.5; nhãn Positive được gán cho phần bên phải ngưỡng cắt ($p_1 > 0.5$). Tuy nhiên người bác sĩ có thể quan tâm hơn đến việc tiên lượng kết cục thất bại, lúc này 2 nhãn positive và negative sẽ hoán đổi vị trí cho nhau, sensitivity và specificity sẽ hoán đổi cho nhau. Nói cách khác, giá trị Specificity cho nhãn Positive tương đương với giá trị Sensitivity cho nhãn Negative và ngược lại.
+
+Vì được định nghĩa và áp dụng riêng biệt cho nhóm Positive hoặc Negative, 2 chỉ số Sensitivity và Specificity không bị chi phối bởi tỷ lệ phân bố của 2 loại này trong quần thể tổng quát; nói cách khác, đây thực sự là những chỉ số đặc trưng cho quy luật phân loại (Độ nhạy và đặc hiệu của một mô hình chẩn đoán/tiên lượng sẽ không thay đổi dù áp dụng cho bất cứ quần thể đích nào, nó không bị ảnh hưởng bởi tỷ suất hiện diện của kết cục trong quần thể đó).
+
+Ngoài ra, ta còn quan tâm đến độ chính xác của tiên lượng:
+
+Acuracy, hay “độ chính xác tổng quát” là tiêu chí phổ biến (thường được báo cáo) khi kiểm định hiệu năng của quy luật phân loại, tuy nhiên ý nghĩa thực dụng của nó kém vì nó không đặc hiệu cho một mục tiêu nào cả. Accuracy đơn giản là tỉ lệ của tất cả trường hợp phân loại đúng (không phân biệt negative/positive) trên toàn bộ mẫu kiểm định. 
+
+$$Accuracy = \frac{TP+TN}{TP+TN+FP+FN}$$
+Accuracy có thể bị sai lệch nếu có bất xứng về tỷ lệ giữa 2 nhãn Positive/Negative, do đó ta có một chỉ số khác chính xác hơn, là Balanced accuracy (BAC) hay độ chính xác cân bằng:
+
+$$BAC = \frac{TPR+TNR}{2}$$
+Giá trị thực tiễn trên lâm sàng là một tiêu chí khác cần quan tâm, với hai chỉ số Positive predictive value (PPV) và Negative predictive value (NPV): Nếu như sensitivity và specificity mang ý nghĩa “khảo thí” một quy luật/mô hình bằng cách đưa ra 1 đề bài/mẫu kiểm định chứa toàn nhãn positive hoặc negative, thì 2 chỉ số PPV và NPV lại mang ý nghĩa thực tiễn hơn. PPV đo lường khả năng phân loại Positive chính xác, với câu hỏi: trong số những trường hợp được phân loại là positive, bao nhiêu trường hợp là chính xác (thực sự là positive).
+
+$$PPV = \frac{TP}{TP+FP}$$
+PPV đo lường tính “chuẩn xác”, Sensitivity đo lường tính “hữu dụng”. Mẹo để nhớ là “Dám quyết định (Sensitivity cao) và quyết định đúng (PPV cao)”
+
+Tương tự: NPV đo lường khả năng loại trừ chính xác: trong số những đồi tượng được dán nhãn negative, bao nhiêu trường hợp thực sự là negative ?
+
+$$NPV = \frac{TN}{TN+FN}$$
+Nhược điểm của PPV so với Sensitivity (và NPV so với Specificity), đó là PPV và NPV bị ảnh hưởng bởi tỷ suất phân bố của 2 nhãn/kết cục trong quần thể đích. PPV không khảo sát mô hình tiên lượng môt cách độc lập, mà đặt mô hình này vào một bối cảnh (dữ liệu). Do đó ta không nói chung chung: "quy luật này chính xác", mà chỉ có thể kết luận là: "quy luật này chính xác đối với mẫu/dữ liệu hiện thời".
+
+F1 score hay còn gọi là F-measure: Chỉ số F1 cho phép đánh giá sự cân bằng giữa Sensitivity và PPV. Được định nghĩa như trung bình điều hòa (harmonic mean) giữa PPV và Sensitivity:
+
+$$F1 = \frac{2\times TP}{2\times TP+FP+FN}$$
+
+$$F1 = 2\times \frac{1}{\frac{1}{Sens}+\frac{1}{PPV}}$$
+
+
+$$F1 = 2\times \frac{PPV \times Sens}{PPV + Sens}$$
+F1 được dùng khi ta quan tâm đồng đều vai trò của cả PPV và Sensitivity, nói cách khác ta muốn quy luật tiên lượng vừa nhạy, vừa chính xác. Việc lựa chọn giữa Sensitivity và PPV tùy thuộc vào mục tiêu ứng dụng của quy luật: người bác sĩ muốn Tầm soát, phát hiện thật nhiều, thật sớm một kết cục (thậm chí chấp nhận nguy cơ phát hiện này có thể sai), hay muốn xác định chắc chắn kết cục đó ? Nếu xem cả 2 đều quan trọng như nhau thì F1 là tiêu chí thích hợp nhất khi kiểm định vì để F1 đạt tối ưu thì cả PPV và Sens đều phải tối ưu, ngược lại chỉ cần một trong 2 có giá trị thấp thì F1 sẽ thấp.
+
+Diện tích dưới đường cong ROC: ROC-AUC cho phép đánh giá hiệu năng phân loại/tiên lượng tổng quát cho toàn thể thang điễm tiên lượng mà mô hình tạo ra: đường cong ROC là hình ảnh tạo bởi tất cả cặp giá trị TPR (tỉ lệ phát hiện đúng) và FPR (tỉ lệ phát hiện nhầm/sai) của tất cả những ngưỡng cắt có thể trên toàn thang điểm xác suất dự báo cho một nhãn kết quả.
+
+Quy trình kiểm định chéo lặp lại 10x10 trong hệ thống tidymodels được tiến hành như sau:
+
++ Dùng hàm vfold_cv() với tham số v=10 và repeats = 10 để tạo ra bộ phận tái chọn mẫu
+
++ Kết nối workflow đã tạo ra ở trên (bên trong bao gồm recipe, mô hình, dữ liệu gốc) và hàm fit_resamples, trong đó khai báo bộ phận tái chọn mẫu, và liệt kê những chỉ số dùng để đánh giá hiệu năng mô hình. 
+
+Trong thí dụ này ta sẽ ước tính 5 chỉ số gồm: sensitivity (sens), specificity (spec), độ chính xác cân bằng (bal_accuracy), F1 score (f_meas) và ROC AUC (roc_auc).
+
+```{r, cache =T}
+kfcv = vfold_cv(df, 
+                v = 10,
+                repeats = 10)
+
+cv_res = clinpreg_wf%>%
+  fit_resamples(resamples = kfcv, 
+                metrics = metric_set(f_meas,
+                                     bal_accuracy,
+                                     sens, 
+                                     spec,
+                                     roc_auc
+                                     ))
+```
+
+Sau khi quy trình thực hiện xong, ta lưu lại kết quả vào đối tượng cv_res và trích xuất dữ liệu kết quả bằng hàm bind_rows() cho danh sách cv_res$.metrics. Sau đó dùng hàm group_by và summarize để mô tả tóm tắt kết quả này:
+
+```{r}
+cv_res_extract = cv_res$.metrics%>%
+  bind_rows()
+
+cv_res_extract %>% 
+  group_by(.metric)%>%
+  summarize(n = n(),
+            mean = mean(.estimate),
+            sd = sd(.estimate),
+            median = median(.estimate),
+            p5 = quantile(.estimate, 0.05),
+            p95 = quantile(.estimate, 0.95)
+            )%>%
+    knitr::kable(digits = 3)
+```
+
+Kết quả kiểm định chéo cũng có thể trình bày trực quan bằng biểu đồ hộp:
+
+```{r}
+cv_res_extract %>%
+  ggplot(aes(x = .metric, y = .estimate))+
+  geom_lv(aes(fill = ..LV..),
+          col = 'black',
+          show.legend = F)+
+  coord_flip()+
+  scale_fill_brewer(palette = "Reds", direction = -1)+
+  theme_bw()
+```
+
+Chú thích: Biểu đồ hộp mô tả đặc tính phân phối của giá trị 5 chỉ số hiệu năng của 100 phiên bản mô hình XGboost (trục x). 
+
+Diễn giải kết quả kiểm định chéo: Trước hết, những chỉ số ta vừa ước tính đều có thang đo trong khoảng 0-1, một giá trị càng gần 1 càng có ý nghĩa tích cực và ngược lại. Để đạt hiệu quả chấp nhận được về mặt lâm sàng, ta kì vọng về một giá trị cao (khoảng 0.8 hoặc hơn, tối thiểu cũng không nên thấp hơn 0.7), và cân bằng giữa các tiêu chí.
+
+Kết quả hiện thời không đạt được mức kì vọng này. Ta có một mô hình đặc hiệu (specificity trung bình = 0.74) nhưng độ nhạy thấp (sensitivity trung bình chỉ có 0.44). Hiệu năng tổng quát của mô hình chỉ ở mức trung bình (ROC AUC = 0.62), và chỉ cho phép phân loại chính xác khoảng 59.3% (theo giá trị BAC), ngoài ra F1 score trung bình chỉ ở mức 0.50 cho thấy chưa có sự cân bằng tốt giữa độ chính xác và độ nhạy. 
+
+Kết quả này khẳng định cảm nhận ban đầu của chúng ta trong giai đoạn thăm dò trực quan, rằng tác vụ phân loại hiện thời là một bài toán khó, ngay cả khi áp dụng một thuật toán Machine learning rất mạnh là XGboost. Có thể nói rằng mục tiêu tiên lượng là không khả quan với thiết kế mô hình và nội dung thông tin đầu vào hiện thời. Một kết quả chưa hoàn hảo còn là dấu hiệu cho thấy hạn chế về thiết kế mô hình và/hoặc cỡ mẫu. Qua nghiên cứu thực tế này, cũng là cơ hội giúp các bạn nhận ra rằng không phải lúc nào mục tiêu chủ quan cũng khả thi, Machine learning và dữ liệu lớn không phải là công cụ vạn năng luôn cho ra kết quả hoàn hảo.
+
+Tuy mục tiêu tiên lượng có thể không khả quan, nhưng điều này không ngăn cản chúng ta thực hiện tiếp mục tiêu diễn dịch. Trong phần tiếp theo ta thấy ngoài công dụng dự báo và phân loại, mô hình XGboost vẫn còn một công dụng khác nữa là làm phương tiện trung gian để đánh giá về vai trò các thông số hình thái của phôi đối với khả năng thụ thai thành công. Muốn vậy, ta cần tạo ra mô hình chính thức.
+
+## Huấn luyện mô hình trên toàn thể dữ liệu tập Train
+
+Đây là công đoạn thực sự tạo ra mô hình chính thức, bằng cách thi hành workflow trên toàn bộ dữ liệu của tậm huấn luyện (train_data), với hàm fit().
+
+Sau khi quá trình huấn luyện hoàn tất, ta dùng hàm extract_fit_engine để lấy mô hình
+
+```{r, cache =T}
+fit <- clinpreg_wf %>%
+  fit(train_data)
+
+fit_xgb = extract_fit_engine(fit)
+```
+
+Diễn tiến của quá trình huấn luyện được lưu lại trong object kết quả quy trình, ta có thể chuyển thông tin này thành biểu đồ như sau:
+
+```{r}
+fit_xgb$evaluation_log %>%
+  ggplot()+
+  geom_path(aes(x = iter, y = training_logloss), 
+            col = "red")+
+  scale_x_continuous(breaks = seq(0,300,30))+
+  scale_y_continuous(breaks = seq(0.5,0.7,0.025))+
+  labs(x = "Iterations", y = "binary logloss")+
+  theme_bw(10)
+```
+
+Chú thích: Biểu đồ này có tên gọi là "training curve", nó trình bày diễn tiến huấn luyện một mô hình Machine learning. Theo kết quả hiện thời, mô hình chính thức đã trải qua 300 lượt huấn luyện, và giá trị hàm mất mát (loss function được giảm dần từ 0.7 xuống còn 0.5. Ở đây thuật toán xgboost dùng hàm binary logloss - đo lường độ lỗi của kết quả dự báo so với giá trị thực tế (0,1) ở thang đo logarit.
+
+## Kiểm định độc lập hiệu năng mô hình
+
+Sau khi có mô hình chính thức, ta sẽ đánh giá hiệu năng của nó trên tập dữ liệu kiểm định (test subset). 
+
+Đầu tiên ta dùng hàm predict cho mô hình Xgboost, trên dữ liệu mới (new_data) là test_data. Có thể tùy chỉnh tham số type = "prob" để lấy kết quả là xác suất cho mỗi nhãn positive, negative thay vì kết quả phân loại tuyệt đối 0 hoặc 1.
+
+Áp dụng hàm conf_mat cho cặp giá trị dự báo (estimate) và quan sát thực tế (truth) ta sẽ tạo ra được confusion matrix.
+
+Các hàm f_meas, bal_accuracy, sens, spec, npv, ppv cũng áp dụng cho cặp giá trị thực/dự báo và lần lượt ước tính các trị số hiệu năng F1 score, độ chính xác cân bằng, độ nhạy, độ đặc hiệu, giá trị tiên đoán positive và negative.
+
+Cuối cùng hàm roc_auc áp dụng cho 1 xác suất dự báo và kết quả thực tế sẽ ước tính diện tích dưới đường cong ROC. 
+
+```{r, cache =T}
+valid_pred_p = predict(fit, new_data = test_data, type ="prob")
+valid_pred_c = predict(fit, new_data = test_data)
+
+valid_out = tibble(truth = test_data$ClinPreg,
+                   neg = valid_pred_p$.pred_0,
+                   pos = valid_pred_p$.pred_1,
+                   pred = valid_pred_c$.pred_class)
+
+conf_mat(valid_out, 
+         truth = truth, 
+         estimate = pred)
+```
+
+```{r}
+bind_rows(f_meas(valid_out,truth,pred),
+          bal_accuracy(valid_out,truth,pred),
+          sens(valid_out,truth,pred),
+          spec(valid_out,truth,pred),
+          precision(valid_out,truth,pred),
+          npv(valid_out,truth,pred),
+          ppv(valid_out,truth,pred),
+          roc_auc(valid_out, 
+                  truth, pos, 
+                  event_level="second"))%>%
+  knitr::kable(digits = 3)
+```
+
+Kết quả thu được xác nhận kết quả kiểm định chéo ở trên, cho thấy đây là một mô hình phân loại có hiệu năng ở mức trung bình. 
+
+Đường cong ROC có thể được biểu diễn bằng hàm roc_curve và autoplot:
+
+```{r}
+two_class_curve <- roc_curve(valid_out, 
+                             truth, pos, 
+                             event_level="second")
+
+autoplot(two_class_curve)
+```
+
+Chú thích: đường cong ROC cho phép đánh giá hiệu năng phân loại tổng quát của mô hình nhị phân. Trục x trình bày 1-specificity hay tỷ lệ phát hiện nhầm (false positive), trục y trình bày sensitivity hay tỷ lệ phát hiện chính xác (true positive rate) cho tất cả những ngưỡng cắt có thể cho xác suất dự báo của nhãn positive. Kết quả cho thấy mô hình hiện thời có hiệu năng tốt hơn một sự đoán định ngẫu nhiên (AUC tham chiếu = 0.5), tuy nhiên chỉ ở mức trung bình (AUC = 0.631).
+
+## Phân tích hậu kiểm bằng kỹ thuật SHAP
+
+Trong phần tiếp theo, chúng ta sẽ tìm hiểu và thực hiện phân tích hậu kiểm (post-hoc analysis) bằng kỹ thuật diễn giải mô hình Machine learnning SHAP.
+
+### Giới thiệu về phương pháp diễn giải mô hình SHAP
+
+Khi thực hiện diễn giải mô hình, câu hỏi đặt ra là mỗi biến số có vai trò ra sao và đóng góp nhiều hay ít vào kết quả của mô hình ? Đối với một mô hình tuyến tính như hồi quy logistic, câu trả lời cho câu hỏi này rất đơn giản, vì hiệu ứng đóng góp của mỗi biến số trong mô hình là cộng tính và được thể hiện tường minh trong chính hệ số hồi quy.
+
+Trong thí dụ này, nếu ta sử dụng mô hình logistic làm công cụ suy diễn thống kê thì sẽ thu được kết quả như sau:
+
+```{r, cache =T}
+log_mod = glm(formula = ClinPreg ~ .,
+              data = train_data,
+              family = "binomial")
+
+tidy(log_mod)%>%
+  knitr::kable(digits = 3)
+```
+
+Trong trường hợp của mô hình XGBoost, cơ chế và cấu tạo phức tạp của nó khiến cho mô hình trở nên không thể giải thích được và trở thành một hộp đen (blackbox), ta chỉ nhận được kết quả ở đầu ra nhưng không có khả năng hiểu được cơ chế nào sinh ra kết quả này và mức độ mà những biến số đã tham gia bên trong mô hình. Trở ngại này được khắc phục nhờ sự kết hợp với một thuật toán diễn giải phụ trợ, mà ở đây là kỹ thuật SHAP.
+
+Kỹ thuật diễn giải nội dung mô hình cộng tính bằng điểm số Shapley (SHAP) được xem là phương pháp hiệu quả nhất hiện nay cho nhu cầu giải thích cơ chế vận hành của mô hình machine learning, trong phần dưới đây chúng ta sẽ hiểu tại sao. 
+
+Để hiểu rõ về bản chất và cơ chế của phương pháp này, trước hết chúng ta cần một chút tưởng tượng. Ý tưởng về điểm Shapley (1953) phát sinh từ học thuyết trò chơi (game theory), theo đó việc tiên lượng được xem như một trò chơi có tính hiệp đồng mà mục tiêu là ước lượng kết quả chính xác nhất có thể. Một mô hình tiên lượng được xem như một đội nhóm và mỗi biến số trong mô hình được xem như một người chơi (thành viên trong đội) tham gia vào trò chơi này. Mỗi người chơi sẽ nhận được điểm thưởng tùy theo mức độ đóng góp của họ vào thành quả (tiên lượng chính xác). 
+
+Trong tình huống hiện thời, mục tiêu của mô hình machine learning nhằm dự đoán khả năng thụ thai thành công (một giá trị xác suất từ 0 đến 1, giá trị > 0.5 được phân loại là thành công (positive), ngược lại giá trị < 0.5 sẽ cho kết quả phân loại negative (thất bại)). Trên thực tế, kết cục lâm sàng được quan sát là tuyệt đối (thành công = 1 hay thất bại = 0). Mô hình có 16 biến số (features, predictors) ở đầu vào. Như vậy trò chơi của chúng ta có mục tiêu là tạo ra kết quả dự báo (predicted score) chính xác : gần với 0 nhất có thể cho trường hợp thất bại, hoặc gần 1 nhất có thể đối với trường hợp thành công. 
+
+Một cách tự nhiên, mỗi biến số có vai trò và khả năng đóng góp khác nhau vào kết quả tiên lượng này, một vài biến có khuynh hướng làm giảm điểm tiên lượng (nói cách khác, chúng tương quan thuận với nguy cơ thất bại và tương quan nghịch với khả năng thành công), trong khi một vài biến khác có khuynh hướng gia tăng xác suất thụ thai thành công (thí dụ AFC, tỷ lệ tạo phôi, phẩm chất phôi tốt …). Cho mỗi bệnh nhân, mức độ đóng góp của mỗi giá trị biến số có thể cao hoặc thấp, tùy vào vai trò của chúng, và tính tương đối so với giá trị những biến khác. 
+
+Phương pháp diễn giải bằng điểm số Shapley được tiến hành theo cơ chế như sau : một hiệp của trò chơi được diễn ra cho mỗi cá thể trong dữ liệu (bệnh nhân), mục tiêu của trò chơi là tiên lượng xác suất thụ thai thành công cho cá thể đó một cách chính xác nhất có thể. Trò chơi diễn ra trong một không gian dữ liệu (căn phòng, sân chơi), mỗi giá trị biến số đầu vào sẽ lần lượt được đưa vào sân chơi theo thứ tự ngẫu nhiên, và gia nhập vào đội nhóm các giá trị biến số khác đang hiện diện, chúng hợp tác với nhau để tạo ra kết quả tiên lượng. Mỗi lượt như vậy, điểm tiên lượng tổng kết mà đội nhóm (tập giá trị biến số) tạo ra sẽ được so sánh với kết quả trước khi giá trị biến số (người chơi) mới gia nhập, khác biệt này sẽ được tính như điểm thưởng cho người chơi (biến số) đó, giá trị điểm thưởng có thể <0 (giá trị biến số làm giảm kết quả tiên lượng), <0 (làm tăng) hoặc =0 (không có vai trò đóng góp nào cả). 
+
+Sau cùng, điểm số Shapley cho một biến số X là giá trị trung bình điểm thưởng mà biến số này nhận được từ tổ hợp tất cả những đội nhóm mà nó đã tham gia. 
+
+Cho một tập biến $S$ gồm $p$ thành viên (biến số đầu vào), điểm Shapley cho một giá trị của biến $x_j$ tại đơn vị quan sát (cá thể) $j$ là trung bình cộng có trọng số của điểm thưởng mà giá trị $x_j$ này nhận được trong tất cả những đội nhóm có thể mà nó đã tham gia, được xác định bởi hàm val:
+
+$$\phi_j(val)=\sum_{S\subseteq\{1,\ldots,p\} \backslash \{j\}}\frac{|S|!\left(p-|S|-1\right)!}{p!}\left(val\left(S\cup\{j\}\right)-val(S)\right)$$
+
+Với $val_x(S)$ là kết quả tiên lượng (prediction score) cho giá trị biến số $x$ trong tập hợp $S$, được điểu kiện hóa cho việc loại trừ những biến còn lại chưa tham gia vào tập $S$
+
+$$val_{x}(S)=\int\hat{f}(x_{1},\ldots,x_{p})d\mathbb{P}_{x\notin{}S}-E_X(\hat{f}(X))$$
+Thí dụ cho một mô hình machine learning gồm 3 biến số: $x_1, x_2, x_3$, và ta đang xét trường hợp chỉ có 2 biến $x_1$ và $x_3$ hợp tác với nhau, giá trị điểm Shapley được tính như sau :
+
+$$val_{x}(S)=val_{x}(\{1,3\})=\int_{\mathbb{R}}\int_{\mathbb{R}}\hat{f}(X_{1},x_{2},x_{3})d\mathbb{P}_{X_2}-E_X(\hat{f}(X))$$
+Dựa trên lý thuyết về Shapley score, năm 2017 Lundberg và Lee đã xây dựng tập hợp các công cụ diễn giải mô hình dưới tên gọi tổng quát là SHAP (SHapley Additive exPlanations).
+
+Kỹ thuật SHAP có cùng nguyên lý như của Shapley và kết quả của nó, SHAP score chính là một phiên bản của Shapley score, với cùng ý nghĩa. Sự khác biệt giữa 2 phương pháp đó là trong quy trình SHAP, điểm Shapley được ước lượng thông qua một mô hình tuyến tính:
+
+$$g(z')=\phi_0+\sum_{j=1}^M\phi_jz_j'$$
+với $g$ là mô hình tuyến tính có ý nghĩa đại diện, $z'\in\{0,1\}^M$ là vector đội nhóm tạo ra từ tập hợp biến số, M là kích thước lớn nhất của tập hợp này, và  $\phi_j\in\mathbb{R}$ là phần đóng góp của biến số j hay cũng chính là giá trị Shapley score. Trong vector $z’$, những biến số có mặt/tham dự vào đội nhóm sẽ nhận giá trị =1, ngược lại giá trị sẽ =0 cho các biến không tham gia/vắng mặt. 
+ 
+Cho một cá thể x hiện hành, công thức được giản lược thành:
+
+$$g(x')=\phi_0+\sum_{j=1}^M\phi_j$$
+Trong bài toán hiện thời, ta sẽ áp dụng TreeSHAP, là một biến thể của SHAP dành cho các mô hình machine learning dựa trên cây quyết định như Decision tree, Random Forest hoặc XGboost.
+
+## Vai trò của các thông số đóng góp vào kết quả tiên lượng
+
+Một ứng dụng quan trọng của Shapley score là cho phép xếp hạng thứ tự quan trọng về vai trò đóng góp giữa các biến. Mức độ quan trọng (feature importance) của mỗi biến số được ước tính đơn giản như trung bình cộng của giá trị tuyệt đối của tất cả SHAP sores cho mỗi cá thể.
+
+$$I_j=\frac{1}{n}\sum_{i=1}^n{}|\phi_j^{(i)}|$$
+
+Quy trình thực hiện diễn giải mô hình bằng phương pháp SHAP như sau:
+
+Đầu tiên ta dùng hàm bake trong thư viện recipes cho train_data và test_data để tạo ra 2 ma trận dữ liệu  X_train (kích thước 795x16) và X_test (341x16). Đây chính là cấu trúc dữ liệu mà cả mô hình XGboost và SHAP nhận ở đầu vào. Mỗi hàng trong ma trận là 1 cá thể bệnh nhân, và mỗi cột là một biến số.
+
+```{r, cache =T}
+X_train <- bake(
+  prep(train_recipe), 
+  has_role("predictor"),
+  new_data = train_data, 
+  composition = "matrix"
+)
+
+X_test <- bake(
+  prep(train_recipe), 
+  has_role("predictor"),
+  new_data = test_data, 
+  composition = "matrix"
+)
+```
+
+Hàm prep() của thư viện shap sẽ ước tính giá trị của SHAP scores cho dữ liệu đầu vào, thí dụ X_train và lưu lại dưới định dạng dữ liệu "tidy" (bảng dọc) tương thích với các hàm đồ họa bằng ggplot2 để trình bày trực quan kết quả diễn giải.
+
+```{r, cache =T}
+shap_data <- shap.prep(fit_xgb, 
+                  X_train = X_train)
+
+head(shap_data)
+```
+
+Lưu ý rằng điểm số Shapley được tính ở mức độ cá thể (mỗi giá trị quan sát $x_j$ của một biến số $x$ cho một bệnh nhân $j$). Khi áp dụng quy trình diễn giải SHAP, kết quả thu được sẽ là một bảng với kích thước bằng với dữ liệu đầu vào. Kết quả này có thể được khảo sát trực quan ở mức độ quần thể, phân nhóm, thậm chí cá thể. Giá trị điểm Shapley có thể <0, >0 hoặc = 0.
+
+Trong bảng này, ta quan tâm đến cột "variable" chỉ tên biến số trong mô hình, và "value" là giá trị SHAP score cho mỗi giá trị cá thể của biến số. Kết quả này được trình bày hiệu quả nhất bằng hình thức trực quan.
+
+Hàm plot.summary sẽ tạo ra biểu đồ tóm tắt kết quả diễn giải. Đây là biểu đồ quan trọng được báo cáo như kết quả chính trong các bài báo khoa học.
+
+```{r, cache =T}
+shap.plot.summary(shap_data)+
+  scale_color_gradient2(low = "#078fe3",
+                        mid = "#8007e3",
+                        midpoint = 0.5,
+                       high = "#e30750")
+```
+
+Nội dung của biều đồ này như sau: Trục x trình bày thang đo của giá trị SHAP score, đo lường vai trò đóng góp của mỗi giá trị cá thể của một biến số vào kết quả tiên lượng của mô hình cho cá thể đó. Trục y trình bày danh sách các biến, được xếp thứ tự theo mức độ quan trọng của chúng (variable importance) - tính bằng trung bình của giá trị tuyệt đối của tất cả SHAP score cá thể cho biến số được xét. Tập hợp các chấm tròn trình bày đặc tính phân bố của SHAP score cho từng biến. Mỗi chấm tròn tương ứng với 1 cá thể bệnh nhân. Màu sắc của chấm tròn tùy theo giá trị chuẩn hóa của biến số đang được xét, màu đỏ tương ứng với giá trị cao hơn, màu xanh lam tương ứng với giá trị thấp hơn. Nếu đó là biến nhị phân, màu đỏ tương ứng với giá trị Có (=1), màu xanh là giá trị Không (=0). Đường thẳng đứng vuông góc với mốc giá trị SHAP score = 0 trên trục x cho phép phân định 2 hướng tác động của một biến vào kết quả dự báo của mô hình. Những chấm SHAP score có giá trị âm và nằm trong phần bên trái cho biết ở những cá thể đó, biến số được xét có khuynh hướng làm giảm xác suất dự báo (ủng hộ cho kết quả negative - thụ thai thất bại). Ngược lại, các điểm SHAP score nằm bên phải thang đo tương ứng với các trường hợp mà giá trị biến số đang được xét có vai trò ủng hộ cho kết quả tiên lượng positive (thụ thai lâm sàng thành công).
+
+Khi kết hợp màu sắc và vị trí của các chấm tròn, ta có thể hình dung về vai trò của mỗi biến, thí dụ biến Age nằm ở vị trí thứ 3, nó có vai trò quan trọng hơn biến tuổi phôi (Day_BVitrif) nhưng kém quan trọng hơn biến AFC; Biến Age cũng có sự phân định khá rõ nét: các cá thể tuổi cao (chấm màu đỏ) cũng tương ứng với SHAP score > 0 (về phía bên phải) và ngược lại, gợi ý rằng Tuổi là yếu tố có tương quan nghịch chiều với khả năng thụ thai thành công. Mức độ giãn cách của các chấm tròn cũng cho phép hình dung về hiệu ứng mà biến số đó gây ra cho kết quả tiên lượng, khoảng cách càng rộng, thì vai trò đóng góp càng cao, sự mở rộng về cả 2 phía cho thấy biến số có vai trò đồng đều cả ủng hộ và loại trừ phân loại positive (như biến AFC, Age), sự mở rộng nghiêng về một phía cho biết biến đó có vai trò chuyên biệt để loại trừ hoặc phát hiện nhãn positive (thí dụ biến dTE thiên về phát hiện, biến dSize thiên về loại trừ) ngược lại hình ảnh co cụm về vị trí trung tâm cho thấy mức độ đóng góp rất nhỏ hoặc gần như = 0 (biến Blast_TE_c và Blast_ICM_c). Sự pha trộn màu sắc (không tương phản rõ nét) giữa các chấm tròn cũng là dấu hiệu cho thấy vai trò không rõ ràng, hoặc không quan trọng của biến được xét).
+
+Tóm lại, những biến có vai trò đóng góp quan trọng có những đặc tính như sau: nằm ở vị trí cao hơn trên trục y, khoảng giãn cách các điểm SHAP score rộng, về 1 hoặc cả 2 phía, màu sắc các điểm phân cực rõ ràng.
+
+Khi quan sát tổng thể biểu đồ này, ta có thể rút ra một số nhận định như sau:
+
++ 3 yếu tố quan trọng nhất ảnh hưởng đến khả năng thụ thai lâm sàng là tỷ lệ tạo phôi (đương nhiên), Tuổi và AFC. Tuổi có tương quan nghịch và AFC tương quan thuận, tuy nhiên liên hệ giữa tỷ lệ tạo phôi không có quy luật rõ ràng.
+
++ Tiếp theo, Tuổi phôi (Day_BVitrif), loại B hình thái TE và kích thước phôi (Size) là 3 thông số về hình thái quan trọng nhất quyết định khả năng thụ thai.
+
++ Các thông số về sự thay đổi của hình thái về kích thước chỉ có vai trò ít quan trọng và chủ yếu là củng cố thêm xác xuất thụ thai thành công.
+
++ Những yếu tố gồm kỹ thuật Trigger, loại C của hình thái TE và ICM không có vai trò nào cả đối với kết cục thụ thai thành công hay thất bại.
+
+Ngoài biểu đồ này, ta còn có thể trình bày kết quả bằng nhiều hình thức khác, thí dụ biểu đồ boxplot hoặc barplot.
+
+Biểu đồ boxplot chỉ tóm lược thông tin ở cấp độ quần thể nhưng không cho phép diễn giải sâu đến từng cá thể, nó cũng không cho phép diễn giải về quy luật tương quan thuận hay nghịch.
+
+```{r, cache =T}
+shap_data%>%ggplot(aes(x = reorder(variable, mean_value),
+                  y = value))+
+  geom_lv(aes(fill = mean_value),
+               col = "black",
+              alpha = 0.5)+
+  scale_fill_gradient2(low="gold",
+                       mid="red",
+                       high="purple",
+                       midpoint = 0.1)+
+  scale_y_continuous(breaks = seq(-1,2,0.5))+
+  labs(x = "Features", y = "SHAP value")+
+  coord_flip()+
+  theme_bw()
+```
+
+Biểu đố barplot chỉ trình bày được thứ tự quan trọng của các biến: ta dùng biểu đổ này khi chỉ cần đưa ra thông điệp đơn giản, xác định những biến nào quan trọng nhất
+
+```{r, cache =T}
+shap.importance(shap_data, 
+                names_only = FALSE, 
+                top_n = Inf)%>%
+  ggplot(aes(x = reorder(variable,mean_abs_shap), 
+             y = mean_abs_shap))+
+  geom_bar(aes(fill = mean_abs_shap),
+           stat="Identity",
+           col = "black",
+           alpha = 0.8,
+           show.legend = F)+
+  geom_text(aes(label=round(mean_abs_shap,3)), 
+            vjust=0.15, 
+            hjust=-0.15,
+            size=3.5)+
+  scale_y_continuous(limits = c(0,0.25))+
+  labs(x = "Features")+
+  coord_flip()+
+  scale_fill_gradient2(low="gold",
+                        mid="red",
+                        high="purple",
+                        midpoint = 0.1)+
+  theme_bw()
+```
+
+Khảo sát hiệu ứng độc lập của mỗi thông số đối với kết quả tiên lượng xác suất thụ thai lâm sàng:
+
+Một hình thức diễn giải trực quan khác, đó là biểu đồ tương quan giữa giá trị biến số được xét và giá trị SHAP score tương ứng. Biểu đồ này cho phép diễn giải chính xác hơn về quy luật liên hệ giữa sự thay đổi của một biến số và hiệu ứng đối với kết quả tiên lượng của mô hình.
+
+Đầu tiên, ta dùng hàm shap.values cho mô hình và ma trận dữ liệu đầu vào để tạo ra cấu trúc dữ liệu shap_values cho phân tích này. Sau đó, dùng hàm shap.plot.dependence() cho shap_values để vẽ biểu đồ
+
+```{r, cache =T}
+shap_values <- shap.values(xgb_model = fit_xgb, 
+                           X_train = X_train)
+```
+
+
+```{r, cache =T}
+dpls = list()
+# Step 4: Loop over dependence plots in decreasing importance
+i=1
+for (v in shap.importance(shap_data, names_only = TRUE)) {
+  p = shap.plot.dependence(shap_data, 
+                            v, color_feature = v, 
+                            alpha = 0.5, 
+                            jitter_width = 0.1,
+                           size = 0.5)
+  dpls[[i]] = p
+  i = i+1
+  # print(p)
+}
+```
+
+Sau đây là thí dụ minh họa khi phân tích 4 biến trong mô hình. Những thí dụ này bao quát cho 3 loại biến: liên tục (tỷ lệ tạo phôi,BMI), rời rạc (Kích thước phôi) và nhị phân (Trigger = HCG) và các quy luật đóng góp khác nhau.
+
+```{r, print = F}
+dpls[c(4,5,6,11)]
+```
+Trong mỗi biểu đồ, trục x trình bày thang đo của biến số đang khảo sát, trục y trình bày thang đo của SHAP score tương ứng. Biểu đồ có dạng tán xạ và có thể kết hợp với đồ thị của hàm số của mô hình hồi quy (nếu là biến liên tục). Mổi chấm trên biểu đồ biểu thị cho một cá thể bệnh nhân (ta đã biết rằng ứng với mỗi giá trị cá thể của một biến thì sẽ tính được 1 SHAP score). Hình ảnh phân bố của các điềm giá trị và đồ thị hàm hồi quy sẽ mô tả quy luật liên hệ giữa sự thay đổi giá trị của biến đó và giá trị SHAP score tương ứng.
+
+Ưu điểm của hình thức diễn giải này, đó là nó cho phép mô tả được trung thành và tinh tế tất cả những quy luật liên hệ phi tuyến tính, phức tạp... giữa biến độc lập và đóng góp vào kết quả tiên lượng, mà các biểu đồ marginal effect cho mô hình tuyến tính/logistic thông thường không làm được. 
+
+Biểu đồ dependence plot còn cho phép khảo sát hiệu ứng tương tác giữa 2 biến, thí dụ Tuổi và AFC. Như trong biểu đồ sau, trục X vẫn diễn tả thang đo của AFC, nhưng trục Y trình bày SHAP score khi Age tương tác với AFC:
+
+```{r,cache =T}
+shap_int <- shap.prep.interaction(xgb_model = fit_xgb, 
+                                  X_train = X_train)
+
+shap.plot.dependence(data_long = shap_data,
+                     data_int = shap_int,
+                     x= "AFC", y = "Age", 
+                     color_feature = "AFC")
+```
+
+Tuy nhiên, cần tránh ngộ nhận khi diễn giải kết quả này. Ở đây, giá trị SHAP score là điểm số rời rạc cho cá thể, và chỉ là sự đo lường gián tiếp tác động lên kết quả tiên lượng. SHAP score không thể đặt ra một quy luật hoặc mô hình giản lược, vì vậy nó không cho phép suy luận theo hướng can thiệp nhân quả như mô hình tuyến tính, thí dụ ta không thể suy diễn rằng nếu AFC tăng thêm k đơn vị sẽ làm tăng khả năng thụ thai thành công thêm y%... Ta có thể khắc phục hạn chế này bằng cách tạo ra một cá thể giả định và thay thế giá trị $x=j$ bằng một giá trị $x = k$ khác, rồi so sánh kết quả tiên lượng giữa 2 cá thể (dữ liệu phản thực tế). 
+
+Ngoài ra, cần tránh sự ngộ nhận khi diễn giải điểm Shapley theo cách ta hay làm cho hệ số hồi quy của mô hình hồi quy tuyến tính. Điểm số Shapley không nên được diễn giải cho toàn bộ quần thể theo kiểu: nếu loại bỏ biến $X$ khỏi mô hình thì giá trị tiên lượng sẽ thay đổi trung bình $y$ đơn vị. Thực ra, ý nghĩa đúng của điểm Shapley là cho một trường hợp cá thể $j$, với tập hợp các giá trị biến số đầu vào hiện thời, Shapley score biểu thị cho mức độ đóng góp của giá trị biến số $x_j$ làm thay đổi (tăng hoặc giảm) kết quả tiên lượng $y_j$ cho cá thể j này, so với kết quả tiên lượng trung bình.
+
+### SHAP score có thể dùng để phân cụm dữ liệu
+
+Ta có thể xem SHAP score như một thuộc tính (với thang đo chuẩn hóa về cùng đơn vị) của dữ liệu, đại diện cho khả năng đóng góp của mỗi biến vào một mục tiêu tiên lượng nào đó. Như vậy, ta có thể phân cụm dữ liệu dựa vào SHAP score. Việc phân cụm này cho phép diễn giải bài toán tiên lượng trong một không gian 2 chiều: trong mẫu dữ liệu hiện hành có những mô thức phân bố nào về vai trò của các biến ?
+
+Sau đây là kết quả khi phân dữ liệu train_set thành 4 cụm, ta nhận thấy mỗi cụm có mô thức phân bố khác nhau của SHAP score.
+
+```{r,cache =T}
+plot_data <- shap.prep.stack.data(shap_contrib = shap_values$shap_score, 
+                                  top_n = 7, 
+                                  n_groups = 4)
+
+shap.plot.force_plot(plot_data, 
+                     zoom_in_location = 500,
+                     y_parent_limit = c(-0.1,0.1))
+
+shap.plot.force_plot_bygroup(plot_data)
+```
+
+Chú thích: 4 biểu đồ trên trình bày mô thức phân bố của SHAP score trong 4 cụm. Trục x tương ứng cho cá thể bệnh nhân, trục y là giá trị SHAP score, các biến khác nhau được tô màu riêng, và ở đây chỉ khảo sát 7 biến quan trọng nhất.
+
+## Bàn luận: 
+
+### Ưu điểm và nhược điểm của mô hình XGboost
+
+Mô hình XGboost có nhiều ưu điểm đáng quan tâm bao gồm tính linh hoạt cao với các dạng dữ liệu khác nhau, khả năng xử lý các tập dữ liệu lớn, độ chính xác cao và tốc độ tính toán nhanh. 
+
+Đầu tiên, nó có tính linh động và phổ quát rất cao. Mô hình XGboost có khả năng tiếp nhận dữ liệu đầu vào có cấu trúc phức tạp, kích thước lớn: không hạn chế số lượng biến (thậm chí cho các bài toán trên dữ liệu genomics với hàng trăm, hàng ngàn biến số), xử lý được dữ liệu hỗn hợp (gồm cả biến định lượng, định tính nhị phân hay rời rạc...). Vì dựa trên mô hình cây, thuật toán XGboost cũng dung hợp dễ dàng với mọi vấn đề về dữ liệu - mà mô hình tuyến tính bình thường không có khả năng xử lý - như những giá trị cực độ (outliers, extreme values), hiện tượng các biến tương quan lẫn nhau (co-linearity). Ta cũng không cần phải chuẩn hóa thang đo và đơn vị đo nhưng có thể giữ nguyên định dạng ban đầu của dữ liệu. Ngoài ra, XGBoost cũng có khả năng xử lý các tình huống với nhiều thuộc tính và giá trị bị thiếu (missing values) một cách hiệu quả.
+
+Ưu điểm thứ hai là độ chính xác và tính ổn định. XGboost có hiệu năng rất mạnh mẽ và điều này đã được chứng thực qua những cuộc thi đấu mà mục tiêu là tìm ra mô hình tiên lượng chính xác nhất trong nhiều bài toán bao gồm y học lâm sàng. XGboost luôn chiến thắng và là mô hình mạnh vô địch cho dạng dữ liệu có cấu trúc (bảng tính). 
+
+Cuối cùng, thuật toán XGboost được tối ưu về hiệu suất tính toán, nên có tốc độ huấn luyện và thi hành rất nhanh. Điều này khá quan trọng khi bạn làm việc với dữ liệu lớn. 
+
+Tuy nhiên, XGBoost cũng có một số hạn chế, bao gồm cấu trúc phức tạp và đòi hỏi nhiều kinh nghiệm trong việc tinh chỉnh các tham số. Mô hình cũng có nguy cơ cao bị overfitting (quá khớp với dữ liệu hiện thời dẫn đến hoạt động kém hiệu quả trên dữ liệu mới) nếu không được tinh chỉnh đúng cách.
+
+### Ưu điểm và nhược điểm của kỹ thuật SHAP
+
+Phương pháp diễn giải mô hình dùng Shapley score có nhiều ưu điểm. Nó gần như thỏa mãn tất cả những tiêu chí về khả năng diễn giải mô hình:
+
++ Tiêu chí về tính hiệu quả: điểm số Shapley cho phép đo lường chính xác mức độ đóng góp của mỗi biến X, mức đóng góp này tương ứng với sai biệt giữa 2 kết quả tiên lượng khi có X tham gia so với giá trị tiên lượng cơ bản (trung bình) của mô hình khi không có X tham gia.
+
++ Tính đối xứng : 2 giá trị $x=j$ và $x=k$ sẽ nhận điểm Shapley như nhau nếu chúng đóng góp bằng nhau qua tất cả những tổ hợp đội nhóm có thể 
+
++ Tính vô hiệu: Một giá trị biến $x=j$ không có đóng góp nào cả vào kết quả tiên lượng sẽ nhận giá trị Shapley = 0
+
++ Tiêu chí cộng tính: cho trường hợp mô hình là tập hợp của nhiều đơn vị mô hình nhỏ hơn (thí dụ mô hình XGBoost như hiện thời), ta có một trò chơi mà điểm thưởng được tổng kết từ nhiều trò chơi nhỏ hơn (mỗi đơn vi mô hình cây quyết định), khi đó điểm Shapley tổng kết cho mô hình lớn là trung bình từ tổng số điểm từ các đơn vị mô hình nhỏ hơn.
+
++ So với những phương pháp diễn giải mô hình khác chỉ diễn giải cục bộ tại một vùng trong không gian dữ liệu, kỹ thuật SHAP ưu thế hơn khi đảm bảo sự phân bố đồng nhất của sai biệt giữa một giá trị tiên lượng bất kì và giá trị tiên lượng trung bình, nói cách khác, cho phép chúng ta diễn giải một cách đáng tin cậy và phổ quát cho mọi trường hợp khi áp dụng mô hình trên thực tế. Tính chất này có thể quan trọng về mặt pháp lý hoặc y đức, khi mô hình tiên lượng trong y học được yêu cầu phải có khả năng diễn giải được và kết quả diễn giải phải đáng tin cậy.
+
++ Phương pháp SHAP còn có khả năng diễn giải linh động, khi không chỉ so sánh 1 giá trị tiên lượng cá thể với giá trị tiên lượng trung bình cho toàn bộ tập dữ liệu, mà còn cho phép so sánh với kết quả một phân nhóm nhỏ hơn, thậm chí với một cá thể khác. 
+
++ Giá trị của SHAP score cũng nhất quán giữa các phiên bản mô hình khác nhau, thí dụ nếu sự thay đổi nội dung của mô hình B từ mô hình A dẫn đến thay đổi về vai trò của biến X trong mô hình B (tăng hoặc giảm), thì SHAP score cho biến X cũng sẽ tăng hoặc giảm tương ứng.
+
+Để ước lượng điểm Shapley cho một biến số, ta phải có dữ liệu gồm toàn bộ biến số còn lại. Tuy nhiên phương pháp SHAP được cải tiến cho phép diễn giải được mô hình khi thiếu sót dữ liệu, cho một cá thể bất kì, những biến số bị thiếu dữ liệu đơn giản sẽ được xem là không tham gia vào trò chơi tiên lượng và nhận giá trị = 0 trong vector đội nhóm. Khi trình bày kết quả, SHAP cho phép lựa chọn báo cáo một số ít những biến quan trọng nhất và có thể gộp các biến còn lại thành một nhóm riêng.  
+
+### Diễn giải cơ chế hoạt động của mô hình ở cấp độ cá thể:
+
+Vì SHAP score ước tính đến cấp độ cá thể, nó mở ra một cơ hội chưa từng có trong thống kê cổ điển, đó là khả năng diễn giải được vai trò đóng góp của mỗi thông số sinh lý bệnh vào kết cục lâm sàng cho riêng từng cá thể. Bằng cách này ta đang tiến rất gần đến ứng dụng "Y học cá thể".
+
+Thực vậy, trong thống kê cổ điển, diễn giải một mô hình thực chất chỉ có ý nghĩa tổng quát (ở cấp độ quần thể) nhưng không thể áp dụng được cho từng cá thể riêng biệt. Thí dụ, dựa vào mô hình logistic, ta thường diễn giải vai trò của một yếu tố nguy cơ theo kiểu : Sự hiện diện của yếu tố X này làm tăng nguy cơ mắc bệnh Y gấp 2-3 lần so với những người không có X, hoặc : mỗi đơn vị gia tăng của biomarker X sẽ làm tăng nguy cơ hiện diện bệnh lý Y từ 2 đến 3 lần.Sự diễn giải mang tính chất chung chung này tuy cũng hữu ích (nó cho phép xác định được yếu tố nguy cơ, định lượng được nguy cơ) từ đó đưa ra quy tắc về phòng ngừa, trị liệu, chẩn đoán …), tuy nhiên cách làm này có những giới hạn vì mỗi biến số được diễn giải độc lập với những biến số còn lại, với giả định là giá trị của chúng giữ nguyên. Giả định này phi lý, vì nếu các biến thực sự là những biến độc lập, và ngẫu nhiên, mỗi cá thể có thể là một tổ hợp ngẫu nhiên từ bất cứ giá trị nào cho từng biến, cũng như rất khó ước lượng hiệu quả can thiệp trị liệu lên từng yếu tố riêng lẻ.
+
+Trong thí dụ minh họa sau đây, ta có thể trình bày giá trị SHAP score để giải thích tại sao mô hình cho ra kết quả tiên lượng positive cho một trường hợp có kết quả tiên lượng thụ thai thành công:
+
+```{r, cache =T}
+library(shapviz)
+
+shaps <- shapviz(fit_xgb,
+                X_pred = X_test)
+
+sv_force(shaps, row_id = 150)
+sv_waterfall(shaps, row_id = 150)
+```
+
+Biểu đồ này tái hiện lại tiến trình "trò chơi" diễn ra với sự gia nhập và hiệp đồng lần lượt giữa các "người chơi" (biến số) và điểm số chúng ghi được. Cho trường hợp này, ban đầu khi không có thông tin nào cả, SHAP score cơ bản = -0.133, sau khi có thông tin của 7 biến số đầu tiên SHAP score tăng thêm 0.116, kích thước blastocyte = 3 làm tăng SHAP score thêm 0.23, tuổi phôi ngày 5 ghi điểm 0.249, cuối cùng AFC = 7 ghi thêm 0.324 điểm. Điểm tổng cộng của toàn đội là 1.13
+
+Tương tự, ta giải thích được sự đóng góp của từng thông số cho một trường hợp có kết quả tiên lượng thụ thai thất bại:
+
+```{r,cache =T}
+sv_force(shaps, row_id = 20)
+sv_waterfall(shaps, row_id = 20)
+```
+
+Khả năng diễn giải một mô hình tiên lượng cho từng cá thể, đặc biệt là trên cá thể hoàn toàn mới (chưa từng có trong dữ liệu gốc dùng để dựng mô hình) cho phép giải quyết nhiều câu hỏi thú vị về thực hành lâm sàng, thí dụ :
+
++ Quy luật chẩn đoán trong y văn liệu có chính xác/phù hợp cho bệnh nhân mới này không ?
+
++ Nếu có, tôi muốn biết vai trò/ảnh hưởng của từng yếu tố nguy cơ/bệnh cảnh của cá thể này đã làm ảnh hưởng chẩn đoán/tiên lượng kết cục ?
+
++ Bệnh nhân muốn biết dựa vào chứng cứ nào mô hình đã tiên lượng ra kết cục như vậy ?
+
++ Người bác sĩ cần đưa ra bằng chứng định lượng để biện luận về quyết định chẩn đoán/trị liệu với trưởng khoa và đồng nghiệp
+
++ Người bác sĩ muốn biết nên ưu tiên can thiệp vấn đề nào cho bệnh nhân này để đảo ngược nguy cơ thất bại ?, dựa theo mô hình đã được sử dụng ?
+
++ Nếu mô hình phạm sai lầm cho bệnh nhân này, ta muốn biết lý do vì sao ? Bộ phận (biến số) nào trong mô hình đã gây ra sai lầm này ? Hiệu ứng của mỗi biến có phù hợp với quy luật sinh lý/sinh lý bệnh hay không ?
+
++ Khi gặp một trường hợp đặc biệt khó chẩn đoán/tiên lượng, và mô hình trong y văn đều cho ra kết quả ở ranh giới nghi ngờ. Tương tự, khi gặp một trường hợp kì lạ mà mô hình cho ra kết quả tiên lượng positive trong khi bệnh cảnh lâm sàng không điển hình, người bác sĩ muốn kiểm tra vì sao và báo cáo điều này thành case report. (Cần lưu ý rằng cho đến nay, mặc định là case study và case report không có phân tích thống kê nào được làm cả).
+
+## Kết luận
+
+Thông qua thí nghiệm trong chương này, tuy không thành công cho mục tiêu lập ra một quy luật tiên lượng, nhưng ta có cơ hội khám phá phương pháp Machine learning khả diễn, là cách tiếp cận mới và lý thú cho bài toán diễn giải về mối liên hệ giữa các thông số và kết cục lâm sàng. Ta nhận ra rằng phương pháp machine learning khả diễn cho phép sử dụng bất cứ loại mô hình nào làm công cụ suy diễn thống kê, thay thế hiệu quả cho các công cụ thống kê truyền thống.
+
+## Thông điệp rút gọn làm hành trang
+
+(1) Machine learning khả diễn là một giải pháp hiệu quả cho cả hai mục tiêu nghiên cứu tiên lượng và diễn dịch, có thể thay thế cho cách tiếp cận truyền thống bằng mô hình hồi quy tuyến tính.
+
+(2) Kỹ thuật SHAP có nhiều ưu điểm về khả năng diễn giải, nhất là việc diễn giải ở cấp độ cá thể là bước tiến quan trọng hướng đến ứng dụng y học cá thể và y học chính xác. 
