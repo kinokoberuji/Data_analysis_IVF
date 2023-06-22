@@ -1,13 +1,5 @@
 # Khảo sát biến số liên tục: Mô hình hồi quy Gamma
 
-## Giới thiệu
-
-Ta sẽ khởi hành bằng một vấn đề thường gặp trong nghiên cứu y học lâm sàng, đó là bài toán so sánh giá trị một đại lượng giữa nhiều phân nhóm độc lập. Trong nghiên cứu hỗ trợ sinh sản, bài toàn này được đặt ra khi đối tượng khảo sát là các loại hormone như AMH, LH, FSH, E2... được định lượng ở điều kiện cơ bản hoặc tại một thời điểm trong quá trình can thiệp, và thiết kế nghiên cứu nhằm so sánh giữa nhiều loại phác đồ can thiệp hoặc các phân nhóm lâm sàng khác nhau.
-
-Giải pháp thường quy chúng ta hay dùng là phân tích phương sai một yếu tố (đơn biến) (One-way ANOVA). Tuy nhiên, ANOVA cổ điển lại dựa trên điều kiện giả định về tính chất phân phối chuẩn của dữ liệu và giả định này hiếm khi nào phù hợp với thực tiễn, vì hầu hết những đại lượng y sinh học trong tự nhiên đều có phân phối lệch dương.
-
-Trong chương này, các bạn sẽ được giới thiệu về một giải pháp linh hoạt và phổ quát hơn cho bài toán so sánh giá trị trung bình của biến định lượng giữa nhiều phân nhóm độc lập, đó là mô hình tuyến tính tỗng quát (Generalized linear model, GLM) với phân phối Gamma.
-
 ## Bối cảnh của thí nghiệm
 
 Thí dụ minh họa sử dụng dataset "Five_protocols.csv" từ một nghiên cứu có thực trên 1005 phụ nữ được thực hiện thụ tinh nhân tạo. Mục tiêu đặt ra là khảo sát giá trị hormone LH ở ngày trigger (biến LH) giữa 5 loại phác đồ kích thích buồng trứng (biến Protocol), gồm: 
@@ -23,15 +15,10 @@ Thí dụ minh họa sử dụng dataset "Five_protocols.csv" từ một nghiên
 Quy trình phân tích cần những công cụ sau đây:
 
 + Hệ sinh thái tidyverse [@tidyverse]: với thư viện ggplot2 cho đồ họa thống kê và dplyr để thao tác dữ liệu
-
 + Thư viện ggridges [@ggridges]: để vẽ biểu đổ mật độ phân phối riêng cho từng phân nhóm (ggplot2 cơ bản không hỗ trợ loại biểu đồ này).
-
 + Thư viện fitdistrplus [@fitdistrplus] cho phép kiểm tra tính phù hợp giữa dữ liệu thực nghiệm và một quy luật phân phối xác suất lý thuyết, như Gaussian hoặc Gamma.
-
 + Thư viện gamlss [@gamlss1]: cho phép khớp các mô hình hồi quy cho nhiều họ phân phối khác nhau, bao gồm Gamma.
-
 + Thư viện broom [@broom]: cho phép thao tác trên kết quả mô hình hồi quy gamlss.
-
 + Thư viện marginaleffects [@marginal]: dùng cho phân tích hậu kiểm (post-hoc analysis) trên kết quả mô hình hồi quy gamlss
 
 ```{r,message = FALSE,warning=FALSE}
@@ -51,16 +38,6 @@ library(marginaleffects)
 
 ## Chuẩn bị dữ liệu
 
-Dữ liệu được lưu ở định dạng .csv với dấu ngăn cách là ";" và dấu thập phân là "."
-
-1) Ta dùng hàm read.csv để tải dữ liệu vào R và lưu trong dataframe df.
-
-2) Dùng hàm na.omit() để loại bỏ những đơn vị quan sát bị thiếu sót dữ liệu (missing value)
-
-3) Chuyển Protocol từ 1 biến kiểu kí tự (character) thành factor, để tương thích với quy trình phân tích.
-
-Dữ liệu đầu vào có cấu trúc gồm 1 biến kết quả (LH) thuộc loại định lượng liên tục (kiểu dữ liệu double, numeric, int) và 1 biến phân nhóm (Protocol) thuộc loại định tính rời rạc (định dạng character hoặc factor). Lưu ý, phân phối Gamma có miền xác định là tập số thực dương R+, nên trong dữ liệu, giá trị biến kết quả (LH) không được có giá trị < 0 hoặc = 0.
-
 ```{r,message = FALSE,warning=FALSE}
 df <- read.csv('Five_protocols.csv', 
                sep = ';', 
@@ -72,49 +49,10 @@ df$Protocol = as.factor(df$Protocol)
 df%>%sample_frac(0.1)%>%head()%>%knitr::kable()
 ```
 
-Một cách mặc định, biến rời rạc loại factor sẽ được phân cấp theo thứ tự alphabet, mỗi bậc giá trị sẽ tương ứng với số thứ tự. Trong trường hợp này, thứ tự các loại protocol là:
-
-1 = Fol_long (sẽ được xem là nhóm tham chiếu khi phân tích hồi quy)
-
-2 = GnRH_ant
-
-3 = Lut_short
-
-4 = Mild
-
-5 = PPOS
-
 ```{r}
 levels(df$Protocol)
 ```
-
-## Kế hoạch phân tích
-
-Một quy trình phân tích gồm 4 bước sẽ được tiến hành nhằm giải đáp câu hỏi nghiên cứu đã đặt ra:
-
-1) Đặc tính phân bố của giá trị LH ở 5 nhóm phác đồ sẽ được mô tả bằng trung bình, độ lệch chuẩn, trung vị và bách phân vị 5-95, đồng thời trình bày trực quan bằng biểu đồ mật độ phân bố (Kernel density plot) hoặc Boxplot, violin plot.
-
-2) Dữ liệu LH sẽ được khớp lần lượt với 2 quy luật phân phối Gamma và Gaussian, sau đó đối chiếu đồ thị hàm PDF và CDF để xác nhận tính phù hợp tốt hơn của phân phối Gamma so với Gaussian.
-
-3) Mô hình hồi quy tuyến tính tổng quát với phân phối Gamma sẽ được áp dụng để khảo sát giá trị trung bình LH giữa 5 phác đồ.
-
-4) Hậu kiểm so sánh bắt cặp tuần tự nhằm kiểm tra một loạt giả định về sự khác biệt của giá trị LH giữa các nhóm phác đồ.
-
-Suy diễn thống kê dựa trên kiểm định giả thuyết vô hiệu với ngưỡng ý nghĩa thống kê p = 0.05. Hiệu chỉnh Bonferroni được áp dụng khi kiểm tra hàng loạt giả định.
-
 ## Phân tích mô tả
-
-Mục tiêu của công đoạn này nhằm thăm dò và mô tả sơ khởi về đặc tính phân phối của LH giữa các nhóm phác đồ khác nhau. Nhận định rút ra từ phân tích mô tả này cho phép đặt ra những giả thuyết cần chứng minh và đề xuất hướng phân tích phù hợp.
-
-**1) Dựng bảng thống kê mô tả**
-
-+ Ta sử dụng hàm group_by của thư viện dplyr để phân chia dữ liệu thành 5 phần, tương ứng 5 bậc giá trị của biến Protocol 
-
-+ Áp dụng hàm summarize của thư viện dplyr để tính mean, sd, median, p5, p95, min và max của LH cho mỗi nhóm nhỏ
-
-+ Dùng hàm arrange của dplyr để xếp thứ tự theo giá trị trung bình LH tăng dần
-
-Kết quả như sau:
 
 ```{r}
 df%>% 
@@ -131,30 +69,6 @@ df%>%
     arrange(mean)%>%
     knitr::kable(digits = 3)
 ```
-
-Theo kết quả này, có sự khác biệt về giá trị LH trung bình giữa 5 phác đồ. Một cách cụ thể, LH trung bình có khuynh hướng tăng dần theo thứ tự:
-
-Fol_long < Short < PPOS < GnRH_ant < Mild
-
-**2) So sánh trực quan bằng biểu đồ**
-
-Ta sẽ sử dụng 2 loại biểu đồ cho phép so sánh đặc điểm phân bố của LH giữa 5 phác đồ, đó là biểu đồ mật độ phân phối 1 chiều (density plot) hoặc biểu đồ hộp (boxplot).
-
-Đầu tiên, ta tạo dataframe med_df trình bày giá trị trung bình của LH giữa 5 phân nhóm, sử dụng kết hợp 2 hàm group_by và summarize_at. Dataframe này sẽ được dùng để vẽ biểu đồ tuyến kí và định vị trung bình LH cho mỗi nhóm.
-
-Tiếp theo, ta lần lượt dùng các hàm:
-
-+ geom_density_ridges (data = df) để vẽ 5 biểu đồ density plot cho LH ở 5 nhóm, màu nền theo nhóm phác đồ. Lưu ý rằng hàm geom_density_ridges mặc định trục x = biến định lượng, y = phân nhóm.
-
-+ geom_path cho med_df để vẽ biểu đồ tuyến kí nối các điểm giá trị LH trung bình;
-
-+ geom_point cho med_df để chấm 5 điểm giá trị LH trung bình
-
-Lưu ý rằng trục X luôn là LH, y luôn là Protocol cho 3 hàm trên
-
-Sau đó, dùng hàm coord_flip() để xoay trục 90°, như vậy trục x và y sẽ hoán chuyển cho nhau, hình ảnh sẽ biểu diễn theo chiều dọc thay vì chiều ngang.
-
-Hàm scale_x_continuous cho phép tùy chỉnh thang đo trục X, ở đây giới hạn limits từ -0.5 đến 40, mốc thang đo 5 đon vị
 
 ```{r,message = FALSE,warning=FALSE}
 med_df = df %>% 
@@ -190,11 +104,6 @@ ggplot()+
   labs(x = 'LH level (mIU/mL)', y = 'Protocols')+
   theme_bw(10)
 ```
-Kết quả thu được là 5 biểu đồ mật độ phân bố như trong hình. Các biểu đồ này có bản chất là đồ thị hàm probability desity (PDF) của biến LH, trục Y tương ứng với thang đo của LH). Chúng mô tả đặc tính phân phối của LH trong 5 nhóm phác đồ (trục X). Các chấm màu đen tương ứng với giá trị trung bình LH ở mỗi nhóm, được nối với nhau bằng các đoạn thẳng thể hiện khuynh hướng tăng/giảm của giá trị này. Lưu ý rằng thứ tự phân nhóm được xếp theo chiều tăng dần của LH trung bình. 
-
-Dựa vào hình ảnh này, ta có thể rút ra được hai thông tin: thứ nhất, có sự khác biệt rõ nét, không chỉ về giá trị trung bình nhưng còn về đặc tính phân phối của LH, thí dụ độ phân tán, độ lệch... giữa 5 nhóm. Thứ hai là ở mỗi phân nhóm, LH chắc chắn không thể phù hợp với quy luật phân phối chuẩn (Gaussian). Phân phối của LH không đối xứng, thậm chí có độ lệch rất cao ở các nhóm GnRh_ant, Mild và PPOS.
-
-Ta có thể làm tương tự để tạo ra biểu đổ boxplot, chỉ cần thay hàm geom_density_ridges bằng hàm geom_boxplot. Lưu ý rằng với dạng biểu đồ boxplot mặc định thì trục x chỉ Protocol, còn trục y cho LH, ta vẫn dùng hàm  coord_flip() để xoay trục, trình bày theo phương ngang, vì khả năng so sánh bằng thị giác sẽ tốt hơn theo chiều ngang so với chiều dọc.
 
 ```{r}
 ggplot()+
@@ -221,19 +130,8 @@ ggplot()+
   coord_flip()+
   theme_bw(10)
 ```
-Biểu đồ boxplot trình bày các trị số thống kê mô tả đại diện gồm trung vị, tứ phân vị (phân vị thứ 25, 50, 75), các chấm tròn nhỏ là những giá trị vượt ra khỏi khoảng tứ phân vị. Chấm màu đen lớn nhất là vị trí của trung bình. Tuy không mô tả hình ảnh của toàn thể mật độ phân phối, biểu đồ Boxplot vừa đủ để cho ta thấy cùng những thông tin về sự tương phản rõ nét giữa 5 phân nhóm, ta cũng cảm nhận được LH không có phân phối chuẩn (trung vị không trùng với trung bình, 2 đầu boxplot không cân xứng, những giá trị cao lệch hẳn về chiều dương của thang đo LH...).
 
 ## Biện luận về tính phù hợp của phân phối Gamma
-
-Mục tiêu của công đoạn này nhằm chứng minh rằng để ước lượng giá trị LH thì phân phối Gamma phù hợp hơn so với phân phối Gaussian. Điều này có thể cần thiết khi bạn phải thuyết phục những đồng nghiệp khác trong nhóm nghiên cứu về lựa chọn phương pháp của mình. Nội dung này cũng có thể được đưa vào phần phụ lục (Supplemental data) trong bài báo khoa học.
-
-Về mặt lý thuyết, ta hoàn toàn có thể chọn quy luật phân phối Gamma cho biến LH vì những lý do sau: Thang đo LH có giá trị >0, phân phối của LH có hình ảnh bất đối xứng và lệch dương. 
-
-Tuy nhiên, ta có thể dựa vào chứng cứ xác thực hơn bằng quy trình sau:
-
-1) Đầu tiên, ta dùng hàm fitfist để lần lượt khớp dữ liệu LH với 2 quy luật phân phối Gaussian và Gamma, 
-
-2) Sau đó đối chiếu hình ảnh đồ thị hàm PDF và CDF so với dữ liệu thực nghiệm, bằng 2 hàm denscomp và cdfcomp:
 
 ```{r,message = FALSE,warning=FALSE}
 fit_gam = fitdist(df$LH, 'gamma', optim.method = 'BFGS')
@@ -249,7 +147,6 @@ denscomp(list(fit_gauss, fit_gam),
   labs(x = 'LH on trigger day (mUI/mL)')+ 
   theme_bw()
 ```
-Chú thích: Biểu đồ trên cho phép đối chiếu đồ thị hàm PDF (mật độ xác suất) của 2 phân phối Gaussian (màu xanh), Gamma (màu đỏ) với hình ảnh biểu đồ tần suất trên thực nghiệm (màu xám).
 
 ```{r,message = FALSE,warning=FALSE}
 cdfcomp(list(fit_gauss, fit_gam), 
@@ -261,31 +158,7 @@ cdfcomp(list(fit_gauss, fit_gam),
   labs(x = 'LH on trigger day (mUI/mL)')+ 
   theme_bw()
 ```
-Chú thích: Biểu đồ trên cho phép đối chiếu đồ thị hàm CDF (mật độ xác suất tích lũy) của 2 phân phối Gaussian (màu xanh), Gamma (màu đỏ) với hàm CDF trên thực nghiệm (màu xám).
-
-Cả 2 kết quả này đều cho thấy phân phối Gamma thích hợp hơn so với phân phối Gaussian để ước lượng giá trị LH, vì hàm PDF và CDF của phân phối Gamma phù hợp hơn với dữ liệu thực nghiệm.
-
-Lợi ích của việc chọn quy luật phân phối đúng cho biến kết quả mô hình hồi quy, đó là nó cho phép ước lượng và suy luận thống kê chính xác hơn, phù hợp thực tế hơn. Vì suy luận thống kê của chúng ta dựa vào mô hình hồi quy, mà mô hình này nhằm ước lượng giá trị trung bình của LH tại mỗi phân nhóm, vị trí trung bình của phân phối Gamma và Gaussian có thể khác nhau dẫn đến kết quả hiệu ứng tìm được cao hơn hay thấp hơn so với thực tế. Ngoài ra, phân phối Gaussian không có giới hạn về giá trị biến kết quả (nó dao động tự do trong tập R), nên mô hình hoàn toàn có thể cho ra kết quả <0 là trái với hiện thực.
-
 ## Dựng mô hình hồi quy với phân phối Gamma
-
-Như đã trình bày trong kế hoạch phân tích, công cụ thống kê chính mà ta sử dụng là một mô hình hồi quy tuyến tính tổng quát (GLM) [@nelder1972]. Hệ thống mô hình GLM do 2 nhà thống kê John Nelder và Robert Wedderburn thiết lập vào năm 1972 cho phép ước lượng giá trị của biến kết quả theo nhiều quy luật phân phối đa dạng.
-
-Một cách tổng quát, mô hình GLM ước lượng giá trị trung bình (tham số $\mu$) của biến ngẫu nhiên Y, điều kiện hóa theo một tập biến X thông qua một hàm liên kết $g$ và một mô hình hồi tuyến tính $X\beta$.
-
-$$E(Y|X) = \mu_{Y} \sim g^{-1}(X\beta)$$
-Trong bài toán hiện thời, biến kết quả Y là giá trị của LH ngày trigger, được giả định là một biến ngẫu nhiên theo quy luật phân phối Gamma [@rigby2020] với 2 tham số $\mu$ và $\sigma$
-
-Hàm mật độ phân phối (PDF) của phân phối Gamma được xác định như sau:
-
-$$f(y|\mu ,\sigma)=\frac{1}{\left ( \sigma ^{2} \mu \right )^{1/\sigma^{2}}}\frac{y^{\frac{1}{\sigma ^{2}}-1}e^{-y/(\sigma ^{2}\mu )}}{\Gamma \left ( 1/\sigma^{2} \right )}$$
-$\mu$ có ý nghĩa như trọng tâm (central tendency) hay giá trị trung bình của biến kết quả cần ước lượng, còn giá trị của $\sigma$ tương ứng với mức độ phân tán và xác định hình ảnh của hàm mật độ phân phối. Một khi có mu và sigma, có thể ước tính độ lệch chuẩn (và phương sai) của LH theo công thức:
-
-$$SD = \sigma * \mu$$
-
-Phân tích hồi quy Gamma dùng thư viện gamlss [@stasinopoulos2017]. Đầu tiên, ta khớp một mô hình hồi quy Gamma chỉ chứa Intercept. Mô hình này tương ứng với việc ước lượng giá trị trung bình của LH cho toàn bộ mẫu khảo sát, không phân biệt nhóm phác đồ nào.
-
-Ta dùng hàm gamlss, với công thức formula = LH ~ 1, và family = GA 
 
 ```{r, results='hide'}
 # Mô hình chỉ có intercept
@@ -298,28 +171,13 @@ m0 = gamlss(formula = LH ~ 1,
              ncpus = nC)
 ```
 
-Ta sẽ dùng mô hình cơ bản này để làm tham chiếu và so sánh với mô hình chính trong phân tích, nhằm chứng minh rằng yếu tố chia nhóm theo phác đồ thực sự có ảnh hưởng đến giá trị trung bình LH.
-
-Nội dung mô hình cơ bản (chỉ chứa Intercept, ước lượng LH trung bình cho toàn quần thể) có nội dung như sau:
-
 ```{r}
 summary(m0)
 ```
-gamlss dựng 2 mô hình hồi quy riêng cho $\mu$ và $\sigma$, cả 2 mô hình đều sử dụng hàm liên kết là logarit, vì vậy thang đo của các hệ số hồi quy hiện thời là log(LH), để đưa về thang đo nguyên thủy (mUI/mL) ta phải dùng hàm exponential.
-
-Mô hình thứ nhất cho biết giá trị trung bình của LH cho toàn quần thể $\mu = exp(1.49042) = 4.438959$ 
-
-Ta có thể đối chiếu với kết quả ước lượng từ dữ liệu thực nghiệm, và thấy rằng Intercept của mô hình m0 cơ bản rất phù hợp với giá trị trung bình của LH
 
 ```{r}
 mean(df$LH)
 ```
-
-2) Tiếp theo, ta dựng một mô hình khác với 1 biến độc lập là phân nhóm Protocol. Mô hình này cho phép ước lượng giá trị trung bình LH ở 5 phân nhóm Protocol khác nhau, hay nói cách khác, khảo sát liên hệ giữa biến protocol và giá trị trung bình LH (hay hiệu ứng của Protocol đối với giá trị trung bình của LH).
-
-$$\mu_{LH} \sim \beta_0*Long + \beta_1*GnRHant + \beta_2*Short + \beta_3*Mild + \beta_4*PPOS$$
-
-Mô hình này có công thức cho tham số chính (trung bình của phân phối Gamma) là LH ~ Protocol; và cho tham số sigma: sigma.formula = ~ Protocol.
 
 ```{r, results='hide'}
 # Mô hình ANOVA 1 biến
@@ -333,17 +191,9 @@ m1 = gamlss(formula = LH ~ Protocol,
             ncpus = nC)
 ```
 
-Ở đây ta ước lượng đồng thời cả 2 tham số của phân phối Gamma là mu (trung bình) và sigma (tham số kiểu hình) theo biến Protocol. Vì ta không chỉ quan tâm đến việc Protocol sẽ làm thay đổi giá trị trung bình LH (trọng tâm của phân phối Gamma, tham số $\mu$), mà còn muốn biết liệu phân loại Protocol có tác động gây thay đổi hình ảnh (độ phân tán, độ lệch) của phân phối Gamma (tham số $\sigma$) hay không ?
-
-Nội dung của mô hình chính (ước lượng LH theo phác đồ) có nội dung như sau
-
 ```{r}
 summary(m1)
 ```
-
-Mô hình m1 này cho phép ước lượng giá trị trung bình của LH ở mỗi phân nhóm Protocol. Lưu ý rằng phác đồ Fol_long được chọn làm tham chiếu, vì vậy Intercept trong mô hình tương ứng với trung bình của log(LH) trong phân nhóm Protocol = Fol_long.
-
-Ta có thể đối chiếu với kết quả thống kê mô tả ban đầu:
 
 ```{r}
 df%>% 
@@ -351,36 +201,9 @@ df%>%
   summarize('mean' = mean(LH)) %>% knitr::kable()
 ```
 
-exp(Intercept) tương ứng với trung bình của LH trong phác đồ Follicular long acting, đơn vị mUI/mL: $exp(0.31235) = 1.366633$, ta thấy giá trị này tương đồng với kết quả mean LH ở nhóm Fol_Long
-
-Giá trị trung bình LH nhóm GnRH_ant được tính bằng : exp(Intercept + ProtocolGnRH_ant): $exp(0.31235 + 1.73978) = 7.784464$ 
-...
-
-Cứ thế, ta có thể ước lượng được trung bình của log(LH) hoặc LH ở cả 5 phân nhóm.
-
-## Suy diễn thống kê từ mô hình GLM-Gamma
-
-Dựa vào 2 mô hình tuyến tính tổng quát này, ta có thể thực hiện một số suy diễn thống kê như sau:
-
-Đầu tiên, khi so sánh mô hình chỉ chứa intercept và mô hình có thêm biến Protocol bằng một kiểm định Likelihood ratio, ta có thể biết liệu phân nhóm phác đồ thực sự có hiệu ứng ý nghĩa đối với LH hay không ? (câu hỏi này tương tự với kiểm định F theo Fisher trong phân tích phương sai cổ điển)
-
 ```{r}
 LR.test(m0,m1)
 ```
-
-Kết quả cho ra một giá trị p cực kì thấp, như vậy ta có thể khẳng định rằng phân nhóm phác đồ thực sự có tác động làm thay đổi LH.
-
-Nói cách khác, có sự khác biệt ý nghĩa về giá trị LH giữa các nhóm phác đồ khác nhau. Tuy nhiên ta chưa thể biết rõ sự khác biệt này là ở nhóm nào so với nhóm nào. 
-
-Nội dung hệ số hồi quy trong mô hình cho phép ta kiểm định về sự khác biệt của LH trung bình ở phác đồ PPOS, GnRH, Luteal short acting và Mild (Letrozole) so với nhóm tham chiếu là Follicular long acting. 
-
-Dựa vào kết quả thô của mô hình, có thể thấy tất cả hệ số hồi quy đều >0 và có ý nghĩa thống kê, cho thấy giá trị trung bình LH ở 4 phác đồ còn lại đều cao hơn so với phác đồ tham chiếu (Longacting).
-
-Tuy nhiên, ta sẽ không suy diễn trực tiếp dựa vào hệ số hồi quy, mà tiến hành một phân tích hậu kiểm với nội dung so sánh bắt cặp tuần tự giữa 5 loại phác đồ. Trong khi làm thống kê mô tả, ta có cảm nhận về khuynh hướng tăng dần của giá trị LH trung bình theo thứ tự: Fol_long < Short <  PPOS < GnRH_ant < Mild
-
-Ở đây ta sẽ kiểm tra lại kết quả này. Để tiến hành phân tích hậu kiểm, ta dùng hàm avg_comparisons của thư viện marginalseffect với tùy chỉnh variables = list(Protocol = 'pairwise'), sau đó hiệu chỉnh giá trị p bằng hàm p.adjust trong R, với phương pháp hiệu chỉnh Bonferroni.
-
-Kết quả của hàm này là một bảng như sau:
 
 ```{r}
 pw_comp = avg_comparisons(m1,
@@ -394,22 +217,6 @@ pw_comp %>%
   dplyr::select(-c(1,2,6,7))%>%
   knitr::kable(digits = 3)
 ```
-
-Cột contrast trình bày các cặp so sánh mà ta cần kiểm nghiệm, thí dụ GnRH_ant - Fol_long;
-
-Cột estimate trình bày giá trị khác biệt trung bình về LH giữa 2 nhóm phác đồ, thí dụ GnRHant cao hơn Long acting 6.4178 mUI/mL.
-
-2 cột conf.low	conf.high	trình bày ngưỡng dưới và trên khoảng tin cậy 95% của khác biệt, KTC95% có ý nghĩa thống kê khi không chứa giá trị 0.
-
-Cột adj_p trình bày giá trị p sau hiệu chỉnh Bonferroni, 
-
-Kết quả cho thấy toàn bộ 10 giả thuyết đều có ý nghĩa thống kê. Một cách tổng quát, giá trị LH trung bình tăng dần theo thứ tự 5 phác đồ:
-
-Fol_long < Short < PPOS < GnRH_ant < Mild
-
-Như vậy phác đồ Mild stimulation với Letrozole có LH trung bình ngày trigger cao nhất, phác đồ Follicular long acting có LH trung bình thấp nhất, phác đồ PPOS ở vị trí trung gian, với LH cao hơn so với 2 phác đồ Long và Short.
-
-Cuối cùng, kết quả của mô hình hồi quy có thể trình bày trực quan như sau:
 
 ```{r}
 m1%>%augment()%>%mutate(UL= .fitted +.se.fit*1.96,
@@ -461,14 +268,3 @@ augment(m1)%>%mutate(UL= .fitted +.se.fit*1.96,
   coord_flip()+
   theme_bw()  
 ```
-Chú thích: Trên nền phân phối của dữ liệu thực tế (biểu đồ mật độ và các điểm dữ liệu), ta trình bày kết quả LH trung bình cho mỗi phân nhóm theo mô hình (chấm tròn màu đen là giá trị trung bình ước lượng, error bar tương ứng với KTC95% của giá trị này).
-
-## Kết luận
-
-Qua thí nghiệm này, ta có thể nhận ra rằng mô hình GLM với phân phối Gamma là một giải pháp phổ quát và thích hợp cho mọi tình huống so sánh biến định lượng giữa nhiều phân nhóm trong nghiên cứu y học lâm sàng. 
-
-## Thông điệp rút gọn làm hành trang
-
-1) Các đại lượng y sinh học thường có giá trị dương và có phân phối lệch, nên quy luật phân phối Gamma sẽ phù hợp hơn so với phân phối Gaussian.
-
-2) Mô hình GLM hiệu quả hơn nhiều và có thể thay thế hoàn toàn các công cụ cổ điển như kiểm định t, phân tích phương sai (ANOVA) và cả mô hình hồi quy tuyến tính thông thường.
