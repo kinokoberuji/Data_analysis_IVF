@@ -1,27 +1,10 @@
 # Thí nghiệm khảo sát lặp lại: Mô hình GEE
 
-## Giới thiệu
-
-Sản phụ khoa là một chuyên khoa đặc biệt mà các tình huống lâm sàng thường diễn ra theo một tiến trình dài hạn. Vì vậy, khi làm nghiên cứu ta thường quan tâm về đặc điểm diễn tiến của trạng thái sinh lý bệnh của người phụ nữ trong một giai đoạn dài hơn là chỉ khảo sát cắt ngang tại một thời điểm duy nhất. 
-
-Can thiệp thụ tinh nhân tạo là một trường hợp điển hình, vì bản thân quy trình này bao gồm nhiều công đoạn, trải dài từ giai đoạn cơ bản, đến khi khởi động một chu kì COS, thu hoạch noãn, tiến hành thụ tinh, chuyển phôi, theo dõi thai kì đến lúc sinh nở. Trong trường hợp thất bại, người phụ nữ có thể phải lặp lại nhiều chu kì khác nhau cho đến khi đạt kết quả mong đợi. 
-
-Vì vậy, nghiên cứu trường diễn, khảo sát lặp lại là thiết kế quan trọng và phổ biến trong nghiên cứu hỗ trợ sinh sản. Tuy nhiên, ta không thể phân tích dữ liệu của thí nghiệm khảo sát lặp lại theo cách thức thông thường, bởi vì mỗi đơn vị mẫu (cá thể bệnh nhân) tạo ra một phân cụm dữ liệu (cluster), trong đó các giá trị qua nhiều thời điểm lấy mẫu khác nhau sẽ liên hệ với nhau (vì cùng thuộc về bệnh nhân đó), chứ không còn độc lập theo giả định của hầu hết phương pháp thông thường. Do đó, chúng ta cần dùng một số phương pháp thống kê đặc biệt có xét đến yếu tố tự tương quan trong mỗi cá thể. 
-
-Một trong những công cụ thống kê đáp ứng nhu cầu này đó là mô hình Generalized Estimating Equations (GEE) (Mô hình biểu thức ước lượng tổng quát) [@gee2]. Trong chương này ta sẽ tìm hiểu về mô hình GEE và áp dụng công cụ này để phân tích một dữ liệu từ thí nghiệm khảo sát lặp lại qua nhiều thời điểm.
-
-## Bối cảnh của thí nghiệm
-
-Đây là một nghiên cứu có thực của Qianwen Xi và cs (Thượng Hải, TQ) năm 2020, với mục tiêu khảo sát hiệu ứng của 2 loại phác đồ: gonadotrophin-releasing hormone agonist long protocol (GnRHa) và progestin-primed ovarian stimulation (PPOS) đối với diễn tiến của hormone LH qua 4 thời điểm: ngày 1, 6, 10 và ngày trigger trong chu kì COS.
-
 ## Công cụ cho quy trình
 
 + Thư viện ggplot2, ggridges để vẽ biểu đồ thống kê,
-
 + Thư viện dplyr từ hệ sinh thái tidyverse để thao tác dữ liệu và thống kê mô tả,
-
 + Thư viện geepack[@gee1, @gee3] để thực hiện mô hình GEE,
-
 + Thư viện marginaleffects[@marginal] và broom để phân tích, suy luận thống kê từ kết quả mô hình GEE
 
 ```{r,echo = FALSE, message = FALSE,warning=FALSE}
@@ -32,8 +15,6 @@ library(marginaleffects)
 library(geepack)
 library(broom)
 ```
-
-Đầu tiên ta tải dữ liệu vào R
 
 ```{r,echo = FALSE, message = FALSE,warning=FALSE}
 df <- read.csv('LH_PPOS.csv', 
@@ -55,13 +36,7 @@ df%>%sample_frac(0.33)%>%
   knitr::kable()
 ```
 
-Đây là một dữ liệu có cấu trúc hỗn hợp (panel data) rất điển hình cho thí nghiệm lặp lại, trong đó một đại lượng (LH) được khảo sát tại các thời điểm/điều kiện khác nhau cho cùng cá thể. Mỗi phác đồ PPOS và GnRHa được áp dụng riêng biệt cho 50 và 84 cá thể, LH là biến kết quả chính trong bài toán, một biến số liên tục, được định lượng 4 lần tại N1, N6, N10 và ngày trigger cho mỗi cá thể. Tổng cộng có 4 thời điểm x 134 cá thể = 536 đơn vị khảo sát.
-
 ## Thống kê mô tả
-
-Đây là một bài toán khá phức tạp vì ta sẽ phải khảo sát sự tương tác giữa 2 yếu tố: nhóm phác đồ (GnRHa so với PPOS) và Thời gian (4 thời điểm D1, D6, D10 và TD). 
-
-Đầu tiên ta thử làm một phân tích mô tả để so sánh đặc tính phân bố (trung vị, trung bình, phân vị 5 và 95) của LH tại 4 thời điểm và giữa 2 phác đồ:
 
 ```{r,echo = FALSE, message = FALSE,warning=FALSE}
 df_mod %>% 
@@ -74,15 +49,6 @@ df_mod %>%
   knitr::kable(digits = 3)
 ```
 
-Kết quả thống kê mô tả gợi ý một số thông tin như sau:
-
-+ Tại mọi thời điểm, giá trị LH có vẻ cao hơn ở phác đồ PPOS so với GnRHa;
-
-+ Ở phác đồ GnRHa, mức độ LH dao động không đáng kể và luôn thấp hơn 1;
-
-+ Ở phác đồ PPOS, mức độ LH ban đầu cao (>2), nhưng giảm dần (đơn điệu) từ N1 đến ngày Trigger 
-
-Đây là hình ảnh trực quan của khuynh hướng diễn tiến và tính chất phân phối của LH qua 4 thời điểm, giữa 2 phác đồ
 
 ```{r,message = FALSE,warning=FALSE}
 ggplot()+
@@ -111,142 +77,7 @@ ggplot()+
   theme_bw(10)
 ```
 
-Chú thích: Hình trên trình bày đặc tính phân phối của LH (trục Y) giữa 2 phác đồ GnRHa (màu xanh) và PPOS (màu hồng) và khuynh hướng diễn tiến từ N1 đến ngày Trigger (trục X). Các đoạn thẳng trình bày khuynh hướng tăng/giảm từ thời điểm trước đến ngay tiếp theo cho mỗi cá thể bệnh nhân.
-
-## Phân tích bài toán 
-
-Trong thống kê cổ điển, bài toán hiện thời tương ứng với một phân tích phương sai hỗn hợp (Mixed ANOVA), hay phân tích phương sai 1 yếu tố cho phép đo lặp lại (Factorial repeated measure ANOVA). Tuy nhiên ta sẽ dùng trực tiếp phân tích hồi quy bằng mô hình (GEE) thay vì theo con đường thiết kế ANOVA truyền thống. 
-
-Việc sử dụng mô hình hồi quy linh động hơn, khi cho phép chúng ta vượt ra khỏi giới hạn giả định phân phối chuẩn của ANOVA cổ điển, nhưng có thể ước lượng biến kết quả LH bằng một quy luật phân phối khác phù hợp hơn ngoài phân phối chuẫn. Theo biểu đồ trên, ở mỗi phân nhóm thời điểm cũng như phác đồ, phân phối của LH không chuẩn, không đối xứng nhưng có độ lệch và phân tán cao. Vì vậy, chúng ta sẽ dùng quy luật phân phối Gamma thay vì Gaussian để mô tả cho giá trị LH.
-
-Tiếp theo, giá trị ước lượng của LH (tham số $\mu$) của mỗi cá thể chịu ảnh hưởng từ một số yếu tố có tính chất thứ bậc và phân nhóm như minh họa trong sơ đồ sau:
-
-![](GEE_fig.pdf){width=75%}
-
-Hiệu ứng ở cấp độ quần thể (population effect) gồm 2 bậc:
-
-Bậc hiệu ứng thứ nhất là g, hay nhóm phác đồ (GnRHa hay PPOS), trong đó một phần Intercept ($\beta_0$) tương ứng với nhóm GnRH, và $\beta_{g=ppos}$ tương ứng với phần phương sai LH do PPOS độc lập gây ra.
-
-Bậc hiệu ứng thứ 2, tương ứng với thời điểm (t), t có 4 bậc giá trị : D1, D6, D10 và TD; trong đó t=D1 tham gia 1 phần vào giá trị Intercept, còn lại ta có 3 hệ số hồi quy $\beta_{D6}, \beta_{D10}, \beta{TD}$ tương ứng với hiệu ứng độc lập của GnRha tại 3 thời điểm này.
-
-Vì ta xét sự tương tác giữa phác đồ g và thời điễm j, mô hình sẽ có thêm 3 hệ số hồi quy $\beta_{gt}$ nữa là $\beta{ppos:D6}, \beta_{ppos:D10}, \beta_{ppos::td}$, tương ứng với hiệu ứng độc lập của phác đồ PPOS tại 3 thời điểm D6,D10 và TD, so với D1.
-
-Như vậy ta có công thức mô hình ước lượng giá trị LH trung bình $\mu$ qua hàm liên kết logarit như sau;
-
-$$log(\mu) \sim \beta_0 + \beta_{ppos} + \beta_{D6} + \beta_{D10} + \beta_{DT} + \beta_{ppos:D6} + \beta_{ppos:D10} + \beta_{ppos:DT}$$
-
-## Giới thiệu về mô hình GEE
-
-GEE là một loại mô hình đặc biệt mà lý thuyết về cơ chế của nó có vẻ phức tạp hơn so với mô hình GLM, nhưng thực ra không quá khó hiểu nếu ta phân tích ra thành từng bộ phận.
-
-Như mọi mô hình khác, mục tiêu của chúng ta là ước lượng giá trị LH như một biến ngẫu nhiên $Y$, ở đây Y là biến số liên tục. Tuy nhiên với thiết kế khảo sát lặp lại và trường diễn, giá trị của $Y$ cá biệt cho từng cá thể $i$ và từng thời điểm $t$. Nếu chỉ xét đến đơn vị là bệnh nhân, ta có $Y_i$, nếu xét đến từng thời điểm cho riêng cá thể đó, ta có $Y_{i,t}$.
-
-Trong mô hình GEE, các đại lượng trên thuộc về thành phần bất định (ngẫu nhiên: stochastic component) và được ước lượng bằng phân phối chung (joint distribution, $Y_{i}$) và phân phối cận biên (marginal distribution, $Y_{i,t}$):
-
-$$Y_{i} \sim f(y_{i} | \mu_{i})$$
-$$Y_{i,t} \sim g(y_{i,t} | \mu_{i,t})$$
-Với $f$ và $g$ là 2 phân phối bất định có giá trị trung bình là $\mu_{i}$ và $\mu_{i,t}$, (tương ứng với: giá trị LH trung bình ở cấp độ cá thể hoặc cá thể/thời gian).
-
-Khác với mô hình tuyến tính GLM, mô hình GEE không đặt ra giả định về quy luật phân phối của biến kết quả $Y$, nó cũng không ước lượng giá trị $Y_{i,t}$ từ một quy luật phân phối. Thay vào đó, giá trị của $Y_{i,t}$ sẽ được ước lượng từ 3 biểu thức (equations) bên trong mô hình, gồm: 
-
-(1) hàm ước tính giá trị trung bình (mean function), kí hiệu là $G(\mu_{i,t})$
-
-Hàm này còn gọi là thành phần hệ thống (systematic component), nó cho phép ước tính giá trị trung bình $\mu_{i,t}$ với công thức tổng quát:
-
-$$G(\mu_{i,t}) = x_{i,t}^{\top}\beta$$
-
-$G$ là hàm liên kết cho một phân phối mà ta chọn cho biến kết quả $Y$. Ta thường làm việc với 4 họ phân phối chính trong R, bao gồm gaussian và Gamma cho biến số liên tục, binomial cho biến nhị giá (0,1) và poisson cho biến số đếm. Các hàm liên kết mặc định cho 4 loại phân phối này trong R được trình bày trong bảng sau:
-
-```{r, echo=FALSE}
-tb0 = data.frame(family = c("gaussian",
-                            "binomial",
-                            "poisson",
-                            "Gamma"), 
-                 name = c("identity",
-                          "logit",
-                          "log",
-                          "inverse"),
-                 link_f = c("I(mu)",
-                            "log(mu/(1 - mu))",
-                            "log(mu)",
-                            "1/mu")
-                 )
-
-names(tb0) <- c("Dist family","link=","function")
-
-tb0%>%knitr::kable()
-```
-
-Trong trường hợp này, ta sẽ áp dụng phân phối Gamma, với hàm liên kết mặc định là nghịch đảo (inverse): $\frac{1}{\mu_{i,t}}$. Ta cũng có thể dựng mô hình cho phân phối Gamma với 2 hàm liên kết khác là logarit và identity.
-
-$x_{i,t}$ tương ứng với vector của tập hợp biến độc lập (yếu tố dự báo) cho cá thể $i$ tại thời điểm $t$; còn $\beta$ là vector các hệ số hồi quy trong mô hình.
-
-(2) Hàm ước tính phương sai (variance function), kí hiệu là $V_{i,t}$ 
-
-Sau khi có giá trị $\mu_{i,t}$, kết quả này đi tiếp vào hàm ước tính phương sai (hay độ phân tán). Hàm này cho phép ước tính phương sai (variance) của $Y$ theo giá trị trung bình $\mu_{i,t}$. Tương tự như hàm trung bình, các họ phân phối khác nhau có hàm phương sai khác nhau. Nội dung hàm phương sai cho 4 phân phối thường gặp được trình bày trong bảng sau:
-
-```{r,echo=FALSE}
-tb1 = data.frame(distribution = c("gaussian", 
-                          "binomial", 
-                          "poisson", 
-                          "Gamma"),
-                 vmu = c("identity",
-                         "mu(1-mu), mu in (0,1)",
-                         "mu, mu >0",
-                         "mu^2, mu >0"
-                        ))
-
-names(tb1) <- c("Distribution","variance function v(mu)")
-
-tb1%>%knitr::kable()
-```
-
-Trong trường hợp hiện thời, biến kết quả được mô hình hóa theo phân phối gamma, nên hàm phương sai sẽ là  "$\mu^{2}$"
-
-(3) Cấu trúc tương quan (correlation structure), kí hiệu là $V_{i}$
-
-Cuối cùng, giá trị của trung bình và phương sai sẽ được phân bố vào cấu trúc tương quan. Cấu trúc này được xác định bằng một ma trận tương quan "động" ("working" correlation matrix) có kích thước $T \times T$, với $T$ là kích thước cụm dữ liệu lớn nhất được ghi nhận trong dữ liệu.
-
-$$V_{i} = \phi \, A_{i}^{\frac{1}{2}} R_{i}(\alpha) A_{i}^{\frac{1}{2}}$$
-với $A_{i}$ là diagonal matrix kích thước $T \times T$, nhận giá trị của hàm phương sai $V_{it}$ cho mỗi vị trí $t$ trên đường chéo, $R_{i}(\alpha)$ là ma trận tương quan "động", $\phi$ là một tham số tỷ lệ.
-
-Thư viện geepack cho phép người dùng tùy chọn 4 kiểu ma trận tương quan, tương ứng với 4 tên gọi mà ta có thể tùy chĩnh cho tham số "corstr", với ý nghĩa như sau:
-
-```{r, echo=FALSE}
-tb2 = data.frame(Name = c("independence", 
-                          "exchangeable", 
-                          "ar1", 
-                          "unstructured"),
-                 Ra = c("COR(Y_it,Y_it') = 0",
-                        "COR(Y_it,Y_it')=a",
-                        "COR(Y_it,Y_it')=a^abs(t-t')",
-                        "COR(Y_it,Y_it')=a_tt' "
-                        ))
-
-names(tb2) <- c("Name","R(a)")
-
-tb2%>%knitr::kable()
-```
-
-**constr = "independence"**: khi ta chắc chắn rằng không thể tồn tại mối tương quan giữa các giá trị tại những thời điểm t khác nhau cho cùng một cá thể (đơn vị mẫu) (các giá trị $Y_{i,t}$ độc lập với nhau), thí dụ trong trường hợp kết quả Y sinh ra hoàn toàn ngẫu nhiên tại mỗi thời điểm, không theo quy luật nào cả trong quá trình khảo sát lặp lại, dù vẫn thuộc về cụm quan sát cho riêng cá thể đó. Khi chọn giả thuyết này, ta cưỡng bức toàn bộ giá trị trong ma trận tương quan luôn = 0. Với kiểu ma trận tương quan này, ta đang dựng mô hình cho các quan sát độc lập, và mô hình GEE tương đương với một mô hình GLM thông thường.
-
-**constr = "exchangeable"**: khi mức độ tương quan là hằng định cho bất kì cặp thời điểm nào (nói cách khác, các thời điểm có khả năng hoán chuyển vị trí cho nhau) cho cùng một cá thể. Thí dụ: những chu kì thụ tinh nhân tạo khác nhau thực hiện tại cùng một trung tâm hỗ trợ sinh sản bởi cùng đội ngũ chuyên viên, dù theo trình tự thời gian trước sau nhưng được xem như hoán chuyển được cho nhau).
-
-**constr = "ar1"**: đây là cấu trúc tương quan có tính chất "tự thoái triển" (autoregressive), với 2 giá trị tại 2 thời điểm gần nhau (thí dụ ngày 1 và ngày 6) sẽ tương quan với nhau mạnh hơn thí dụ $\rho^1$ so với giữa 2 thời điểm cách xa nhau (thí dụ ngày 1 và ngày 10, hệ số tương quan giảm còn $\rho^2$). Một số kết cục lâm sàng có thể có tính chất này, thí dụ như một biomarker chịu tác động của một can thiệp trị liệu mà tác dụng yếu dần theo thời gian.
-
-**constr = "unstructured"**: khi chọn cấu trúc này, ta hình dung rằng có thể tồn tại mối tương quan giữa các thời điểm bất kì, nhưng hoàn toàn ngẫu nhiên, và ta cho phép tương quan giữa các thời điểm khác nhau tự do dao động một cách ngẫu nhiên. Đây là cấu trúc khả dĩ nhất khi ta không có một giả thuyết cụ thể nào.
-
-Thực ra, ngay cả khi ta chọn nhầm kiểu cấu trúc tương quan, thì kết quả của mô hình vẫn khá chính xác (theo Agresti, 2002) (dĩ nhiên không có mô hình nào hoàn hảo). Agresti gợi ý nên bắt đầu bằng kiểu "exchangeable", sau đó kiểm tra kết quả và độ chính xác của mô hình, so với các kiểu còn lại. Nếu khác biệt này quá nhỏ, có thể chọn cấu trúc tương quan đơn giản hơn.
-
 ## Dựng mô hình GEE
-
-Ta có thể dựng một mô hình GEE rất dễ dàng bằng hàm geeglm của thư viện geepack. Ta sẽ bắt đầu bằng mô hình gee1 có cấu trúc tương quan corstr = "exchangeable", sau đó cũng sẽ thử 2 kiểu cấu trúc khác là independence và ar1, và so sánh sai số giữa các mô hình.
-
-công thức mô hình là "LH ~ Method * Timepoint" để xét hiệu ứng tương tác giữa phác đồ (Method) và Thời điểm (Timepoint).
-
-id = ID: khai báo biến mã số định danh cho cá thể.
-
-Ta chọn family = Gamma(link = "log") để mô tả kết quả bằng phân phối Gamma với hàm liên kết là logarit
 
 ```{r}
 gee1 <- geeglm(formula = LH ~ Method * Timepoint, 
@@ -277,9 +108,6 @@ for(j in cor_sts){
 res
 ```
 
-Kết quả so sánh sai số cho thấy cả 3 cấu trúc ma trận tương quan đều có thể áp dụng cho dữ liệu hiện thời. Ta chọn sử dụng mô hình với cấu trúc "exchangeable" để diễn giải.
-
-## Diễn giải kết quả mô hình GEE
 
 Nội dung mô hình GEE sau khi khớp với dữ liệu như sau:
 
@@ -287,20 +115,6 @@ Nội dung mô hình GEE sau khi khớp với dữ liệu như sau:
 tidy(gee1)%>%
   knitr::kable(digits = 3)
 ```
-
-Vì mô hình ước lượng $\mu$ qua hàm liên kết log, nên các hệ số hồi quy trong bảng kết quả sẽ cho ra giá trị log(LH), nếu muốn hoán chuyển về thang đo nguyên thủy, ta phải dùng hàm exponential.
-
-Intercept tương ứng với giá trị log(LH) ở nhóm GnRHa, thời điểm D1;
-
-Intercept + MethodPPOS tương ứng với giá trị log(LH) ở nhóm PPOS, thời điểm D1;
-
-Intercept + TimepointD6 tương ứng log(LH) ở D6 nhóm GnRHa; 
-
-Intercept + PPOS + MethodPPOS:TimepointD6 tương ứng log(LH) ở D6 nhóm PPOS
-
-...
-
-Ở đây, ta quan tâm đến sự thay đổi tuần tự của LH, giữa D1 và D6, D6 và D10, và D10 và TD. ta có thể suy diễn thống kê cho hiệu ứng của riêng thời điểm, không phân biệt phác đồ nào như sau:
 
 ```{r}
 res_0 = avg_comparisons(gee1,
@@ -315,10 +129,6 @@ res_0%>%
   dplyr::select(-c(1,2,6,7))%>%
   knitr::kable(digits = 3)
 ```
-
-Nếu không phân biệt loại phác đồ mà chỉ khảo sát khuynh hướng diễn tiến của LH qua 4 thời điểm, thì kết quả cho thấy LH giảm dần từ Ngày 1 đến Trigger day, và sự thay đổi bắt đầu rõ nét từ ngày 6, cụ thể: từ D1 đến D6 giảm -0.1121642 đơn vị nhưng không có ý nghĩa thống kê; từ D6 đến D10 giảm -0.2940299, từ D10 đến TD giảm -0.1959701 đơn vị, đều có ý nghĩa thống kê.
-
-Tuy nhiên, điều ta thực sự quan tâm là diễn tiến thay đổi của LH theo thời gian và riêng cho mỗi loại phác đồ, kết quả của phân tích này như sau:
 
 ```{r}
 res_1 = avg_comparisons(gee1,
@@ -344,12 +154,6 @@ res_1%>%filter(Method != "PPOS")%>%
   knitr::kable(digits = 3)
 ```
 
-Với phác đồ PPOS, LH giảm dần từ ngày 1 đến ngày trigger, cụ thể là từ ngày 1 đến ngày 6 giảm trung bình -0.681 đơn vị (p=0.01), từ ngày 6 đến ngày 10 tiếp tục giảm trung bình -0.816 đơn vị (p=0.002), tuy nhiên không có thay đổi ý nghĩa từ ngày 10 đến ngày Trigger.
-
-Trái lại, ở phác đồ GnRH antagonist, giá trị LH gần như không thay đổi từ ngày 1 đến ngày 10, nó chỉ giảm trung bình -0.14 đơn vị từ ngày 10 đến ngày trigger (p=0.015).
-
-Một suy diễn thống kê khác mà ta có thể thực hiện, là so sánh giá trị LH trung bình giữa 2 phác đồ tại cùng thời điểm. Kết quả của phân tích này như sau:
-
 ```{r}
 res_2 = avg_comparisons(gee1,
                 variables = "Method",
@@ -361,7 +165,6 @@ res_2%>%
   mutate(contrast = c("PPOS - GnRHa"))%>%
   knitr::kable(digits = 3)
 ```
-Kết quả này chứng thực cảm nhận trực quan của chúng ta khi nhìn biểu đồ mô tả, đó là tại bất kì thời điểm nào, mức LH trung bình luôn cao hơn một cách có ý nghĩa ở nhóm PPOS so với GnRH_ant, tuy nhiên khoảng cách khác biệt thu hệp dần từ Ngày 1 đến ngày Trigger (từ 2.8 xuống còn 0.92 đơn vị).
 
 Ta có thể trình bày trực quan kết quả của mô hình trong biểu đồ sau:
 
@@ -410,13 +213,3 @@ preds%>%ggplot()+
         axis.title = element_text(size = 10, 
                                   color = "black"))
 ```
-
-## Diễn đạt kết quả của phân tích:
-
-Phân tích bằng mô hình GEE cho thấy sự khác biệt rõ nét về diễn biến của LH giữa 2 loại phác đồ. So với phác đồ GnRHant, phác đồ PPOS không đặt mục tiêu kiểm soát mức độ LH thấp liên tục kéo dài, tuy nhiên PPOS tác động làm giảm LH trong một giai đoạn ngắn từ ngày 1 đến ngày 10 trong chu kì kích thích buồng trứng, với mức thấp nhất trước ngày Trigger. 
-
-## Thông điệp rút gọn làm hành trang
-
-(1) Khảo sát diễn biến của một đại lượng qua nhiều thời điểm khác nhau là một bài toán thống kê đặc thù và phổ biến trong Sản khoa và chuyên ngành hỗ trợ sinh sản.
-
-(2) Mô hình GEE là một giải pháp thích hợp cho thí nghiệm khảo sát lặp lại. Ngoài phân phối Gamma cho kết quả định lượng hormone, ta còn có thể áp dụng mô hình GEE với phân phối nhị thức để khảo sát kết cục thai kì qua nhiều chu kỳ thụ tinh nhân tạo liên tiếp.
