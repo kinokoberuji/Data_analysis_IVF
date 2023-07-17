@@ -1,5 +1,41 @@
 # Ứng dụng sơ đồ mạng định hướng không tuần hoàn (DAG)
 
+## Đặt vấn đề
+
+Trong những thử nghiệm lâm sàng không phải thiết kế RCT, nghiên cứu sinh thường được khuyến khích hiệu chỉnh các yếu tố gây nhiễu và hiệp biến thông qua một phân tích hồi quy đa biến, nhằm ước lượng chính xác hơn hiệu ứng của một can thiệp đối với kết cục. 
+
+Với chuyên ngành hỗ trợ sinh sản, hầu hết thí nghiệm được thực hiện theo thiết kế hồi cứu nên việc loại bỏ tác động của các yếu tố gây nhiễu là một yêu cầu quan trọng. Tuy nhiên, các nghiên cứu về thụ tinh nhân tạo đặt ra một bài toán khó khăn hơn rất nhiều cho các nhà thống kê. Ngoài những yếu tố nền như tuổi của người phụ nữ, đặc điểm xã hội học, những rối loạn sinh lý có liên hệ đến tình trạng hiếm muộn như mức dự trữ buồng trứng, nội tiết tố, rối loạn chuyển hóa glucose... thì tại mỗi công đoạn trong tiến trình thí nghiệm còn phát sinh ra nhiều yếu tố khác có tính chất kỹ thuật - như liều lượng các hoạt chất và hormone được sử dụng. Hơn nữa, như ta đã biết - kết quả của mỗi công đoạn có tính kế thừa và phụ thuộc vào điều kiện trong các công đoạn trước nó. Vì vậy, ngay cả khi tiến hành được thiết kế thử nghiệm lâm sàng đối chứng ngẫu nhiên (RCT), thì sự phân nhóm ngẫu nhiên ở thời điểm khởi đầu quy trình vẫn không đảm bảo loại trừ được hoàn toàn những yếu tố gây nhiễu phát sinh trong tiến trình can thiệp.
+
+Mức độ phức tạp của vấn đề dẫn đến một cách làm sai lầm và nguy hiểm rất thường thấy trong nhiều nghiên cứu, đó là người ta hiệu chỉnh cho tất cả hiệp biến một cách mù quáng (thà sai lầm hơn bỏ sót), điều này hoàn toàn vô ích, thậm chí là có hại khi chính việc hiệu chỉnh lại làm nhiễu hay sai lệch hiệu ứng cần khảo sát.
+
+Đây là một chương rất ngắn nhưng có ứng dụng quan trọng, chúng tôi sẽ giới thiệu về một quy trình cho phép xác định đúng những yếu tố cần hiệu chỉnh, bằng cách dùng Directed acyclic graph (DAG) [@dag1]: đồ thị có hướng, không tuần hoàn.
+
+DAG là một đồ thị có chứa liên kết định hướng, nhưng không tạo ra bất cứ vòng tuần hoàn/chu trình (cycle, loop) nào bên trong nó. DAG được sử dụng để mô hình hóa mối quan hệ giữa các nhân tố trong một hệ thống hoặc tiến trình. 
+
+DAG có lịch sử phát triển từ thập niên 1920-1930, trong đó nền tảng là công trình nghiên cứu của Sewall Wright, người đã đặt ra khái niệm về phân tích lộ trình (path analysis) để mô hình hóa quan hệ giữa các biến trong các mô hình thống kê. Ý tưởng về path analysis của Wright có ý nghĩa nền tảng cho sự phát triền của phương pháp suy luận nhân quả ngày nay. Sau đó, vào cuối thập niên 1970 và trong thập niên 1980, nhà thống kê Judea Pearl đã phát triển lý thuyết của DAG và ứng dụng nó trong lĩnh vực suy luận nhân quả.
+
+DAG có vai trò quan trọng trong suy luận nhân quả cho nghiên cứu y học. Đây là công cụ giúp cho nhà nghiên cứu có thể biểu diễn mối quan hệ giữa các biến trong một hệ thống phức tạp, nhận diện vai trò của từng yếu tố, xác định những yếu tố quan trọng nhất, các yếu tố có vai trò trung gian, yếu tố gây nhiễu cần hiệu chỉnh. Tập hợp các liên kết định hướng nối giữa một yếu tố và kết cục được gọi là lộ trình nhân quả (Causal path); những chuỗi liên kết khác không dẫn đến Y gọi là Non Causal path (thí dụ từ 1 hiệp biến đến 1 hiệp biến khác). Từ đó, ta có thể xác định chính xác lộ trình và tác động của nguyên nhân gốc lên kết quả, đồng thời loại bỏ các tác động gián tiếp của các biến trung gian. 
+
+## Bối cảnh của thí nghiệm
+
+Một nhóm nghiên cứu muốn khảo sát hiệu quả của quy trình chuẩn bị nội mạc tử cung bằng Letrozole đối với kết cục sinh nở thành công (Livebirth), so với phác đồ estradiol valerate và progesterone.
+
+Mục tiêu cần khảo sát trong thí nghiệm này là quy trình chuẩn bị nội mạc tử cung. Phương pháp thứ nhất là kích thích nhẹ buồng trứng với Letrozole đường uống 5mg/ngày từ ngày thứ 3 chu kì tự nhiên trong 5 ngày liên tiếp, sau đó bổ sung HMG. Phương pháp thứ hai được gọi là chu kì nhân tạo, bằng cách sử dụng tuần tự viên nén estradiol valerate và progesterone.
+
+Các bệnh nhân được áp dụng một trong hai loại phác đồ COH: phác đồ đối vận hormone giải phóng gonadotropin (GnRH-ant) hoặc phác đồ đồng vận GnRH kéo dài tiêu chuẩn (long GnRH-a).
+
+Tiếp theo, bệnh nhân được kích hoạt trưởng thành noãn bằng hCG hoặc choriogonadotropin alfa. Chu kì COH kết thúc bằng công đoạn thu hoạch noãn sau 34-36 giờ, sau đó tùy theo chỉ định lâm sàng, noãn được thụ tinh bằng một trong 2 phương pháp ICSI hoặc IVF. Cuối cùng, quy trình chuyển phôi tươi hoặc phôi đóng băng (FET) được thực hiện.  
+
+Kết cục lâm sàng chính của nghiên cứu là tỷ lệ sinh sống (Live birth rate)
+
+## Kế hoạch phân tích
+
+Đầu tiên ta sẽ xây dựng một sơ đồ nhân quả (Causal diagram) dưới hình thức sơ đồ mạng định hướng không tuần hoàn (directed acyclic graphs: DAG), trình bày mạng lưới liên hệ, tương tác giữa các nhân tố khác nhau trong quy trình IVF, dẫn đến kết cục LiveBirth. Dựa vào mô hình DAG, chúng ta sẽ xác định yếu tố can thiệp, kết cục, và tập hợp các yếu tố gây nhiễu cần được hiệu chỉnh (adjusting). 
+
+Tiếp theo, ta thực hiện một phân tích hồi quy logistic đa biến để ước lượng hiệu ứng của phác đồ Letrozole đối với xác suất LiveBirth, có hiệu chỉnh cho tập hợp biến đã được xác định ở trên.
+
+Hiệu quả cùa Letrozole sẽ được ước lượng bằng average marginal effect thông qua 2 trị số: adjusted Risk difference (RD) và adjusted Odds-ratio (OR).
+
 ```{r,message = FALSE,warning=FALSE}
 library(tidyverse)
 library(ggridges)
@@ -32,6 +68,8 @@ df%>%head()%>%knitr::kable()
 
 ## Mô tả đơn giản
 
+Trong dữ liệu này, biến kết quả là LiveBirth, là một biến nhị phân với giá trị 1=Thành công và 0=Thất bại.
+
 ```{r,message = FALSE,warning=FALSE}
 df%>%group_by(Method)%>%
   summarize(n = n(),
@@ -41,6 +79,8 @@ df%>%group_by(Method)%>%
             p0 = 1- p1,
             )%>%knitr::kable()
 ```
+
+Bằng một ước lượng đơn giản, ta thấy nhóm chuẩn bị nội mạc bằng Letrozole (mSTC) có tỷ lệ sinh sống cao hơn một chút (8.7%) so với nhóm chu kì nhân tạo (AC), tương ứng với tỉ số OR = 1.42 và RR = 1.21; Tuy nhiên, kết quả này có thể bị sai lệch do ảnh hưởng bởi nhiều yếu tố gây nhiễu và hiệp biến trong dữ liệu; do đó chúng ta cần hiệu chỉnh cho những yếu tố gây nhiễu này để ước lượng được chính xác hiệu quả độc lập của Letrozole. 
 
 ## Sơ đồ nhân quả và mô hình DAG
 
@@ -149,9 +189,14 @@ dag%>%tidy_dagitty()%>%
 
 ## Xác định tập hợp biến cần hiệu chỉnh
 
+Mục tiêu của chúng ta là ước lượng hiệu ứng của Letrozole đối với PPOS, như vậy ta cần xác định con đường kết nối giữa PPOS là điểm xuất phát và OP là đích đến. 
+
+Trên sơ đồ DAG, có rất nhiều lộ trình có khả năng nối kết Letrozole và kết cục Birth, ta có thể chỉ ra 10 con đường ngắn nhất trong danh sách này:
+
 ```{r}
 paths(dag)$paths[c(1:10)]
 ```
+Sơ đồ DAG cho phép chúng ta xác định tập hợp những hiệp biến nào cần phải được hiệu chỉnh (việc hiệu chỉnh này sẽ cắt đứt liên kết giữa Letrozole và/hoặc kết cục Birth với những yếu tố gây nhiễu, cho phép ước lượng hiệu ứng độc lập của Letrozole).
 
 Theo kết quả tìm được, ta có thể hiệu chỉnh cho tập hợp 3 biến : Age, BMI và phác đồ COS (Stim)
 
@@ -174,6 +219,12 @@ adjustmentSets(dag, "Letroz","Birth")
 Sau đây, ta sẽ lần lượt thực hiện phân tích thống kê bằng mô hình logistic trong 3 trường hợp: 
 
 **Trường hợp hiệu chỉnh máy móc và quá đáng**
+
+Trong thực hành thống kê, có một quan niệm rất sai lầm và nguy hiểm khi cho rằng ngoài can thiệp và kết cục, tất cả những yếu tố còn lại đều cần phải được hiệu chỉnh trong phân tích hồi quy logistic đa biến.
+
+Việc hiệu chỉnh máy móc và quá đáng cho toàn bộ biến số trong hệ thống có thể dẫn đến hậu quả có hại khi triệt tiêu chính hiệu quả mà ta đang cần ước lượng.
+
+Trong thí dụ hiện thời, nếu ta hiệu chỉnh cho tất cả biến số, kết quả thu được là như sau:
 
 ```{r}
 fit1 <- glm(LBirth ~ Method + Age + BMI + COS + 
@@ -198,7 +249,11 @@ or = avg_comparisons(
 or %>% knitr::kable(digits = 3)
 ```
 
+Ta có thể thấy đây là một kết quả negative, nó cho thấy Letrozole không có hiệu quả nào cả đối với kết cục LiveBirth.
+
 **Khi không hiệu chỉnh gì cả**
+
+Ngược lại, nếu ta không hiệu chỉnh cho bất cứ yếu tố nào cả (tương ứng với một mô hình logistic đơn biến chỉ xét yếu tố can thiệp), đây cũng không phải là giải pháp đúng đắn. Như ta thấy sau đây: 
 
 ```{r}
 fit2 <- glm(LBirth ~ Method,
@@ -221,7 +276,11 @@ or = avg_comparisons(
 or %>% knitr::kable(digits = 3)
 ```
 
+Dựa theo kết quả này, Letrozole có một hiệu quả tích cực đối với kết cục LiveBirth, tuy nhiên kích thước hiệu ứng rất nhỏ và gần như không có ý nghĩa thống kê (p rất gần với 0.05).
+
 **Khi hiệu chỉnh vừa đủ và chính xác**
+
+Cuối cùng, ta sẽ hiệu chỉnh cho đúng tập hợp yếu tố gây nhiễu mà ta đã phân lập được từ sơ đồ DAG, đó là Age, BMI và loại phác đồ COS.
 
 ```{r,message = FALSE,warning=FALSE}
 # m.data <- match.data(m.out1)
@@ -245,3 +304,11 @@ or = avg_comparisons(
 
 or %>% knitr::kable(digits = 3)
 ```
+
+Kết quả này cho thấy Letrozole có hiệu quả tích cực và có ý nghĩa thống kê đối với khả năng sinh sống, với khác biệt về tỷ lệ Live Birth so với chu kì nhân tạo = 8.96% (p=0.04) và OR = 1.437 (p = 0.04).
+
+## Thông điệp rút gọn làm hành trang:
+
+(1) Việc xác định chính xác những yếu tố nào cần được hiệu chỉnh có vai trò rất quan trọng đối với tính chính xác của phân tích thống kê trong nghiên cứu lâm sàng. Cả hai thái cực: không hiệu chỉnh gì cả hoặc hiệu chỉnh máy móc quá đáng đều sai lầm và có thể dẫn đến sai lệch trong kết luận về hiệu quả can thiệp. 
+
+(2) Sơ đồ mạng lưới định hướng không tuần hoàn (DAG) cho phép người bác sĩ chủ động dùng kiến thức y học để định hướng cho phân tích thống kê, xác định tập hợp yếu tố cần hiệu chỉnh một cách chính xác, hợp lý và vừa đủ, đảm bảo kết quả suy diễn thống kê chính xác từ một mô hình đúng và có cơ sở khoa học.

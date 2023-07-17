@@ -1,5 +1,25 @@
 # Phân tích mạng lưới tương quan
 
+## Giới thiệu
+
+Đây là sự tiếp nối câu chuyện về phân tích dữ liệu đa chiều mà ta đã đề cập trong chương 2. Trong chương này ta sẽ khảo sát mối liên hệ giữa các thông số định lượng - đây cũng là một bài toán thống kê thường gặp trong nghiên cứu y học với tên gọi "phân tích tương quan" (correlation analysis).
+
+Phân tích tương quan có giá trị ứng dụng trong nhiều hoàn cảnh, bao gồm mô tả về mối liên hệ giữa các yếu tố trong thực thể bệnh lý, nhận diện các quy luật sinh lý-bệnh học, phát hiện những thông số xét nghiệm tiềm năng cho mục tiêu chẩn đoán hoặc tiên lượng, xác định những biến số quan trọng để xây dựng mô hình hồi quy với mục tiêu tiên lượng hoặc diễn dịch, vv.
+
+Thông thường, phân tích tương quan có ý nghĩa tuyến tính và được áp dụng cho một cặp biến số. Các bạn đồng nghiệp thường sử dụng hệ số tương quan $r$ của Pearson (thuật ngữ đầy đủ: Pearson’s product moment correlation coefficient). Đây là một trị số thống kê cho phép đo lường độ mạnh và chiều hướng của tương quan tuyến tính giữa 2 biến liên tục $X$ và $Y$. Một cách tổng quát, $r$ được xác định bằng tỷ số giữa hiệp phương sai (covariance) của 2 biến $X,Y$ chia cho tích số của độ lệch chuẩn của chúng:
+
+$$r_{X,Y}=\frac{Cov(XY)}{\sigma_X*\sigma_Y}$$
+Ta cũng có thể hình dung về $r$ như hệ số hồi quy trong một mô hình hồi quy tuyến tính đơn biến $Y \sim X$ khi cả X và Y đều cùng đơn vị đo trên một thang đo chuẩn hóa (z-scores). 
+
+Giá trị của $r$ dao động trong khoảng -1 đến +1 và có thể cho biết chiều hướng của mối tương quan: $r=0$ trong trường hợp không có liên hệ nào giữa 2 biến, $r>0$ biểu thị cho mối tương quan thuận (X và Y biến thiên cùng hướng), $r<0$ biểu thị cho tương quan nghịch (X tăng, Y giảm và ngược lại). Giá trị tuyệt đối của $r$ cho biến độ mạnh của tương quan: càng gần cực trị +/-1 thì mức độ tương quan càng mạnh. Giá trị $r$ càng gần 1 cho thấy 2 biến tỉ lệ với nhau một cách hoàn hảo.
+
+Ý nghĩa thống kê của hệ số tương quan $r$ được kiểm định thông qua một suy diễn thống kê nhằm phản nghiệm giả thuyết H0 là r=0 (không có tương quan), dựa vào trị số thống kê $t$ được ước tính từ r và cỡ mẫu, t theo phân phối Student t với độ tự do = (n-2):
+
+$$t = r\sqrt{\frac{N-2}{1-r^2}}$$
+Mặt khác, với sự phát triển của kiến thức sinh lý bệnh học và công nghệ xét nghiệm, nhà khoa học được cung cấp lượng thông tin ngày càng nhiều và sâu hơn, thậm chí đến cấp độ phân tử. Lúc này, việc đọc và diễn giải kết quả phân tích tương quan trở nên khó khăn khi kết quả thu được sẽ là một bảng với kích thước rất lớn, trình bày giá trị hệ số tương quan của mỗi biến bắt cặp tuần tự với tất cả những biến còn lại. Vì vậy, chúng ta cần một giải pháp khác hiệu quả hơn thay cho bảng kết quả. 
+
+Trong chương này chúng ta sẽ tìm hiểu về quy trình phân tích mạng lưới tương quan (correlation network), một ý tưởng thú vị cho phép trình bày bức tranh toàn cảnh về cấu trúc liên hệ phức tạp giữa rất nhiều biến số trong một thực thể bệnh lý.
+
 ## Bối cảnh thí nghiệm
 
 Ta sẽ phân tích một dữ liệu có thực với mục tiêu đặt ra là khảo sát về mối tương quan giữa 15 thông số lâm sàng trong 2 nhóm khác nhau: 132 phụ nữ bình thường và 249 trường hợp có hội chứng buồng trứng đa nang (PCOS) có kèm rối loạn kháng insulin (IR). 
@@ -7,6 +27,8 @@ Ta sẽ phân tích một dữ liệu có thực với mục tiêu đặt ra là
 Tập hợp 15 thông số cần phân tích bao gồm: tuổi của bệnh nhân (Age), chỉ số BMI, kết quả định lượng các loại hormones: AMH: (Anti-Müllerian Hormone), E2 (Estrogen), FSH (Follicle-Stimulating Hormone), LH (Luteinizing hormone), P (Progesterone hormone), PRL (prolactin hormone), T (Testosterone hormone), TSH (thyroid stimulating hormone), các chỉ số: AFC (antral follicle count), OSI (ovarian sensitivity index), kết quả insulin fasting blood test (F_INS), đường huyết (Gluc) và HOMA-IR (Homeostatic Model Assessment for Insulin Resistance).
 
 ## Thăm dò dữ liệu
+
+Trước hết, ta tải dữ liệu vào R và thực hiện một phân tích thống kê mô tả đơn giản về đặc điểm phân phối của 15 biến số kể trên giữa 2 nhóm Normal và PCOS. Kết quả trình bày trong bảng sau:
 
 ```{r}
 library(tidyverse)
@@ -38,6 +60,14 @@ df%>%filter(.$Group!="PCOS")%>%
 
 ## Ma trận tương quan
 
+Tiếp theo, ta sẽ thực hiện một phân tích tương quan cổ điển cho 15 biến số này, riêng cho mỗi nhóm Normal và PCOS, sử dụng hệ số tương quan $r$ của Pearson theo quy trình gồm 3 bước sau:
+
+1) Dùng hàm filter của dplyr để phân lập 2 dataframe riêng cho 2 nhóm Normal và PCOS,
+
+2) Dùng hàm select để loại bỏ biến phân nhóm cho mỗi dataframe, kết quả ta sẽ có một matrix chỉ chứa toàn biến kiểu số
+
+3) Áp dụng hàm cor() trên data matrix 15 biến số, ta sẽ thu được kết quả là một correlation matrix với kích thước 15 x 15
+
 ```{r}
 neg_df = df%>%
   dplyr::filter(.$Group=="Norm")%>%
@@ -61,6 +91,8 @@ cormat_pos = cor(method="pearson",
 cormat_neg = cor(method="pearson",
                  as.matrix(neg_df))
 ```
+
+4) Sử dụng thư viện corrplot[@corrplot2021] để chuyển ma trận tương quan này thành biểu đồ (có tên gọi là correlogram). Lưu ý rằng biểu đồ này đã giản lược kết quả từ ma trận tương quan có kích thước 15x15 bằng cách chỉ lấy 1 nửa dưới (vì ma trận có cấu trúc đối xứng) và loại bỏ đường chéo (toàn bộ giá trị r=1 trên đường chéo này, khi 1 biến tương quan với chính nó).
 
 Kết quả ma trận tương quan cho nhóm PCOS
 
@@ -159,9 +191,31 @@ corrplot(cormat_neg,
          )
 ```
 
+Ta thấy rằng ngay cả khi đã được giản lược tối đa và tối ưu hóa bằng màu sắc và biểu tượng, vẫn khó diễn giải trực tiếp kết quả phân tích tương quan cho tập hợp quá nhiều biến số. Mặt khác, hình thức trình bày kết quả này chỉ cho phép chúng ta suy diễn thống kê về độ mạnh và chiều hướng của mối tương quan giữa từng cặp biến, nhưng không cung cấp được bức tranh toàn cảnh về quan hệ phức tạp, chồng chéo giữa *tất cả* các biến.
+
+Trong phần tiếp theo, ta sẽ áp dụng phương pháp Network analysis, cho phép đi xa hơn và khai thác thêm nhiều thông tin hơn từ ma trận tương quan.
+
 ## Sơ đồ mạng lưới tương quan
 
-Nhóm PCOS:
+Sơ đồ mạng lưới (network, graph) là một khái niệm giao thoa giữa nhiều chuyên ngành. Trong ngành khoa học máy tính, graph là một cấu trúc dữ liệu với công dụng mô phỏng các hệ thống tương tác trong xã hội đời thực (hội nhóm,mạng xã hội...), với khả năng truy xuất và tìm kiếm nhanh chóng một phần tử thông qua liên kết với những phần tử khác. Với thống kê và khoa học dữ liệu, graph vừa có ý nghĩa như một công cụ đồ họa, vừa là một mô hình toán học chính xác dẫn đến các ứng dụng như suy luận nhân quả, phân tích tương quan, thậm chí có thể được dùng làm dữ liệu đầu vào cho mô hình …
+
+Sơ đồ mạng là một tập hợp gồm 2 thành phần: các nút (vertices) và liên kết giữa chúng (edges, arcs). Trong y sinh học, mỗi nút (vertex) trong mạng lưới biểu thị cho một nhân tố. Nó có thể là một cấu trúc sinh học phân tử (genes, protein, một loại tế bào, thông số xét nghiệm sinh hóa, một đại lượng sinh học, một biến định lượng hoặc định tính. Liên kết giữa 2 nút (edge) trong mạng lưới có thể biểu thị cho mọi hình thức về mối liên hệ, với ý nghĩa thống kê hay hiện thực. Thí dụ: tương quan thống kê giữa 2 biến định lượng, liên hệ giữa thông số lâm sàng và xác suất bệnh lý, tương tác giữa phân tử truyền tin và thụ thể giữa 2 tế bào, tỉ lệ cùng hiện diện giữa 2 thực thể lâm sàng, vv.
+
+Trong giới hạn của chương này, ta sử dụng một ứng dụng cá biệt của sơ đồ mạng đó là mạng lưới tương quan (correlation network) như một phương tiện cho phép trình bày trực quan về mối liên hệ giữa các phần tử trong tập hợp nhiều biến số. Ngoài ra, ta có thể mô tả, so sánh đặc điểm của cấu trúc mạng lưới này giữa 2 trạng thái bình thường và bệnh lý. Trong mạng lưới tương quan, mỗi nút tương ứng với một biến số, và mỗi liên kết giữa 2 nút X,Y tương ứng với sự thiết lập mối tương quan tuyến tính giữa biến X và biến Y, sự hiện diện của liên kết được xác lập nhờ vào giá trị của r và p_value.
+
+Trong R, có 2 nhóm công cụ khác nhau cho Network analysis, đó là packages statnet[@statnet] và igraph[@igraph]. Mỗi nhóm sử dụng dữ liệu có cấu trúc khác nhau (network và graph). Ta có thể hoán chuyển giữa graph và network bằng package intergraph. Một network hay graph có thể được dựng từ 2 cấu trúc dữ liệu cơ bản là “adjacency matrix”, hoặc “edges list”. 
+
+Correlation matrix chính là một adjacency matrix. Đây là một ma trận đối xứng (mỗi hàng $i$ và mỗi cột $j$ tương ứng với 1 biến, và các ô giao nhau giữa chúng lưu giá trị hệ số tương quan $r_{i,j}$). Khi chuyển thành sơ đồ mạng, thuật toán sẽ tạo ra các nút tương ứng với tập hợp biến, và thiết lập liên kết giữa 2 nút dựa vào ngưỡng cắt và tiêu chí ta đặt ra dựa trên giá trị của hệ số tương quan $r_{i,j}$$.
+
+Quy trình phân tích mạng lưới tương quan khi dùng thư viện igraph gồm các bước sau:
+
+1) Đầu tiên, ta dùng thư viện igraph để chuyển correlation matrix thành graph.
+
+2) Ta có thể tạo thêm một vài thuộc tính cho các mối nối liên kết trong mạng lưới như: Direction = hướng quan hệ, nhận giá trị "Proportional" nếu r>0 (tương quan thuận), "Inverse" nếu r<0 (tương quan nghịch); và Strength là một biến nhị phân về độ mạnh tương quan: Strong (tương quan mạnh) nếu abs(r) >0.5 và Weak (tương quan yếu) nếu giá trị tuyệt đối này <0.5.
+
+3) Chuyển mạng lưới thành hình ảnh 
+
+Ta thử làm như vậy cho nhóm bệnh nhân PCOS và thu được kết quả như sau:
 
 ```{r}
 
@@ -198,6 +252,7 @@ graph_pos<-graph_from_data_frame(reduced_pos,
 
 plot(graph_pos)
 ```
+Tuy nhiên, ta sẽ không làm việc trên graph mà sẽ chuyển nó thành network. Nguyên nhân vì định dạng dữ liệu network tương thích với hệ sinh thái statnet, cho phép chúng ta đi xa hơn với nhiều phân tích và mô hình mà hệ sinh thái này cung cấp.
 
 Ta dùng intergaph để chuyển graph object thành network object. Kết quả của mạng lưới tương quan cho nhóm PCOS như sau:
 
@@ -268,12 +323,16 @@ set.vertex.attribute(neg_net, "Physio",
 
 ## Phân tích cấu trúc mạng lưới tương quan
 
+Sơ đồ mạng không chỉ đơn giản là một hình vẽ trình bày ý tưởng, khái niệm về mạng lưới liên hệ giữa các biến, nhưng còn là một mô hình toán học chính xác về kích thước, cấu trúc phân bố của hệ thống các nút (node, vertex, actor) và mạng liên kết giữa chúng (edges, arcs).
+
 Hàm summary cho phép mô tả tóm tắt về cấu trúc của mạng lưới. Thí dụ cho mạng tương quan của nhóm PCOS, ta có kết quả mô tả như sau:
 
 ```{r}
 summary(pos_net,
         print.adj=F)
 ```
+
+Mạng tương quan của nhóm PCOS có 14 nút. Thống kê cho thuộc tính của nút cho thấy có 2 biến nhân trắc, 3 biến về chuyển hóa Glucose, 6 biến hormones, 3 biến chức năng buồng trứng trong hệ thống tương quan. Kết quả thống kê cho các thuộc tính của liên kết (edges) cho thấy có tổng cộng 31 cặp tương quan, trong đó 10 cặp tương quan nghịch và 21 cặp tương quan thuận, 3 cặp tương quan mạnh và 28 cặp tương quan yếu. Giá trị hệ số r trung bình là 0.147, thấp nhất là -0.289, cao nhất là 0.993 
 
 Với mạng tương quan cho nhóm Normal, ta có kết quả như sau:
 
@@ -282,8 +341,15 @@ summary(neg_net,
         print.adj=FALSE)
 ```
 
+Theo kết quả này, mạng lưới tương quan của nhóm Normal có kích thước nhỏ hơn (chỉ có 11 nút/biến số) và số cặp tương quan cũng ít hơn (chỉ 21 cặp), trong đó chủ yếu là tương quan thuận (14 cặp), có 2 liên kết tương quan mạnh và 19 cặp tương quan yếu.
+
+Cũng trong kết quả này, ta có mật độ của mạng lưới (density), cho phép hình dung về khả năng liên kết giữa các phần tử trong tập hợp. Ta thấy rằng tuy mạng tương quan ở nhóm bình thường có kích thước nhỏ hơn (11 so với 14) nhưng mật độ cao liên kết cao hơn (0.382 so với 0.340)
+
+Sự khác biệt về cấu trúc giữa 2 mạng lưới tương quan cho thấy một điều thú vị, đó là chúng ta vẫn thường hiểu sai về mục tiêu cách diễn giải kết quả của phân tích tương quan. Tâm lý chung của nghiên cứu sinh thường trông đợi phát hiện sự tồn tại mối liên hệ có ý nghĩa thống kê giữa 2 yếu tố bất kì, và cho rằng đó là kết quả tốt. Tuy nhiên, thực tế có thể phức tạp hơn nhiều. Khi chuyển từ trạng thái sinh lý bình thường sang bệnh lý, có thể chỉ một trong 2, hay cả 2 biến số bị thay đổi giá trị, sự thay đổi này có thể thuận chiều hay nghịch chiều. Do đó, một rối loạn bệnh lý có thể biểu hiện theo nhiều cách: hoặc phát sinh một mối tương quan mà bình thường không có, hoặc ngược lại: làm đứt gãy hoặc tăng cường/giảm nhẹ, đảo chiều một mối liên hệ có sẵn.
+
 Một số thuộc tính khác về cấu trúc mà ta có thể ước tính từ mạng lưới, bao gồm:
-Đường kính của mạng lưới là con đường nối từ đầu này sang đầu kia trong mạng lưới.
+
+Đường kính của mạng lưới là con đường nối từ đầu này sang đầu kia trong mạng lưới. Ở đây, cả 2 nhóm PCOS và Normal đều có đường kính mạng lưới là 3.
 
 ```{r}
 diameter= function(network) {
@@ -305,12 +371,11 @@ gtrans(pos_net)
 ```{r}
 gtrans(neg_net)
 ```
+Mạng của nhóm Normal có tỉ số transitivity cao hơn (0.48 so với 0.47), cho thấy nó có nhiều liên kết bộ ba hơn so với mạng tương quan của nhóm PCOS.
 
-Ngoài ra, mạng lưới tương quan còn cho phép nhận diện thông số lâm sàng nào có vai trò trung tâm, đóng góp quan trọng vào việc kiến tạo mạng liên kết với những biến còn lại, 
-Một phần tử có vai trò trung tâm khi nó có nhiều liên hệ nhất với các phần tử khác trong mạng lưới. 
+Ngoài ra, mạng lưới tương quan còn cho phép nhận diện thông số lâm sàng nào có vai trò trung tâm, đóng góp quan trọng vào việc kiến tạo mạng liên kết với những biến còn lại, từ đó trả lời câu hỏi: đại lượng nào là quan trọng nhất trong toàn bộ các thông số đang được nghiên cứu ?
 
-Có nhiều chỉ số để ước lượng tính Trung tâm này, như: Degree, Betweeness, Closeness, Eigen vector, Bonacich power, Information, Harary graph. 
-Ở mỗi trạng thái khác nhau: Bệnh lý/Bình thường, mỗi biến có vai trò khác nhau trong việc kiến tạo ra mạng lưới quan hệ với các biến còn lại.
+Một phần tử có vai trò trung tâm khi nó có nhiều liên hệ nhất với các phần tử khác trong mạng lưới. Có nhiều chỉ số để ước lượng tính Trung tâm này, như: Degree, Betweeness, Closeness, Eigen vector, Bonacich power, Information, Harary graph. Ở mỗi trạng thái khác nhau: Bệnh lý/Bình thường, mỗi biến có vai trò khác nhau trong việc kiến tạo ra mạng lưới quan hệ với các biến còn lại.
 
 ```{r}
 cent_df = data_frame(Vertex = c(neg_net %v% "vertex.names",
@@ -425,7 +490,7 @@ cent_df%>%
              scales="free")
 ```
 
-Ta có thể phát hiện ra phần tử then chốt “cut-point” , có nghĩa là khi loại bỏ phần tử này, cấu trúc mạng lưới sẽ bị phân rã, chia cắt thành 2 hay nhiều cụm.
+Thí dụ, ta có thể phát hiện ra phần tử then chốt “cut-point” , có nghĩa là khi loại bỏ phần tử này, cấu trúc mạng lưới sẽ bị phân rã, chia cắt thành 2 hay nhiều cụm. Thí dụ cho nhóm PCOS, thông số then chốt là BMI. Điều này tương tự như khi ta nhận diện một thành viên chủ chốt trong một hội nhóm trong đời thực.
 
 ```{r}
 # Cutpoint
@@ -443,7 +508,13 @@ gplot(pos_net,
       displaylabels=TRUE)
 ```
 
+Qua thí dụ minh họa này, ta có thể hình dung rằng mục tiêu của phân tích hiện thời đã vượt xa hơn câu hỏi đơn giản ban đầu rằng liệu có tồn tại hay không mối liên hệ giữa 2 thông số lâm sàng. Mạng lưới tương quan cho phép chúng ta khảo sát một cách định lượng về những khái niệm trừu tượng như: khả năng liên kết của một nhân tố với những nhân tố khác (qua đó vai trò của nó trở nên quan trọng), kích thước của cụm nhân tố liên hệ với nhau, sự thay đổi về mô thức của cấu trúc liên kết giữa các nhân tố bên trong hệ thống trong điều kiện bệnh lý... 
+
+Những thông tin này có thể dẫn đến ứng dụng trong thực hành lâm sàng, thí dụ đơn giản nhất là nhận diện một nhóm biomarker (thông số xét nghiệm) có ý nghĩa đại diện và hiệu quả cho mục tiêu chẩn đoán hoặc đánh giá độ nặng của bệnh lý.
+
 ## Yếu tố mỹ thuật
+
+Có nhiều hình thức trình bày mạng lưới tương quan, sau đây là 6 kiểu thông dụng nhất áp dụng cho mạng tương quan của nhóm PCOS:
 
 ```{r}
 op <- par(mar=c(0,0,2,0),
@@ -498,7 +569,11 @@ gplot(pos_net,
       main="Kamadakawai")
 ```
 
-Ta có thể tùy chỉnh kích thước và màu của nút theo thuộc tính của nó
+Ta có thể thấy rằng 3 kiểu trình bày: mạng lưới vòng (Circle), Kamadakawai và Fruchterman-Reingold là rõ ràng và đẹp nhất.
+
+Sơ đồ mạng có thể truyền tải nhiều thông tin qua các kênh khác nhau: Kích thước của nút có thể mã hóa cho một biến định lượng, màu sắc của nút có thể biểu thị biến định tính (phân loại), kích thước và màu sắc của liên kết có thể trình bày về độ mạnh, chiều hướng hoặc bản chất của mối tương quan giữa 2 nút.
+
+Ta có thể tùy chỉnh kích thước và màu của nút theo thuộc tính của nó: thí dụ 3 chỉ số Degree, Closeness và Betweeness đo lường mức độ quan trọng (khả năng kiến tạo liên kết) của mỗi nút.
 
 ```{r}
 op <- par(mar=c(0,0,1,0),
@@ -645,3 +720,11 @@ plot(neg_net,gmode="graph",
 
 title("Normal")
 ```
+
+## Thông điệp rút gọn làm hành trang
+
+(1) Khi nghiên cứu về một hệ thống sinh lý hoặc thực thể bệnh lý, ta nên tiếp cận một cách toàn diện và đặt mỗi nhân tố vào mạng lưới liên hệ - tương tác phức tạp với những nhân tố khác, thay vì chỉ khảo sát từng đối tượng riêng biệt.
+
+(2) Có thể kết hợp giữa phân tích tương quan cổ điển và Network analysis để tạo ra Correlation network, một công cụ hữu ích cho phép khảo sát trực quan và định lượng cấu trúc liên hệ đa chiều giữa các đại lượng, nhân tố trong hệ thống và thực thể bệnh lý.
+
+(3) Bất thường và rối loạn không chỉ biểu hiện qua sự thay đổi giá trị của một số đại lượng sinh học chuyên biệt, mà còn làm thay đổi cấu trúc của mạng lưới liên hệ giữa chúng và các nhân tố khác trong hệ thống.

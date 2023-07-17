@@ -1,14 +1,39 @@
 # Khảo sát kết cục số đếm: Hồi quy Negative Binomial
 
+## Giới thiệu
+
+Một trong những điểm độc đáo của nghiên cứu về hỗ trợ sinh sản so với những chuyên khoa y học khác, đó là sự xuất hiện của kết cục có bản chất là số đếm. Thậm chí, đây là loại kết cục chính trong quy trình thụ tinh nhân tạo hoặc các chu kì kích thích buồng trứng, thí dụ: số lượng noãn thu được, số noãn trưởng thành, số phôi...
+
+Tuy nhiên chương trình thống kê ở đại học và sau đại học chưa bao giờ đề cập đến phương pháp thống kê cho kết quả số đếm, vì vậy trong các luận văn và báo cáo khoa học, các đồng nghiệp buộc phải tận dụng tất cả những công cụ thô sơ khác mà họ có trong tay như kiểm định t Student hay những kiểm định phi tham số, ngay cả khi chúng hoàn toàn không thich hợp cho loại dữ liệu này.
+
+Giải pháp hợp lý nhất cho phân tích kết cục số đếm là áp dụng mô hình tuyến tính tổng quát với quy luật phân phối xác suất phù hợp cho biến kết quả [@hilbe2014], bao gồm phân phối Binomial, Poisson, Negative binomial và nhiều biến thể khác. Trong số này, phân phối Negative binomial thường là giải pháp tối ưu vì tính linh hoạt của nó so với phân phối Poisson. 
+
+## Bối cảnh của thí nghiệm
+
+Trong chương này, ta sẽ thực hiện một phân tích hồi quy bằng mô hình GLM với phân phối Negative binomial cho 2 bài toán: (1) so sánh số lượng noãn trung bình giữa 4 phân nhóm độc lập, và (2) Khảo sát mối liên hệ giữa số lượng noãn và 3 biến số liên tục (Tuổi, AFC và AMH).
+
+Tình huống minh họa dựa trên bộ dữ liệu thực nghiệm của nhóm tác giả Sandro C. Esteves và cộng sự vào năm 2019, với nội dung kiểm nghiệm mối liên hệ giữa 3 đại lượng: Tuổi, AMH, AFC (n=1181), hoặc khái quát hơn là 4 nhóm đáp ứng kém buồng trứng theo hệ thống phân loại POSEIDON (n=881) và kết cục của chu kì kích thích buồng trứng (số noãn thu được, số noãn MII).
+
+Điều thú vị, đó là bản thân công cụ ART calculator của tác giả Sandro C. Esteves và nhóm POSEIDON (Patient-Oriented Strategies Encompassing IndividualizeD Oocyte Number) có bản chất là sự kết hợp của 2 mô hình hồi quy Negative Binomial và logistic. Đây cũng là trường hợp hiếm hoi trong y văn ngành hỗ trợ sinh sản mà phân phối xác suất Negative Binomial được vận dụng để giải quyết câu hỏi nghiên cứu lâm sàng.
+
+## Kế hoạch phân tích
+
+Mô hình hồi quy tuyến tính tổng quát (GLM) với phân phối Negative Binomial type I (NBI) [@stasinopoulos2017,@rigby2020] sẽ được áp dụng nhằm khảo sát mối liên hệ giữa phân loại POSEIDON và số lượng noãn thu được trong chu kì COS. Suy diễn thống kê dựa vào mean marginal effect và kiểm định giả thuyết vô hiệu với ngưỡng ý nghĩa p<0.05
+
 ## Công cụ cần thiết
 
 Quy trình phân tích sẽ sử dụng các thư viện sau trong R:
 
 + Thư viện dplyr trong hệ sinh thái tidyverse[@tidyverse] để thao tác dữ liệu và thống kê mô tả
+
 + Thư viện fitdistrplus[@fitdistrplus] để đối chiếu 3 quy luật phân phối Gaussian, Poisson và NBI, nhằm chứng minh tính phù hợp hơn của phân phối NBI.
+
 + Thư viện ggplot2, ggrides[@ggridges], tidybayes[@tidybayes] và ggdist[@ggdist] để vẽ một số biểu đồ thống kê; thư viện patchwork để ghép các biểu đồ với nhau.
+
 + Thư viện gamlss[@gamlss1] để dựng mô hình GLM với phân phối NBI
+
 + Thư viện marginaleffects[@marginal] để ước tính avegrage marginal effect (AME) và suy diễn thống kê từ kết quả mô hình.
+
 + Thư viện broom[@broom] nhằm trích xuất dữ liệu kết quả ước lượng từ mô hình.
 
 ```{r}
@@ -26,6 +51,10 @@ library(broom)
 library(marginaleffects)
 ```
 
+Đầu tiên, ta tải dữ liệu từ file POSEIDON_ART.csv vào R và lưu trong dataframe df. Cho bài toán thứ nhất (so sánh giữa 4 loại POSEIDON), ta sẽ loại trừ những trường hợp không thể được xếp vào bất cứ nhóm nào trong hệ thống phân loại POSEIDON (biến POSEIDON có giá trị = 0). 
+
+Biến kết quả trong bài toán là số noãn thu được (Collected), kiểu số nguyên (int). Biến độc lập là POSEIDON là một biến rời rạc với 4 bậc giá trị 1,2,3,4. 
+
 ```{r,message = FALSE,warning=FALSE}
 df = read.csv('POSEIDON_ART.csv',
               sep = ';',
@@ -39,6 +68,8 @@ df%>%dplyr::sample_frac(0.1)%>%head(6)%>%knitr::kable()
 ```
 
 ## Thống kê mô tả
+
+Trước khi tiến hành phân tích, ta sẽ thăm dò dữ liệu. Cho bài toán thứ 1, ta sẽ mô tả đặc tính phân phối của số noãn giữa 4 phân nhóm POSEIDON như sau:
 
 ```{r,message = FALSE,warning=FALSE}
 tot = nrow(df)
@@ -55,6 +86,10 @@ df %>%
             ) %>% 
   knitr::kable(digits = 3)
 ```
+
+Kết quả này gợi ý có sự khác biệt rõ về số noãn trung bình giữa 3 nhóm 1,2 và 3 theo thứ tự: 3 < 1 < 2; tuy nhiên giữa nhóm 3 và 4 thì khác biệt không rõ nét.
+
+Ta có thể so sánh trực quan phân phối của số noãn thu được giữa 4 nhóm bằng biểu đồ tần suất (histogram) như sau:
 
 ```{r,message = FALSE,warning=FALSE}
 
@@ -83,6 +118,9 @@ P1 = df %>% ggplot(aes(x = Collected,
 
 P1
 ```
+Chú thích: Hình trên trình bày 4 biểu đồ tần suất nhằm so sánh phân phối của số lượng noãn (Trục Y) giữa 4 nhóm POSEIDON (trục X).
+
+Cho bài toán thứ hai, ta tạo dataframe df2 chứa toàn bộ 1181 trường hợp, sau đó khảo sát trực quan về mối liên hệ giữa 3 biến Age, AFC và AMH và số noãn thu được bằng biểu đồ tán xạ kết hợp với đồ thị mô hình hồi quy tuyến tính đơn biến.
 
 ```{r}
 
@@ -115,8 +153,19 @@ df2%>%gather(c(AFC,Age,AMH), key = 'Parameter', value = "Value")%>%
   theme_bw(10)+
   facet_wrap(~Parameter, scales = "free", ncol = 2)
 ```
+Chú thích: Hình trên gồm 3 biểu đồ hồi quy và tán xạ, khảo sát mối liên hệ giữa số noãn thu được (Trục Y) và 3 biến Age, AFC và AMH (Trục X). Mỗi điểm tròn biểu thị cho 1 đơn vị quan sát, đường thẳng và băng màu trình bày giá trị trung bình và khoảng tin cậy 95% của mô hình hồi quy tuyến tính đơn biến. Dữ liệu được phân chia thành 5 nhóm tương ứng với kết quả xếp loại POSEIDON (0,1,2,3,4).
+
+Hình ảnh này gợi ý về một mối tương quan thuận giữa số noãn thu được và AFC cũng như AMH, đồng nhất ở cả 5 phân nhóm. tuy nhiên, tương quan giữa số noãn và tuổi lại không rõ nét và có sự khác biệt giữa các nhóm POSEIDOn khác nhau.
 
 ## Biện luận về tính phù hợp của quy luật phân phối NBI
+
+Số lượng noãn thu được là kết quả của phép đếm. Thông thường, ta thường dùng phân phối Poisson cho số đếm, và mô hình hồi quy cổ điển thường dựa trên phân phối Gaussian. Ta sẽ chứng minh rằng Negative Binomial là phân phối phù hợp hơn cả so với phân phối Gaussian và Poisson để ước lượng kết quả trong bài toán hiện thời.
+
+Ta thực hiện quy trình sau:
+
+1) Đầu tiên, ta dùng hàm fitfist để lần lượt khớp dữ liệu số noãn với 3 quy luật phân phối Gaussian, Poisson và NBI, 
+
+2) sau đó đối chiếu hình ảnh đồ thị hàm PDF và CDF so với dữ liệu thực nghiệm, bằng 2 hàm denscomp và cdfcomp:
 
 ```{r}
 fit_poisson = fitdist(df$Collected, 'pois', optim.method = 'BFGS')
@@ -141,8 +190,28 @@ P2 = cdfcomp(list(fit_poisson, fit_negbin,fit_norm),
 
 P2 / P1
 ```
+Chú thích: Hai biểu đồ trên cho phép đối chiếu đồ thị hàm CDF (mật độ xác suất tích lũy, hình trên) và hàm PDF (mật độ xác suất, hình dưới) của 2 phân phối Gaussian (màu xanh lục), NBI (màu đỏ) và Poisson (màu xanh dương) với hình ảnh đồ thị hàm CDF và biểu đồ tần suất trên thực nghiệm (màu xám).
+
+Kết quả này cho thấy NBI là quy luật phân phối phù hợp nhất cho dữ liệu hiện thời. 
 
 ## Phân tích hồi quy bằng mô hình GLM NBI
+
+Tiếp theo, ta lần lượt giải quyết 2 bài toán thống kê thông qua mô hình tuyến tính tổng quát với phân phối NBI [@hilbe2011]. Cho cả 2 bài toán, ta cần một mô hình cho phép ước lượng số noãn thu được như 1 biến ngẫu nhiên Y theo phân phối Negative Binomial tùy thuộc vào 4 nhóm POSEIDON (Bài toán 1) hoặc các hiệp biến AFC, AMH, Age (Bài toán 2). 
+
+Hàm mật độ xác suất của Y được xác định bằng 2 tham số $\mu$ và $\sigma$
+
+$$Pr(Y = y|\mu,\sigma) = \frac{Γ(𝑦+ \frac{1}{\sigma})}{Γ(y + 1) Γ(\frac{1}{\sigma})}(\frac{\mu\sigma }{1 + \mu\sigma})^{y}(\frac{1}{1 + \mu\sigma})^{1/\sigma}$$
+Với tập xác định $Y \in \left\{0,1,2,3...\right\}$, tham số $\mu$ tương ứng với giá trị trung bình của Y:  $0 < \mu < \infty$ và tham số $\sigma$ chỉ mức độ phân tán: $0 < \sigma < \infty$
+
+Phương sai (variance) của Y có thể tính từ $\mu$ và $\sigma$ theo công thức:
+
+$$var(Y) = \mu + \sigma\mu^{2}$$
+Thư viện gamlss cho phép chúng ta dựng mô hình tuyến tính cho cả 2 tham số với hàm liên kết logarit, tuy nhiên suy diễn thống kê chỉ tập trung vào giá trị trung bình (tham số $\mu$)
+
+Mô hình GLM cho tham số $\mu$ có công thức tổng quát như sau:
+
+$$log⁡(𝜇 ) = 𝛽_0+𝛽_1 𝑋_1+𝛽_2 𝑋_2+ … +𝛽_𝑗 𝑋_𝑗$$
+Với bài toán thứ nhất, mô hình hồi quy mod_1 trong gamlss có công thức : Collected ~ POSEIDON, family = NBI().
 
 ```{r,message = FALSE,warning=FALSE}
 mod_1 = gamlss(data = df, 
@@ -156,14 +225,31 @@ Kết quả của mô hình mod_1 như sau:
 summary(mod_1)
 ```
 
+Diễn giải kết quả mô hình
+
++ (Intercept) = 2.06132 là giá trị trung bình của số noãn thu được ở nhóm tham chiếu (POSEIDON = 1) ở thang đo logarit, ta có thể chuyển về thang đo số đếm bằng hàm exponential: $exp(2.06132) = 7.856333$, giá trị này rất phù hợp với kết quả thống kê mô tả trên dữ liệu thực nghiệm.
+
++ Các hệ số hồi quy POSEIDON2, POSEIDON3 và POSEIDON4 tương ứng với sự thay đổi của log(số noãn) ở 3 nhóm POSEIDON 2,3,4 so với nhóm tham chiếu (1); Ta có thể ước tính số noãn trung bình ở nhóm POSEIDON = 3 như sau: $exp(2.06132 + -0.70893) = 3.866656$, ta thấy giá trị này cũng tương đồng với kết quả mean của nhóm POSEIDON 3.
+
 ```{r}
 df%>%group_by(POSEIDON) %>% summarize("Mean" = mean(Collected))%>%
   knitr::kable()
 ```
 
++ Một giá trị hệ số hồi quy > 0 cho biết số noãn thu được trung bình (thang đo logarit) ở nhóm đó gia tăng so với nhóm tham chiếu, thí dụ trong trường hợp này Nhóm POSEIDON 2 có hệ số hồi quy = 0.47583, cho thấy nhóm POSEIDON 2 thu được nhiều noãn hơn so với nhóm POSEIDON 1.
+
++ Ngược lại, hệ số hồi quy < 0 cho thấy sự sút giảm về số noãn thu được so với nhóm tham chiếu. Trong trường hợp này, nhóm POSEIDON 4 có hệ số hồi quy = -0.90001, gợi ý rằng số noãn thu được trung bình ở nhóm POSEIDON 4 thấp hơn so với nhóm 1.
+
++ Pr(>|t|) trình bày giá trị p của kiểm định giả thuyết vô hiệu là hệ số hồi quy = 0 (không có khác biệt so với nhóm tham chiếu, hiệu ứng của nhóm POSEIDON đó = 0). Trong thí dụ này, cả 3 sự khác biệt ở nhóm 2,3,4 so với nhóm 1 đều có ý nghĩa thống kê (p<0.001).
+
+Dựa vào mô hình này, ta có thể tiến hành một phân tích hậu kiểm (post-hoc) nhằm so sánh bắt cặp tuần tự số noãn trung bình giữa 4 nhóm POSEIDON. Quy trình này được thực hiện với hàm avg_comparisons của package marginaleffects, với tùy chỉnh "variables = list(POSEIDON = 'pairwise')"
+
+Kết quả phân tích như sau:
+
 ```{r,message = FALSE,warning=FALSE}
 abs = avg_comparisons(mod_1, 
                 what = 'mu',
+                newdata = df,
                 variables = list(POSEIDON = 'pairwise'))
 
 abs$adj_p = p.adjust(abs$p.value, method = "bonferroni")
@@ -171,6 +257,12 @@ abs$adj_p = p.adjust(abs$p.value, method = "bonferroni")
 abs%>%dplyr::select(-c(2,6))%>%
   knitr::kable(digits = 3)
 ```
+
+Trong bảng này, cột estimate trình bày khác biệt về số noãn trung bình giữa 2 nhóm POSEIDON bất kì (cột contrast), 2 cột conf.low và conf.high trình bày KTC95% của khác biệt này. Cột adj_p trình bày giá trị p hiệu chỉnh bằng phương pháp Bonferroni.
+
+Theo kết quả này, sự khác biệt giữa các nhóm về số noãn trung bình tạo ra thứ tự sau: nhóm 3 và 4 là thấp nhất, nhóm 2 là cao nhất và nhóm 1/2 cao hơn nhóm 3/4, những khác biệt này đều có ý nghĩa thống kê. Tuy nhiên không có khác biệt ý nghĩa giữa 2 nhóm 3 và 4.
+
+Ta có thể trình bày trực quan giá trị marginal effect của 4 nhóm như sau:
 
 ```{r,results='hide'}
 
@@ -217,6 +309,9 @@ augment(mod_1)%>%mutate(UL= .fitted +.se.fit*1.96,
   coord_flip()+
   theme_bw()  
 ```
+Cho bài toán thứ hai, ta dựng một mô hình GLM NBI với công thức: Collected ~ Age + AMH + AFC trên toàn bộ 1181 đơn vị dữ liệu.
+
+Nội dung mô hình như sau:
 
 ```{r}
 mod_2 = gamlss(data = df2, 
@@ -227,13 +322,30 @@ mod_2 = gamlss(data = df2,
 summary(mod_2)
 ```
 
+(Intercept) trình bày giá trị log(số noãn trung bình) ở điều kiện tham chiếu, khi Age, AFC và AMH ở vị trí trung bình trong quần thể.
+
+Các hệ số hồi quy cho Age, AFC và AMH cho biết log(số noãn trung bình) sẽ tăng/giảm bao nhiêu đơn vị khi Age, AFC và AMH tăng thêm 1 đơn vị. Giá trị hệ số hồi quy > 0 biểu thị cho mối liên hệ tỷ lệ thuận (thí dụ cho AMH và AFC: khi AMH và AFC gia tăng thì số noãn thu được cũng tăng), giá trị hệ số hồi quy < 0 biểu thị cho quan hệ tỷ lệ nghịch, thí dụ cho Age: khi tuổi càng cao thì số noãn càng giảm).
+
+Cả 3 mối liên hệ với Age, AFC và AMH đều có ý nghĩa thống kê.
+
+Vì hệ số hồi quy đang ở thang đo logarit, nên ta có thể dùng cùng cách tính marginal effect với hàm avg_comparisons để suy luận thống kê dễ hiểu hơn ở thang đo gốc:
+
 ```{r}
 abs = avg_comparisons(mod_2, 
-                what = "mu")
+                what = "mu",
+                newdata = df2)
 
 abs%>%dplyr::select(-c(1,6))%>%
   knitr::kable(digits = 3)
 ```
+
+Theo kết quả này, số noãn trung bình sẽ tăng 0.724, 0.717 và 0.113 cho mỗi đơn vị gia tăng của AMH, AFC và Tuổi, với giả định là các biến còn lại không đổi. Cả 3 giá trị marginal effect cho Age, AFC và AMH đều có ý nghĩa thống kê.
+
+Ta có thể khảo sát một cách trực quan và riêng biệt mối liên hệ giữa Age, AFC và AMH với số noãn thu được theo quy trình như sau:
+
+1) Đầu tiên, áp dụng hàm predictions trên 1 dữ liệu phản thực tế (counterfactual) và điều kiện hóa (conditioned) cho một khoảng giá trị cụ thể của mỗi biến, thí dụ Age dao động từ 20 đến 40, AFC từ 1 đến 10, AFC từ 1 đến 30.
+
+2) Dùng biểu đồ tần suất (hàm stat_dotsinterval) và biểu đồ hồi quy (stat_lineribbon) để trình bày trực quan về sự thay đổi của số noãn tùy thuộc vào các điều kiện ta đã tạo ra ở trên
 
 ```{r}
 preds = predictions(model = mod_2,
@@ -263,6 +375,8 @@ preds%>%ggplot(aes(x = Age,
         axis.title = element_text(size = 10, color = "black"))
 ```
 
+Kết quả cho thấy tuy có tồn tại liên hệ giữa Age và số noãn, thực ra mối liên hệ này rất yếu và không ảnh hưởng nhiều đến kết cục về số noãn.
+
 ```{r}
 preds = predictions(model = mod_2,
                     what = "mu",
@@ -290,6 +404,7 @@ preds%>%ggplot(aes(x = AMH,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+Trong khi đó, hiệu ứng tác động của AMH đối với số noãn thu được là tương đối đáng kể; thí dụ giữa AMH=1 và AMH=5, thì số noãn trung bình đã khác biệt khoảng 2.5 đơn vị.
 
 ```{r}
 preds = predictions(model = mod_2,
@@ -318,6 +433,9 @@ preds%>%ggplot(aes(x = AFC,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+Cuối cùng, hiệu ứng của AFC là mạnh nhất và có tính chất lũy tiến (số noãn thu được tăng theo quy luật hàm mũ khi AFC gia tăng), có thể nói AFC chính là yếu tố quan trọng nhất quyết định số noãn thu được. 
+
+Ta cũng có thể khảo sát hiệu ứng của AFC theo các điều kiện khác nhau, thí dụ nhóm tuổi như trong biểu đồ sau:
 
 ```{r}
 preds = predictions(model = mod_2,
@@ -350,3 +468,15 @@ preds%>%ggplot(aes(x = AFC,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+
+## Diễn đạt kết quả phân tích
+
+Kết quả phân tích hồi quy cho thấy: có sự khác biệt ý nghĩa về số lượng noãn thu được giữa các nhóm POSEIDON. Cụ thể là nhóm 2 thu được nhiều noãn nhất, nhóm 3 và 4 thu được ít noãn nhất, không có sự khác biệt ý nghĩa giữa kết cục nhóm 3 và 4. Số lượng noãn thu được tỉ lệ thuận với Tuổi, AFC và AMH, trong đó AFC là yếu tố quan trọng nhất quyết định kết quả của chu kì kích thích buồng trứng, tiếp theo là AMH, trong khi Tuổi chỉ có vai trò ít quan trọng hơn.
+
+## Thông điệp rút gọn làm hành trang
+
+(1) Trong nghiên cứu hỗ trợ sinh sản, kết cục về số lượng noãn hoặc phôi có bản chất là số đếm và cần áp dụng phương pháp thống kê thích hợp.
+
+(2) Để ước lượng kết quả số đếm, ta có thể dùng quy luật phân phối Poisson hoặc Negative Binomial (NBI), trong đó NBI hợp lý và chính xác hơn.
+
+(3) Mô hình tuyến tính tổng quát với phân phối NBI là giải pháp phù hợp để suy diễn thống kê cho kết quả số đếm.
