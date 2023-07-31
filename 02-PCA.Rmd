@@ -52,7 +52,16 @@ df$Group = as.factor(df$Group)
 
 df_num = df %>% dplyr::select(-1)
 
-df_num%>%head(5)%>%knitr::kable()
+df%>%
+  sample_frac(1)%>%
+  head(5)%>%
+  dplyr::select(c(1,2:8))%>%
+  knitr::kable(digits=2)
+
+df%>%head(5)%>%
+  sample_frac(1)%>%
+  dplyr::select(c(1,9:16))%>%
+  knitr::kable(digits=2)
 ```
 
 Với một không gian dữ liệu đa chiều (có quá nhiều biến số) như hiện thời, rất khó để khảo sát toàn diện về đặc điềm phân phối và mối liên hệ giữa các biến.

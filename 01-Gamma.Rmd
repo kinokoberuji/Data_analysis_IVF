@@ -110,7 +110,7 @@ Mục tiêu của công đoạn này nhằm thăm dò và mô tả sơ khởi v�
 
 + Ta sử dụng hàm group_by của thư viện dplyr để phân chia dữ liệu thành 5 phần, tương ứng 5 bậc giá trị của biến Protocol 
 
-+ Áp dụng hàm summarize của thư viện dplyr để tính mean, sd, median, p5, p95, min và max của LH cho mỗi nhóm nhỏ
++ Áp dụng hàm summarize của thư viện dplyr để tính mean, sd, median, p5, p95 (bách phân vị thứ 5 và 95), min và max của LH cho mỗi nhóm nhỏ
 
 + Dùng hàm arrange của dplyr để xếp thứ tự theo giá trị trung bình LH tăng dần
 

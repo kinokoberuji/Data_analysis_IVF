@@ -426,7 +426,7 @@ RD cho biết khi dùng phác đồ PPOS, xác suất đạt thay diễn tiến 
 rd = avg_comparisons(
   log_mod,
   variables = "Protocol")%>%
-  dplyr::select(-c(1,2,5,6))%>%
+  dplyr::select(c(2:6,8,9))%>%
   mutate(contrast = "RD")
 
 rd %>% knitr::kable(digits = 3)
@@ -457,7 +457,7 @@ or = avg_comparisons(
   variables = "Protocol",
   transform_pre = "lnoravg",
   transform_post = "exp")%>%
-  dplyr::select(-c(1,2,8:10))%>%
+  dplyr::select(c(2,3,4,6,7,))%>%
   mutate(contrast = "OR")
 
 rr = avg_comparisons(
@@ -465,7 +465,8 @@ rr = avg_comparisons(
   newdata = df,
   variables = "Protocol",
   transform_pre = "lnratioavg",
-  transform_post = exp)%>%dplyr::select(-c(1,2,8:10))%>%
+  transform_post = exp)%>%
+    dplyr::select(c(2,3,4,6,7,))%>%
    mutate(contrast = "RR")
 
 rbind(or,rr) %>% knitr::kable(digits = 3)
@@ -484,7 +485,8 @@ rd2 = avg_comparisons(
                    Thickness = 1),
   by = "Protocol")
 
-rd2 %>% knitr::kable(digits = 3)
+rd2 %>% dplyr::select(c(1,3,4,5,7,9,10))%>%
+  knitr::kable(digits = 3)
 
 or2 = avg_comparisons(
   log_mod,
@@ -495,7 +497,6 @@ or2 = avg_comparisons(
   by = "Protocol",
   transform_pre = "lnoravg",
   transform_post = "exp")%>%
-  dplyr::select(-c(1))%>%
   mutate(contrast = "OR")
 
 rr2 = avg_comparisons(
@@ -507,11 +508,14 @@ rr2 = avg_comparisons(
   by = "Protocol",
   transform_pre = "lnratioavg",
   transform_post = exp)%>%
-  dplyr::select(-c(1,9:11))%>%
    mutate(contrast = "RR")
 
-or2%>%knitr::kable(digits = 3)
-rr2%>%knitr::kable(digits = 3)
+or2%>%dplyr::select(-6)%>%
+  knitr::kable(digits = 3)
+
+rr2%>%
+  dplyr::select(c(1:5,7,8))%>%
+  knitr::kable(digits = 3)
 ```
 
 Theo kết quả này, ta thấy AFC có tương quan thuận (OR > 1 và RR > 1) với xác suất thai diễn tiến, nhưng chỉ có ý nghĩa trong nhóm phác đồ GnRHa; Age có tương quan nghịch ý nghĩa với khả năng đạt thai diễn tiến cho cả 2 phác đồ (OR < 1 và RR < 1), trong khi không có liên hệ ý nghĩa nào giữa Thickness và khả năng đạt thai diễn tiến.
@@ -676,7 +680,6 @@ rd3 = avg_comparisons(
   newdata = df,
   what = "mu",
   variables = "Protocol")%>%
-  dplyr::select(-c(1,2,5,6))%>%
   mutate(contrast = "DR")
 
 or3 = avg_comparisons(
@@ -686,7 +689,6 @@ or3 = avg_comparisons(
   variables = "Protocol",
   transform_pre = "lnoravg",
   transform_post = "exp")%>%
-  dplyr::select(-c(1,2,8:10))%>%
   mutate(contrast = "OR")
 
 rr3 = avg_comparisons(
@@ -695,15 +697,20 @@ rr3 = avg_comparisons(
   newdata = df,
   variables = "Protocol",
   transform_pre = "lnratioavg",
-  transform_post = exp)%>%dplyr::select(-c(1,2,8:10))%>%
+  transform_post = exp)%>%
    mutate(contrast = "RR")
 
-rd3%>%knitr::kable(digits = 3)
-or3%>%knitr::kable(digits = 3)
-rr3%>%knitr::kable(digits = 3)
+rd3%>%dplyr::select(c(1,2,3,6,8,9))%>%
+  knitr::kable(digits = 3)
+
+or3%>%dplyr::select(c(1,2,3,4,6,7))%>%
+  knitr::kable(digits = 3)
+
+rr3%>%dplyr::select(c(1,2,3,4,6,7))%>%
+  knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, có liên hệ ý nghĩa giữa phác đồ PPOS và sự gia tăng của tỷ lệ thai diễn tiến cộng dồn. Cụ thể nhóm phác đồ PPOS có tỷ lệ thai diễn tiến cao hơn trung bình 8.37% (DR = 0.0837, KTC95%: 0.002 - 0.165, p=0.04). Tỷ số Odds (OR) và tỷ số nguy cơ (RR) lần lượt là 1.44 và 1.27 đều cao hơn 1 cho thấy hiệu quả ưu thế hơn của phác đồ PPOS, cả hai đều có ý nghĩa thống kê.
+Theo kết quả này, có liên hệ ý nghĩa giữa phác đồ PPOS và sự gia tăng của tỷ lệ thai diễn tiến cộng dồn. Cụ thể nhóm phác đồ PPOS có tỷ lệ thai diễn tiến cao hơn trung bình 8.37% (DR = 0.084, KTC95%: 0.002 - 0.165, p=0.043). Tỷ số Odds (OR) và tỷ số nguy cơ (RR) lần lượt là 1.44 và 1.267 đều cao hơn 1 cho thấy hiệu quả ưu thế hơn của phác đồ PPOS, cả hai đều có ý nghĩa thống kê.
 
 Ta thực hiện mô tả phân phối toàn thể của hiệu ứng này qua hai biểu đồ sau:
 

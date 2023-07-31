@@ -63,7 +63,12 @@ df$COS = factor(df$COS)
 df$Transf = factor(df$Transf)
 df$Stage = factor(df$Stage)
 
-df%>%head()%>%knitr::kable()
+
+df%>%head()%>%dplyr::select(c(1,16,2:7))%>%
+  knitr::kable(digits = 2)
+
+df%>%head()%>%dplyr::select(c(1,16,8:15))%>%
+  knitr::kable(digits = 2)
 ```
 
 ## Mô tả đơn giản
@@ -141,7 +146,6 @@ coord_dag <- list(x = c(Birth = 9,
                         Ooc = 4
                         )
                         )
-
 
 dag <- dagify(
       Birth ~ BMI + Preg + Age,
@@ -235,18 +239,22 @@ fit1 <- glm(LBirth ~ Method + Age + BMI + COS +
 
 rd = avg_comparisons(fit1, 
                      variables = "Method",
-                     newdata = df)%>%
-  dplyr::select(-c(1,6))
+                     newdata = df)
 
-rd%>%knitr::kable()
+rd%>%
+  dplyr::select(c(1,2,3,4,6,8,9))%>%
+  knitr::kable(digits = 3)
 
 or = avg_comparisons(
   fit1,
   variables = "Method",
   transform_pre = "lnoravg",
-  transform_post = "exp")%>%dplyr::select(-c(8:10))
+  transform_post = "exp")
 
-or %>% knitr::kable(digits = 3)
+or %>%
+  mutate(contrast = "OR")%>%
+  dplyr::select(c(2,3,4,6,7))%>%
+  knitr::kable(digits = 3)
 ```
 
 Ta có thể thấy đây là một kết quả negative, nó cho thấy Letrozole không có hiệu quả nào cả đối với kết cục LiveBirth.
@@ -262,18 +270,22 @@ fit2 <- glm(LBirth ~ Method,
 
 rd = avg_comparisons(fit2, 
                      variables = "Method",
-                     newdata = df)%>%
-  dplyr::select(-c(1,6))
+                     newdata = df)
 
-rd%>%knitr::kable()
+rd%>%
+  dplyr::select(c(1,2,3,4,6,8,9))%>%
+  knitr::kable(digits = 3)
 
 or = avg_comparisons(
   fit2,
   variables = "Method",
   transform_pre = "lnoravg",
-  transform_post = "exp")%>%dplyr::select(-c(8:10))
+  transform_post = "exp")
 
-or %>% knitr::kable(digits = 3)
+or %>%
+  mutate(contrast = "OR")%>%
+  dplyr::select(c(2,3,4,6,7))%>%
+  knitr::kable(digits = 3)
 ```
 
 Dựa theo kết quả này, Letrozole có một hiệu quả tích cực đối với kết cục LiveBirth, tuy nhiên kích thước hiệu ứng rất nhỏ và gần như không có ý nghĩa thống kê (p rất gần với 0.05).
@@ -288,21 +300,20 @@ fit3 <- glm(LBirth ~ Method + Age + COS + BMI,
            data = df,
            family = binomial)
 
-
-rd = avg_comparisons(fit3, 
-                     variables = "Method",
-                     newdata = df)%>%
-  dplyr::select(-c(1,6))
-
-rd%>%knitr::kable()
-
+rd%>%
+  dplyr::select(c(1,2,3,4,6,8,9))%>%
+  knitr::kable(digits = 3)
+  
 or = avg_comparisons(
   fit3,
   variables = "Method",
   transform_pre = "lnoravg",
-  transform_post = "exp")%>%dplyr::select(-c(8:10))
+  transform_post = "exp")
 
-or %>% knitr::kable(digits = 3)
+or %>%
+  mutate(contrast = "OR")%>%
+  dplyr::select(c(2,3,4,6,7))%>%
+  knitr::kable(digits = 3)
 ```
 
 Kết quả này cho thấy Letrozole có hiệu quả tích cực và có ý nghĩa thống kê đối với khả năng sinh sống, với khác biệt về tỷ lệ Live Birth so với chu kì nhân tạo = 8.96% (p=0.04) và OR = 1.437 (p = 0.04).
