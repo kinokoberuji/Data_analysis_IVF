@@ -2,17 +2,11 @@
 
 ## Giới thiệu
 
-Những nghiên cứu về quy trình thụ tinh ống nghiệm đặt ra yêu cầu khảo sát nhiều loại kết cục lâm sàng với bản chất khác nhau. Mặt khác, có tính chất kế thừa trong chuỗi kết quả của quy trình. Thành phẩm thu được của công đoạn sau chính là hệ quả từ việc tiến hành một loạt phép thử (thí dụ thụ tinh, chuyển phôi...) trên tập hợp kết quả công đoạn trước. Thí dụ, số lượng phôi là hệ quả từ tỷ lệ thụ tinh thành công trên tập hợp nhiều noãn. Do đó, cùng một thực thể kết cục nhưng có thể được diễn đạt theo nhiều cách; số lượng phôi, tỷ lệ thụ tinh trên tổng số noãn, xác suất thụ tinh thành công cho mỗi noãn... 
-
-Như đã bàn trong chương 3, do giới hạn về công cụ thống kê, hầu hết những nghiên cứu về hỗ trợ sinh sản hiện nay chỉ mới dừng lại ở phân tích so sánh và kiểm định bằng những phép kiểm đơn giản thô sơ như Mann-Whitney, Student t test... cho mọi kết quả là con số, không phân biệt bản chất của chúng là số đếm, số liên tục hay tỷ lệ. 
-
-Trong chương này, chúng tôi giới thiệu một phương pháp phân tích hợp lý và chính xác hơn cho kết cục là tỷ lệ, áp dụng lý thuyết xác suất cho biến rời rạc và mô hình hồi quy tuyến tính tổng quát với phân phối nhị thức (Binomial).
+...
 
 ## Bối cảnh của thí nghiệm
 
-Kích hoạt sự trưởng thành của noãn là một công đoạn vào cuối chu kỳ kích thích buồng trứng. Hormone hCG thường được dùng để tạo đỉnh hormone hoàng thể (LH) ở cuối các chu kỳ KTBT nhằm khởi động sự trưởng thành noãn và tiếp tục hoàn chỉnh tiến trình giảm phân đã bị gián đoạn trước đó. Tuy nhiên việc sử dụng hCG có thể làm tăng nguy cơ quá kích buồng trứng (OHSS). Một phương pháp khác là sử dụng chất đồng vận GnRH cho phép giải phóng cấp tính LH và hormone kích thích nang noãn (FSH), khởi phát tiến trình rụng trứng. Quá trình kích hoạt tạo 2 đỉnh LH và FSH này khá tương đồng với các chu kỳ tự nhiên, nhưng với nồng độ thấp hơn và thời gian bán huỷ ngắn hơn, góp phần làm giảm nguy cơ OHSS. Gần đây, ta có thêm lựa chọn khác là phác đồ kích hoạt kép (Dual trigger). Phác đồ này sử dụng đồng thời chất chủ vận GnRH và bổ sung hCG ở liều thấp hoặc tiêu chuẩn để khởi phát trưởng thành noãn và rụng trứng.
-
-Trong thí nghiệm này, một nhóm nghiên cứu muốn khảo sát hiệu quả tạo phôi (blastocytes) của kỹ thuật kích thích trưởng thành noãn kép (Dual trigger), so với 2 kỹ thuật tham chiếu dùng đồng vận GnRH (GnRHa) và hCG đơn giản.
+...
 
 ## Công cụ cần thiết cho quy trình
 
@@ -23,6 +17,7 @@ Trong thí nghiệm này, một nhóm nghiên cứu muốn khảo sát hiệu qu
 + Thư viện gamlss[@gamlss1] để dựng mô hình GLM với phân phối Binomial
 
 + Thư viện marginaleffects[@marginal] để ước tính OR, RR và suy diễn thống kê từ kết quả mô hình.
+
 ```{r}
 library(tidyverse)
 library(ggridges)
@@ -36,11 +31,7 @@ library(ggdist)
 
 ## Chuẩn bị dữ liệu
 
-Đầu tiên, ta tải dữ liệu từ file Dual_trigger.csv vào dataframe df bằng hàm read.csv, sau đó áp dụng hàm factor để chuyển dạng biến Trigger thành số thứ tự :
-
-1 = a (GnRH agonist), 2 = d (Dual trigger), 3 = h (hCG).
-
-Ta tạo ra thêm biến p1 là tỷ lệ tạo blastocytes từ số noãn ban đầu, bằng cách chia số lượng blastocytes (biến blast) cho số noãn (biến oocytes).
+...
 
 ```{r}
 df = read.csv('Dual_trigger.csv', sep = ';', 
@@ -52,13 +43,14 @@ df$p1 = df$blast/df$oocytes
 
 df%>%head()%>%knitr::kable()
 ```
+
 ## Kế hoạch phân tích
 
-Khả năng tạo blastocyte khi dùng kỹ thuật Dual trigger so với 2 phương pháp tham chiếu (đồng vận hoặc hCG đơn) sẽ được ước lượng bằng marginal Odds-ratio (OR) và risk-ratio (RR), có hiệu chỉnh cho tuổi và AFC, dựa vào một mô hình hồi quy tuyến tính tổng quát (GLM) với phân phối nhị thức (Binomial). Suy diễn thống kê dựa vào phủ nhận giả thuyết vô hiệu (OR và RR = 1) ở ngưỡng ý nghĩa p = 0.05.
+...
 
 ## Thống kê mô tả
 
-Ta kết hợp hàm group_by và summarize của thư viện dplyr để dựng một bảng thống kê mô tả đơn giản, trình bày trung vị, SD, phân vị thứ 5 và 95 của tỷ lệ tạo blastocytes (biến p1) trong 3 phân nhóm kỹ thuật trigger.
+...
 
 ```{r}
 df%>%group_by(Trigger)%>%
@@ -69,11 +61,7 @@ df%>%group_by(Trigger)%>%
             p95 = quantile(p1, 0.95),
             )%>%knitr::kable(digits = 3)
 ```
-Theo kết quả này, mặc dù giá trị trung bình của tỷ lệ tạo blastocyte có vẻ cao hơn ở nhóm d (dual trigger), nhưng giới hạn phân bố của tỷ lệ này lại không cho thấy sự khác biệt giữa 3 nhóm.
-
-Tiếp theo, ta sẽ so sánh trực quan đặc tính phân phối của số lượng blastocytes (bằng biểu đồ tần suất - histogram) và tỷ lệ blastocyte (bằng biểu đồ boxplot).
-
-Hình: Phân bố của số lượng blastocytes giữa 3 nhóm kỹ thuật trigger
+...
 
 ```{r}
 pals = c("d" = "#fc035e", 
@@ -102,9 +90,7 @@ df %>% ggplot(aes(x = blast,
         axis.title = element_text(size = 10, color = "black"))
 ```
 
-Chú thích: 3 biểu đồ tần suất trong hình trình bày phân bố của số lượng blastocytes (trục Y) ở 3 nhóm kỹ thuật trigger (trục X).
-
-Hình: Phân bố của tỷ lệ tạo blastocytes từ số noãn ban đầu giữa 3 nhóm
+...
 
 ```{r}
 df %>% ggplot(aes(y = p1, 
@@ -123,100 +109,50 @@ df %>% ggplot(aes(y = p1,
         axis.title = element_text(size = 10, color = "black"))
 ```
 
-Chú thích: 3 biểu đồ boxplot này trình bày trung vị, phân vị thứ 25 và 75 của tỷ lệ tạo blastocytes (trục X).Những điểm tròn tương ứng với các giá trị vượt xa khỏi phân vị thứ 95. 
+...
 
 ## Dựng mô hình hồi quy GLM Binomial
 
-Hiện thời, kết cục mà ta quan tâm là số lượng $k$ blastocytes thu được sau quá trình thụ tinh từ tập hợp $n$ noãn ban đầu, và tỷ lệ $p = k/n$. Ta thấy bài toán này tương đồng với định nghĩa về quy luật phân phối xác suất Binomial. 
+...
 
-Thực vậy, phân phối Binomial (nhị thức) cho phép ước lượng giá trị của một biến ngẫu nhiên $Y$, với ý nghĩa $Y$ là số lần thu được kết quả thành công từ $n$ lượt thử nghiệm độc lập, biết rằng mỗi thử nghiệm có xác suất thành công là $p$.
-
-$$Y \sim B(n,p)$$
-Xác suất $Y$ nhận một giá trị = k được ước tính bởi hàm:
-
-$$Pr(Y=k|n,p) = \binom{n}{k}p^{k}(1-p)^{n-k} = \frac{n!}{k!(n-k)!}p^{k}(1-p)^{n-k}$$
-
-Với các tham số có ý nghĩa như sau:
-
-$k$ là số kết quả thành công (ở đây là số lượng blastocyte tạo thành)
-
-$n$ chỉ số lượt thử nghiệm (ở đây là số noãn được mang đi thụ tinh)
-
-$n \in \left\{0,1,2...\right\}$ 
-
-$p$ là xác suất thành công của một thử nghiệm (xác suất tạo được blastocyte cho mỗi noãn)
-
-$p \in \left [ 0,1\right ]$
-
-$(1-p)$ là xác suất của kết quả đối nghịch (thất bại, không tạo được blastocyte)
-
-Trong thư viện gamlss[@gamlss1], phân phối Binomial cho mô hình GLM[@rigby2020] được xác định bởi 2 tham số $n$ và $\mu$, kí hiệu $BI(n,\mu)$, cho phép ước lượng giá trị của một biến ngẫu nhiên $Y$ có bản chất là số đếm với $Y \in \left [ 0,1,2,3...\right ]$ với hàm xác suất:
-
-$$Pr(Y=y|n,\mu) = \frac{n!}{y!(n-y)!}\mu^{y}(1-p)^{n-y}$$
-Trong đó $n$ là một số nguyên dương đã xác định (trong trường hợp này, $n$ = số noãn cho mỗi bệnh nhân), tham số $\mu = \frac{k}{n}$ là xác suất trung bình thu được blastocyte từ 1 noãn ($0< \mu < 1$). Ta có thể ước lượng giá trị của $\mu$ bằng một mô hình tuyến tính tổng quát với hàm liên kết logit:
-
-$$log⁡it(\mu)=log(\frac{\mu}{1-\mu}) = \beta_0+𝛽_1 𝑋_1+𝛽_2 𝑋_2+ … +𝛽_𝑗 𝑋_𝑗$$
-Ta sẽ dùng mô hình này để suy diễn thống kê về hiệu ứng của kỹ thuật dual trigger trên tỷ lệ tạo blastocytes.
-
-Để dựng mô hình binomial, ta dùng hàm gamlss của thư viện gamlss, với một số lưu ý như sau:
-
-+ Công thức của mô hình hồi quy binomial khác với các mô hình thông thường, vì ở vị trí kết quả y, ta cần kết hợp 2 biến: số lượng thành công (blast) và số lượng thất bại (oocytes - blast), bằng hàm cbind
-
-+ Tùy chỉnh family = BI(mu.link = "logit")
-
-Trong mô hình hiện thời, biến độc lập là Trigger, ta cho nó tương tác với 2 hiệp biến khác là Age và AFC:
-
-"cbind(blast, oocytes-blast) ~  Trigger * (Age + AFC)"
-
-Nội dung kết quả thô của mô hình như sau
 ```{r}
 bi_mod = gamlss(cbind(blast, oocytes-blast) ~ 
                Trigger * (Age + AFC),
              data = df,
-             family = BI(mu.link = "logit"))
+             family = BI(mu.link = "logit"),
+             trace = F)
 
 summary(bi_mod)
 ```
-
-Lưu ý rằng mô hình này ước lượng giá trị của $\mu$ là 1 xác suất (hay tỷ lệ) và sử dụng hàm liên kết là logit, vì vậy các hệ số hồi quy mà ta thấy đang ở thang đo $log(Odds)$, với odds là tỉ lệ giữa 2 xác suất $\frac{\mu}{1-\mu}$, ta có thể chuyển về thang đo odds bằng hàm exponential, hoặc chuyển hẳn về xác xuất $\mu$ bằng hàm plogis.
-
-hệ số (Intercept) tương ứng với $log(\mu/(1-\mu))$ khi kỹ thuật trigger là Agonist (nhóm tham chiếu), và Age, AFC ở vị trí trung bình của quần thể.
-
-Áp dụng hàm plogis cho intercept, ta sẽ có giá trị trung bình của tỷ lệ blastocyte ở phân nhóm Agonist = 0.257 ở điều kiện Age = 30.55 và AFC = 16.24
+...
 
 ```{r}
 plogis(-1.0593442)
 ```
 
-Triggerd và Triggerh tương ứng với giá trị log(odds) tăng thêm ở 2 nhóm Dual trigger và hCG so với nhóm tham chiếu Agonist (trong điều kiện AFC và Age không đổi).
-
-Ở đây ta quan tâm đến nhóm Dual trigger, hệ số hồi quy của nó = 0.3033475, giá trị này > 0 nên ta có thể ước lượng là nhóm Dual trigger có khả năng tạo blastocytes cao hơn so với nhóm tham chiếu Agonist; 
-
-Áp dụng hàm plogis ta có thể ước tính tỷ lệ tạo blastocyte trung bình ở nhóm Dual trigger = 0.32
+...
 
 ```{r}
 plogis(-1.0593442 + 0.3033475)
 ```
 
-Tuy nhiên, để suy diễn thống kê một cách dễ dàng hơn, ta sẽ tiến hành quy trình ước tính marginal effects như sau đây.
+...
 
 ## Suy diễn thống kê
 
-Đầu tiên, áp dụng hàm avg_comparisons, ta có thể ước tính được khác biệt về xác suất tạo blastocytes trung bình giữa 2 kỹ thuật: A so với D, A so với H và D so với H.
+...
 
 ```{r}
 dif_p = avg_comparisons(
   bi_mod,
   what = "mu",
   variables = list(Trigger = 'pairwise'))%>%
-  dplyr::select(-c(1,6))
+  dplyr::select(-c(1,7))
 
 dif_p %>% knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, cả 3 cặp so sánh đều không có ý nghĩa thống kê (p value > 0.05 và KTC95% chứa giá trị 0). 
-
-Ta cũng có thể ước tính hiệu ứng của D so với A và H thông qua trị số Odds-ratio bằng cách áp dụng 2 hàm transform_pre = "lnoravg" và post = exp.
+...
 
 ```{r}
 or = avg_comparisons(
@@ -227,16 +163,21 @@ or = avg_comparisons(
   transform_post = "exp")%>%
   dplyr::select(-c(1))
 
+# Alternative in latest version:
+
+or = avg_comparisons(
+  bi_mod,
+  what = "mu",
+  variables = list(Trigger = 'pairwise'),
+  comparison = "lnoravg",
+  transform = "exp")%>%
+  dplyr::select(-c(1))
+
 or %>% mutate(contrast = 'OR')%>%
   knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, nếu chọn nhóm Agonist làm tham chiếu, OR của Dual trigger = 1.016, tuy nhiên KTC95% chứa giá trị 1 và p value > 0.05, nên không có ý nghĩa thống kê.
-
-Tương tự, OR của nhóm hCG so với Dual trigger = 0.96 < 1, tuy nhiên cũng không có ý nghĩa thống kê.
-
-
-Ta còn có thể ước tính hiệu ứng bằng Risk-ratio (RR), chỉ cần thay hàm transform_pre = "lnratioavg".
+...
 
 ```{r}
 rr = avg_comparisons(
@@ -247,13 +188,21 @@ rr = avg_comparisons(
   transform_post = exp)%>%
   dplyr::select(-c(1))
 
+# Alternative for latest version
+
+rr = avg_comparisons(
+  bi_mod,
+  what = "mu",
+  variables = list(Trigger = 'pairwise'),
+  comparison = "lnratioavg",
+  transform = exp)%>%
+  dplyr::select(-c(1))
+
 rr %>%mutate(contrast = 'RR')%>%
   knitr::kable(digits = 3)
 ```
 
-Ta diễn giải kết quả RR tương tự như trên, không có sự khác biệt giữa Dual trigger và nhóm tham chiếu Agonist hoặc hCG.
-
-Ngoài ra, ta có thể đi xa hơn khi ước lượng hiệu ứng (OR hoặc RR) của Dual trigger trong những điều kiện khác nhau của hiệp biến, thí dụ AFC = 2,5,10 và 20 như sau:
+...
 
 ```{r}
 or = avg_comparisons(
@@ -266,13 +215,23 @@ or = avg_comparisons(
   transform_pre = "lnoravg",
   transform_post = "exp")
 
+# Alternative for latest version
+
+or = avg_comparisons(
+  bi_mod,
+  what = "mu",
+  by = "AFC",
+  variables = list(Trigger = 'pairwise'),
+  newdata = datagrid(AFC = c(2,5,10,20),
+                     grid_type = 'counterfactual'),
+  comparison = "lnoravg",
+  transform = "exp")
+
 or %>% mutate(contrast = 'OR')%>%
   knitr::kable(digits = 3)
 ```
 
-Kết quả này khá thú vị, vì nó cho thấy rằng khi AFC <= 5, OR của Dual trigger so với Agonist lần lượt là 1.27 và 1.21 và có ý nghĩa thống kê. 
-
-Ta có thể trình bày trực quan về hiệu ứng của kỹ thuật trigger đối với tỷ lệ tạo blastocyte, dựa vào mô hình Binomial như sau:
+...
 
 ```{r}
 preds = predictions(bi_mod, 
@@ -303,7 +262,7 @@ preds%>%ggplot()+
   theme_bw()
 ```
 
-Ta có thể trình bày cùng kết quả trên nhưng cho riêng 6 điều kiện khác nhau về giá trị AFC = 1,5,10,15,20 và 30
+...
 
 ```{r}
 preds = predictions(model = bi_mod,
@@ -330,12 +289,10 @@ preds%>%ggplot()+
   theme_bw()
 ```
 
-**Diễn giải kết quả của phân tích** : Kết quả phân tích hồi quy cho thấy ở cấp độ quần thể, kỹ thuật dual trigger có hiệu quả tương đương với 2 ký thuật GnRH agonist và hCG về tỷ lệ tạo blastocytes. Tuy nhiên, ở những đối tượng có AFC <5, hiệu quả tạo blastocyte của Dual trigger cao hơn một cách có ý nghĩa so với GnRH agonist (OR = 1.27, KTC95%: 1.05 - 1.54, p=0.01).
+**Diễn giải kết quả của phân tích** : 
+
+...
 
 ## Thông điệp rút gọn làm hành trang
 
-(1) Chuỗi kết quả trong tiến trình thụ tinh ống nghiệm có tính chất kế thừa. Thành quả của công đoạn sau (thí dụ số phôi) có thể được khảo sát như tỷ lệ thành công từ nhiều lần thử nghiệm trên tập hợp các đơn vị noãn. Hiện tượng này tương đồng với ý nghĩa của quy luật phân phối nhị thức.
-
-(2) Vì vậy, mô hình tuyến tính tổng quát với phân phối nhị thức có thể dùng như công cụ trung gian lý tưởng để thực hiện suy diễn thống kê cho kết quả là tỷ lệ (như tỷ lệ trưởng thành noãn, tỷ lệ tạo phôi...)
-
-(3) Ta suy diễn thống kê cho kết cục tỷ lệ dựa vào tỷ số OR hoặc RR hiệu chỉnh từ mô hình GLM Binomial.
+...
