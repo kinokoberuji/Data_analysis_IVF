@@ -2,29 +2,15 @@
 
 ## Giới thiệu
 
-Ở chương này, chúng ta sẽ khảo sát thành quả được quan tâm nhất trong nghiên cứu về hỗ trợ sinh sản, đó là sự thụ thai (thai sinh hóa, lâm sàng), sự tiếp diễn thành công của thai kì (thai diễn tiến) và sự sinh nở. Trong y văn, những kết cục này thường được khảo sát như một giá trị mang tính nhị phân (Có hoặc không), hoặc tỷ lệ thành công trên tổng số cá thể bệnh nhân. Tuy nhiên, bản chất của loại kết cục này có thể được nhìn nhận như một xác suất hay khả năng thành công và cũng có tính kế thừa như một phần trong chuỗi kết quả của tiến trình thụ tinh nhân tạo. Vì vậy, ta có thể áp dụng quy luật phân phối nhị thức (binomial) để khảo sát chúng.
-
-Thí dụ, kết quả thai diễn tiến thường được ghi nhận bằng 2 giá trị 0 (không) hoặc 1 (có) trong dữ liệu, nhưng bản chất của thai diễn tiến có thể xem như xác suất thành công $p$ của 1 thử nghiệm chuyển phôi. Chính vì trên thực tế, số lượng phôi được chuyển rất thấp, chỉ giới hạn ở 1 đến 2 phôi cho mỗi chu kì, nên kết quả quan sát được mới biểu hiện thành giá trị 0 hoặc 1.
-
-Ta sẽ tìm hiểu về phân tích hồi quy logistic và trường hợp tổng quát của nó - một mô hình hồi quy GLM với phân phối Binomial, cho phép suy diễn thống kê cho kết quả nhị phân hoặc xác suất thành công của thử nghiệm.
+...
 
 ## Bối cảnh của thí nghiệm
 
-Tình huống minh họa là một thử nghiệm lâm sàng với mục tiêu so sánh hiệu quả của phác đồ PPOS so với phác đồ tham chiếu là GnRH_ant đối với khả năng đạt được thai diễn tiến (ongoing pregnancy). Trong thí nghiệm này, phác đồ GnRH_ant được áp dụng cho nhóm đối chứng gồm 107 phụ nữ hiếm muộn, và phác đồ PPOS áp dụng cho nhóm can thiệp gồm 99 trường hợp. Sau khi thu hoạch noãn, thụ tinh và trữ phôi, người ta thực hiện từ 1 đến 3 lần chuyển phôi, mỗi lần 1-2 phôi và ghi nhận kết quả thai diễn tiến cộng dồn (nếu một trường hợp không thành công ở lần chuyển phôi đầu tiên, ta sẽ lặp lại quy trình chuyển phôi lần 2, hoặc lần 3). Thử nghiệm kết thúc ở lần thứ 3. 
-
-Kết cục sẽ được khảo sát dưới 3 hình thức:
-
-1) Giá trị nhị phân: thành công hay thất bại tuyệt đối : có đạt được thai diễn tiến hay không (cho tối đa 3 lần): 0 = Không, 1 = Có (bất kể song thai, đơn thai)
-
-2) Tần suất: số lượng thai diễn tiến cho mỗi cá thể (giá trị = 0 (không đạt được), 1 = đơn thai diễn tiến, 2 = song thai diễn tiến).
-
-3) Tỷ lệ đạt thai diễn tiến = số thai diễn tiến chia cho tổng số phôi được chuyển. Thí dụ: Lần 1 chuyển 2 phôi, kết quả không đạt, lần 2 chuyển 2 phôi và đạt đơn thai, thì tỷ lệ thành công = $1/(2+2) = 0.25$
-
-Lưu ý rằng các trường hợp: sẫy thai, thai ngoài tử cung... xem như thất bại.
+...
 
 ## Kế hoạch phân tích
 
-Xác suất đạt thai diễn tiến cộng dồn khi áp dụng phác đồ PPOS, so với phương pháp tham chiếu là GnRH_ant sẽ được ước lượng bằng marginal Odds-ratio (OR) và risk-ratio (RR), có hiệu chỉnh cho Tuổi, AFC và độ dày nội mạc trung bình ngày chuyển phôi, dựa vào một mô hình hồi quy logistic. Suy diễn thống kê dựa vào phủ nhận giả thuyết vô hiệu (OR và RR = 1) ở ngưỡng ý nghĩa p = 0.05.
+...
 
 ## Công cụ cần thiết cho quy trình
 
@@ -38,7 +24,7 @@ Xác suất đạt thai diễn tiến cộng dồn khi áp dụng phác đồ PP
 
 + Thư viện marginaleffects để ước tính OR, RR và suy diễn thống kê từ kết quả mô hình.
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=T, message=T}
 library(tidyverse)
 library(ggridges)
 
@@ -62,33 +48,20 @@ df = read.csv('PPOS_OP.csv', sep = ';',
 
 df$Protocol = factor(df$Protocol)
 
-df%>%dplyr::sample_frac(0.3)%>%head()%>%
+df%>%dplyr::sample_frac(0.3)%>%
+  head()%>%
   knitr::kable(digits = 2)
 ```
 
-Trong dữ liệu này:
-
-Age = Tuổi bệnh nhân,
-
-AFC = Dự trữ buồng trứng cơ bản;
-
-Thickness = độ dày nội mạc tử cung; 
-
-n_ET: tổng số phôi đã chuyển trong tiến trình nghiên cứu;
-
-OP_cum = tần suất thai diễn tiến cộng dồn (giá trị cao nhất = 2, thấp nhất = 0);
-
-OP_bin = kết quả thành công/thất bại tuyệt đối (2 giá trị 0,1)
-
-OP_rate = tỷ lệ thai diễn tiến = OP_cum / n_ET
+...
 
 ## Phân tích mô tả
 
-Ta kết hợp hàm group_by và summarize của thư viện dplyr để thực hiện thống kê mô tả cho những hình thức khác nhau của kết cục thai diễn tiến cộng dồn:
+...
 
 **a) Khảo sát tần suất thai diễn tiến (biến OP_cum)**
 
-Đây là một biến số rời rạc và chỉ có thể có 3 giá trị: 0, 1 hoặc 2. Kết quả mô tả như sau:
+...
 
 ```{r}
 getmode <- function(v) {
@@ -108,7 +81,7 @@ df%>%group_by(Protocol)%>%
             )%>%knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, nếu xét về số lượng tuyệt đối, thì dường như giữa 2 phác đồ PPOS và GnRH không có sự khác biệt nào cả: Mode = 1 cho thấy kết quả thường gặp nhất cho cả 2 phác đồ là đạt ít nhất 1 thai diễn tiến. Xét bình quân thì nhóm PPOS có vẻ ưu thế hơn: số thai diễn tiến trung bình là 1.03 so với 0.81; cả 2 đều có độ phân tán cao tương đương (SD khoảng 0.7).
+...
 
 **b) Nếu xét về tỷ lệ thai diễn tiến trên tổng số phôi chuyển:**
 
@@ -123,15 +96,11 @@ df%>%group_by(Protocol)%>%
             )%>%knitr::kable(digits = 3)
 ```
 
-Kết quả này cho thấy tỳ lệ thai diễn tiến trung bình có vẻ ưu thế hơn ở nhóm PPOS so với GnRHant: 0.46 so với 0.37 (nói cách khác, xác suất thụ thai thành công cho mỗi phôi chuyển có vẻ cao hơn ở phác đồ PPOS); Ta có thể ước tính Risk ratio (RR) giữa 2 phác đồ: $RR = 0.457/0.37 = 1.235$. Tuy nhiên giá trị trung vị lại tương đương (0.5). Nói cách khác, nếu cứ chuyển phôi 2 lần thì dự kiến ít nhất sẽ có 1 lần đạt thành công.
+...
 
 **c) Tỷ số xác suất thành công/thất bại (Odds)**
 
-Ta có thể ước lượng kết quả thai diễn tiến theo một cách khác, bằng tỷ số Odds
-
-$$Odds = \frac{p_1}{p_0} = \frac{p_1}{(1 - p_1)}$$
-
-Với $p_1$ là xác suất thành công, $p_0$ là xác suất thất bại.
+...
 
 ```{r}
 df%>%mutate(Odds = OP_rate/(1-OP_rate))->odd_df
@@ -152,11 +121,11 @@ odd_df%>%
   knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, Odds của nhóm PPOS cao hơn Odds của nhóm GnRHant (0.556 so với 0.462), nói cách khác Odds ratio giữa PPOS và GnRHa : $OR = 0.556/0.462 = 1.203$
+...
 
 **d) Nếu xét giá trị thành công hay thất bại tuyệt đối (biến nhị giá OP_bin)**
 
-Khi thực hiện phân tích này, đơn vị quan sát là cá thể bệnh nhân thay vì đơn vị phôi. Cách khảo sát này sẽ cho ra một kết quả khác
+...
 
 ```{r}
 df%>%group_by(Protocol)%>%
@@ -167,9 +136,7 @@ df%>%group_by(Protocol)%>%
             )%>%knitr::kable(digits = 3)
 ```
 
-Dựa vào kết quả này, tỷ số xác suất thành công giữa 2 phác đồ : $RR = 0.798/0.645 = 1.237$ và Odds-ratio giữa chúng $OR = 3.95/1.815 = 2.176$. Ở đây ta thấy một điểm thú vị là khi chọn đơn vị khảo sát là bệnh nhân, kết quả OR và RR có khuynh hướng cao hơn so với khi xét đơn vị khảo sát là phôi.
-
-Ta lần lượt khảo sát trực quan 3 hình thức khảo sát kết quả thai diễn tiến trong 3 biểu đồ sau
+...
 
 ```{r}
 pals = c("#0faaf2","#f20f4f")
@@ -218,15 +185,7 @@ p3 = df%>%
 p3 + p1/p2
 ```
 
-Chú thích: Hình bên trái là biểu đồ cột chồng trình bày phân bố tỷ lệ Thành công/Thất bại (trục Y) giữa 2 phác đồ (trục X), hình bên phải gồm 2 biểu đồ: góc trên là biểu đồ tán xạ so sánh tần suất thai diễn tiến (trục Y) giữa 2 phác đồ (trục X), góc dưới là biểu đồ tần suất mô tả tỷ lệ thai diễn tiến cộng dồn (trục Y) giữa 2 phác đồ (trục X).
-
-Ngoài 2 phác đồ, trong dữ liệu còn có một số hiệp biến khác như Tuổi, AFC và độ dày nội mạc có bản chất là biến số liên tục. Ta muốn khảo sát trực quan mối liên hệ giữa những hiệp biến này và xác suất đạt thai diễn tiến; ta có thể thực hiện theo 3 cách:
-
-(1) Liên hệ biến X và giá trị 0,1 của biến OP_bin, thông qua đồ thị của mô hình GLM với phân phối binomial (đồ thị hàm logistic)
-
-(2) Liên hệ biến X và giá trị tỷ lệ OP_rate, thông qua 1 mô hình hồi quy GLM với phân phối quasibinomial;
-
-(3) Liên hệ biến X và Odds, thông qua một mô hình hồi quy tuyến tính
+...
 
 ```{r}
 p4 = df%>%gather(c(1,3,6), 
@@ -278,31 +237,11 @@ p6 = df%>%mutate(odd = OP_rate/(1-OP_rate))%>%
 p4+p6+p5
 ```
 
-Chú thích: Hình trên gồm 3 cột, từ trái sang phải lần lượt trình bày: (1) Liên hệ giữa giá trị AFC, Age, Thickness (3 hàng, trục X) và khả năng đạt thai diễn tiến (trục Y); (2) Liên hệ giữa giá trị AFC, Age, Thickness (3 hàng, trục X) và Odds (tỉ số giữa xác suất thành công/thất bại); và (3) Liên hệ giữa giá trị AFC, Age, Thickness (3 hàng, trục X) và tỷ lệ thai diễn tiến trên tổng số phôi chuyển (trục Y). Dữ liệu được phân thành 2 nhóm: phác đồ PPOS (màu hồng) và GnRha (màu xanh).
-
-Hình ảnh này gợi ý một số giả thuyết như sau:
-
-1) AFC có hiệu ứng tương tác giữa AFC và loại phác đồ, vì 2 đồ thị các hàm tuyến tính/logistic của 2 nhóm cắt nhau, với hiệu ứng AFC khác biệt ở mỗi nhóm.
-
-2) Tuổi có hiệu ứng độc lập và đồng nhất ở 2 phác đồ, khả năng thai diễn tiến tương quan nghịch với tuổi (giảm dần ở phụ nữ lớn tuổi);
-
-3) Độ dày nội mạc tử cung có hiệu ứng độc lập với phác đồ, và đồng nhất giữa 2 nhóm phác đồ, hiệu ứng này rất yếu và có khuynh hướng tương quan thuận với khả năng thai diễn tiến.
+...
 
 ## Lý thuyết về mô hình hồi quy logistic
 
-Cho bài toán thống kê hiện thời, ta cần một phương tiện cho phép liên kết giá trị của một biến độc lập (yếu tố tiên lượng) $X$ và một xác suất $Y = p \in [0,1]$. Công cụ đó là mô hình logistic.
-
-Mô hình hồi quy logistic có một lịch sử lâu đời (khoảng 78 năm), trước cả sự ra đời của lý thuyết về mô hình tuyến tính tổng quát GLM. Câu chuyện này khá dài, và sự khởi đầu của nó không liên quan gì đến xác suất và thống kê. Chúng ta sẽ khởi hành xa hơn từ chỗ nhận ra trong thế giới tự nhiên luôn hiện diện một quy luật tiến triển đặc biệt gồm 3 giai đoạn: 1) Giai đoạn sớm với sự tăng trưởng lũy tiến, xấp xỉ hàm mũ (exponential); 2) Tiếp theo là giai đoạn bão hòa: tốc độ phát triển chậm lại, tuyến tính; 3) Cuối cùng là giai đoạn ổn định và trưởng thành: sự phát triển ngừng lại. Khi biểu diễn tiến trình này theo thời gian, sẽ tạo ra một đường cong hình chữ S (sigmoid curve).
-
-Ta có thể quan sát thấy quy luật này ở mọi lĩnh vực: tăng trưởng dân số/kinh tế, chu trình chuyển hóa sinh học, phản ứng hóa học. Trong Sản Phụ khoa, ta có thể nhìn thấy nó trong diễn tiến các hormone sinh dục, sự tăng trưởng của bào thai trong tử cung người mẹ, liên hệ liều / đáp ứng trong dược lực học...
-
-Từ thế kỉ 18-19, những nhà toán học đã khảo sát quy luật này và lập ra các hàm toán học cho phép tái hiện đường cong hình chữ S, gọi là các hàm sigmoid, thí dụ hàm hyperbolic tangent của Jean Saurry năm 1774.
-
-Trong số các hàm sigmoid, ta có hàm logistic là nhân vật chính trong câu chuyện này. Hàm logistic do nhà toán học người Pháp Pierre François Verhulst thiết lập vào năm 1845, với công dụng nguyên thủy nhằm khảo sát quy luật tăng trưởng dân số trong một quần thể. Công thức của hàm logistic được trình bày như sau.
-
-$$y = \frac{e^{x}}{1 + e^{x}} = \frac{1}{1 + e^{-x}} = \frac{1}{2} + \frac{1}{2} tanh(\frac{x}{2})$$
-
-Hình: đồ thị hàm logistic. Từ giá trị đầu vào là số thực $x$ bất kì, hàm logistic xuất kết quả là một giá trị trong khoảng (0,1). 
+...
 
 ```{r,echo=F}
 x = seq(-4,4,0.01)
@@ -318,27 +257,7 @@ qplot(x,y,
   theme_bw()
 ```
 
-Một cách tình cờ, đặc tính này của hàm logistic dẫn đến một ứng dụng quan trọng trong lĩnh vực thống kê: nó giải quyết nhu cầu liên kết giá trị một tập biến $X$ và xác suất quan sát được giá trị $Y=1$ (Y là một biến nhị giá).
-
-Mô hình logistic cổ điển được định nghĩa trực tiếp dựa vào hàm logistic, bằng cách thay đối số $x$ bằng một đại lượng $g$ như sau:
-
-
-$$Pr(Y=1|X) \sim logistic(X) = \frac{1}{1 + e^{-g}}$$
-
-Với $g$ là một biểu thức (hàm) tuyến tính được mô hình hóa theo tập biến $X$
-
-$$g = \beta_0 + \beta_1X_1 + \beta_2X_2 + ... + \beta_jX_j$$
-Tuy nhiên, phiên bản thực dụng của mô hình hồi quy logistic chỉ được định hình vào năm 1944, khi nhà thống kê Joseph Berkson thiết lập một khái niệm quan trọng là Log odds và dùng nó làm thang đo cho bài toán ước lượng biến nhị giá.
-
-Như ta biết, Odds là tỉ số giữa 2 xác suất. Với $p$ là xác suất thành công ($Y=1$) và $1-p$ là xác suất thất bại ($Y=0$), ta có:
-
-$$Odds = \frac{p}{1-p}$$
-
-Từ đó, ta có hàm logit là một công cụ khác cho phép liên kết trực tiếp tập biến $X$ và giá trị xác suất $Y=p$. Hàm logit chính là sự áp dụng hàm logarit tự nhiên cho Odds:
-
-$$logit(p) = log(\frac{p}{1-p})$$
-
-Ta dễ dàng nhận thấy mối liên hệ nghịch đảo giữa 2 hàm logit và hàm logistic cổ điển: 
+...
 
 ```{r, echo = F}
 p = seq(0,1,0.01)
@@ -364,26 +283,11 @@ p2 = qplot(y,p,
 p1 + p2
 ```
 
-Từ đó, Berkson đã chuẩn hóa hồi quy logistic thành một phương pháp thống kê quy ước, sử dụng hàm logit thay vì logistic, và dùng log(odds) làm thang đo, đơn vị cho biến kết quả $Y$ trong mô hình. Sau đó, David Cox (1958) hoàn thiện kỹ thuật ước lượng tham số trong mô hình logistic.
-
-Sau cùng, vào năm 1972 Nelder và Wedderburn đã hợp nhất mô hình logistic vào hệ thống mô hình hồi quy tuyến tính tổng quát (GLM), mô hình logistic là một thể đặc biệt của mô hình GLM, ước lượng giá trị của $\mu$ là trung bình của biến kết quả $Y$ theo quy luật phân phối Binomial và 2 tham số $BI(n,\mu)$ 
-
-$$Pr(Y=y|n,\mu) = \frac{n!}{y!(n-y)!}\mu^{y}(1-p)^{n-y}$$
-
-Ta ước lượng giá trị của $\mu$ bằng một mô hình tuyến tính với hàm liên kết logit:
-
-$$logit(\mu) = log(\frac{\mu}{1-\mu}) \sim \beta_0 + \beta_1X_1 + \beta_2X_2 + ... + \beta_jX_j  $$
-Ta thấy, định nghĩa mô hình hồi quy logistic theo lý thuyết GLM và hàm logit dễ hiểu và đơn giản hơn nhiều so với định nghĩa nguyên thủy dựa vào hàm logistic. Nhưng vì lý do lịch sử, ta vẫn dùng tên gọi "logistic regression" cho loại mô hình này, nhưng ta hiểu bản chất của nó chỉ đơn giản là một mô hình GLM với phân phối Binomial hoặc Bernoulli (trường hợp đặc biệt khi $n=1$)
+...
 
 ## Mô hình hồi quy Logistic cho biến kết quả nhị giá
 
-Ta sẽ lần lượt phân tích 2 mô hình logistic khác nhau cho 2 biến kết quả: 1) kết quả nhị giá (thành công hoặc thất bại tuyệt đối về thai diễn tiến trong thí nghiệm, biến OP_bin) và 2) tỷ lệ thai diễn tiến trên tổng số phôi chuyển (biến OP_rate).
-
-Cho kết quả thứ nhất, mô hình áp dụng một trường hợp đặc biệt của phân phối Binomial với $n=1$, với đơn vị quan sát là cá thể bệnh nhân. Mục tiêu của mô hình là ước lượng xác suất quan sát được giá trị $OP\_bin = 1$ cho mỗi cá thể. 
-
-Mô hình có công thức: OP_bin ~  Protocol*AFC + Thickness + Age; family = "binomial" (hàm liên kết mặc định là logit).
-
-Nội dung của mô hình như sau:
+...
 
 ```{r}
 log_mod = glm(OP_bin ~  Protocol*AFC + Thickness + Age,
@@ -395,32 +299,11 @@ summary(log_mod)
 
 **Diễn giải nội dung kết quả thô của mô hình:**
 
-Do sử dụng hàm liên kết là logit, giá trị ước lượng của mô hình hiện thời là $logit(\mu)$ hay $log(\frac{\mu}{1-\mu})$ hay $log(Odds)$, với $\mu$ là xác suất đạt thai diễn tiến trung bình (cho mổi cá thể). Tất cả hệ số hồi quy đang ở thang đo log(odds). Ta có thể chuyển về thang đo xác suất bằng hàm plogis, hoặc về thang đo Odds bằng hàm exponential.
-
-$Intercept = 2.28220$ tương ứng với log(odd) của xác suất thai diển tiến ở phác đồ tham chiếu (GnRH_ant), trong điều kiện giá trị Age, AFC và Thickness giữ cố định ở mức trung bình của quần thể.
-
-$ProtocolPPOS = 3.56952$ tương ứng với sự thay đổi log(odd) của xác suất thai diễn tiến ở phác đồ PPOS so với nhóm đối chứng (GnRH_ant), trong điều kiện giá trị Age, AFC và Thickness không đổi.
-
-Các hệ số hối quy cho AFC,Age và Thickness lần lượt ứng với sự thay đổi của log(odd) xác suất thai diễn tiến khi AFC, Age hoặc Thickness tăng 1 đơn vị.
-
-Vì mô hình có xét hiệu ứng tương tác giữa phác đồ PPOS và AFC, ta có thêm hệ số hồi quy ProtocolPPOS:AFC; với ý nghĩa đo lường sự thay đổi của log(odd) của xác suất thai diễn tiến khi AFC tăng 1 đơn vị và khi sử dụng phác đồ PPOS.
-
-Một cách đơn giản, ta có thể xét dấu của các hệ số hồi quy này để hình dung về hiệu ứng mà các biến gây ra cho xác suất của thai diễn tiến. Một hệ số hồi quy > 0 cho thấy mối tương quan thuận (làm tăng), ngược lại một hệ số hồi quy <0 cho thấy tương quan nghịch (làm giảm).
-
-Pr(>|z|) trình bày giá trị p của kiểm định Wald, nhằm phủ nhận giả thuyết vô hiệu là một biến không gây ra hiệu ứng nào cả (không có liên hệ) đối với xac suất OP (hệ số hồi quy = 0). 
-
-Tuy nhiên, rất khó để thực hiện suy diễn thống kê theo cách này, nên ta sẽ theo con đường ước tính marginal effects (hiệu ứng cận biên) cho các yếu tố. 
-
-Giả định ta muốn khảo sát hiệu ứng của một biến định tính có 2 bậc giá trị (phác đồ PPOS hoặc GnRH), mô hình sẽ ước lượng được 2 giá trị xác suất thai diễn tiến trung bình cho 2 nhóm này là $\mu_{PPOS}$ và $\mu_{GnRH}$
-
-Từ đây, ta có thể ước tính 3 loại marginal effects gồm:
+...
 
 **1) Marginal risk difference (RD)**
 
-Trị số RD đo lường trực tiếp sự thay đổi/khác biệt/tương phản về xác suất giữa PPOS và phác đồ tham chiếu
-
-$$RD = \mu_{PPOS} -  \mu_{GnRHant}$$
-RD cho biết khi dùng phác đồ PPOS, xác suất đạt thay diễn tiến sẽ thay đổi bao nhiêu so với phác đồ tham chiếu. Vì bản chất của RD là hiệu số giữa 2 xác suất, nó chỉ có thể dao động trong khoảng $[-1,1]$, RD = 0 cho thấy không có khác biệt (tính tương đương), RD < 0 hoặc > 0 cho phép xác định hiệu ứng của phác đồ nào cao hơn/thấp hơn.
+...
 
 ```{r}
 rd = avg_comparisons(
@@ -432,23 +315,15 @@ rd = avg_comparisons(
 rd %>% knitr::kable(digits = 3)
 ```
 
-Kết quả cho thấy: theo ước tính trung bình, nhóm bệnh nhân dùng phác đồ PPOS có xác suất thai diễn tiến tăng 0.148 (nói cách khác; tỷ lệ thai diễn tiến tăng 14.8%) so với phác đồ GnRH_ant, sự gia tăng này có ý nghĩa thống kê (khoảng tin cậy không chứa giá trị 0, p = 0.036).
+...
 
 **2) Marginal Odds ratio (OR)**
 
-Trong phần trên, ta đã hiểu về bản chất của Odds là một tỷ số giữa 2 xác suất thành công/thất bại. Odds ratio là một cách để đo lường sự tương phản giữa 2 giá trị Odds tương ứng với 2 bậc giá trị của biến X (2 phác đồ), theo công thức sau:
-
-$$OR = \frac{Odds_{PPOS}}{Odds_{GnRHa}} = \frac{\mu_{PPOS}/(1-\mu_{PPOS})}{\mu_{GnRHa}/(1-\mu_{GnRHa})}$$
-Vì là 1 tỷ số, OR có thể >1, và dao động từ 0 đến $+\infty$. Giá trị OR < 1 cho thấy hiệu ứng của phác đồ PPOS thấp hơn so với nhóm tham chiếu, ngược lại OR > 1 và càng lớn càng cho thấy phác đồ PPOS có hiệu quả cao hơn. OR = 1 cho thấy 2 phác đồ có hiệu ứng tương đương nhau.
+...
 
 **3) Marginal risk ratio (RR)**
 
-Risk ở đây tương ứng với ý nghĩa xác suất, khả năng, tỷ lệ thành công (giá trị $\mu$ cho mỗi phác đồ), risk ratio đơn giản là tỷ số giữa 2 risks.
-
-$$RR = \frac{\mu_{PPOS}}{\mu_{GnRHa}} $$
-RR được diễn giải tương tự như OR, giá trị RR=1 cho thấy 2 phác đồ là tương đương nhau, giá trị RR > 1 cho thấy phác đồ PPOS có hiệu quả cao hơn, và ngược lại RR < 1 cho thấy phác đồ GnRha có hiệu quả cao hơn.
-
-Kết quả OR và RR được trình bày trong bảng sau:
+...
 
 ```{r}
 or = avg_comparisons(
@@ -472,9 +347,31 @@ rr = avg_comparisons(
 rbind(or,rr) %>% knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, cả giá trị OR và RR đều cho thấy một hiệu quả ưu thế hơn của phác đồ PPOS so với GnRHa đối với khả năng đạt được thai diễn tiến. Sự chênh lệch về Odds và xác suất thành công giữa 2 phác đồ là có ý nghĩa thống kê.
+Alternative for latest version:
 
-Ta cũng có thể tính RD, OR và RR cho các biến định lượng, lúc này 2 bậc so sánh là $X-1$ và $X+1$, kết quả cho biết hiệu ứng khi X gia tăng 1 đơn vị. Bảng sau đây trình bày giá trị RD, OR và RR cho Age, AFC, Thickness và cho riêng mỗi nhóm phác đồ.
+```{r}
+or = avg_comparisons(
+  log_mod,
+  newdata = df,
+  variables = "Protocol",
+  comparison = "lnoravg",
+  transform = "exp")%>%
+  dplyr::select(c(2,3,4,6,7,))%>%
+  mutate(contrast = "OR")
+
+rr = avg_comparisons(
+  log_mod,
+  newdata = df,
+  variables = "Protocol",
+  comparison = "lnratioavg",
+  transform = exp)%>%
+    dplyr::select(c(2,3,4,6,7,))%>%
+   mutate(contrast = "RR")
+
+rbind(or,rr) %>% knitr::kable(digits = 3)
+```
+
+...
 
 ```{r}
 rd2 = avg_comparisons(
@@ -518,11 +415,7 @@ rr2%>%
   knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, ta thấy AFC có tương quan thuận (OR > 1 và RR > 1) với xác suất thai diễn tiến, nhưng chỉ có ý nghĩa trong nhóm phác đồ GnRHa; Age có tương quan nghịch ý nghĩa với khả năng đạt thai diễn tiến cho cả 2 phác đồ (OR < 1 và RR < 1), trong khi không có liên hệ ý nghĩa nào giữa Thickness và khả năng đạt thai diễn tiến.
-
-Thực ra, những trị số mà ta vừa ước lượng bao gồm RD, OR hoặc RR chỉ có ý nghĩa tóm tắt (abstraction) và cho biết thông tin về hiệu ứng ở mức độ quần thể. Hiện nay, có một số tác giả khuyến cáo về nhược điểm của việc chỉ báo cáo hiệu ứng cho biến nhị phân bằng một trị số duy nhất, và lợi ích của việc cung cấp thông tin chi tiết hơn về toàn thể đặc tính phân phối của hiệu ứng trong mẫu khảo sát.
-
-Biểu đồ sau đây cho phép đối chiếu phân phối toàn thể của xác suất đạt thai diễn tiến cộng dồn trong 107 cá thể dùng phác đồ GnRHa và 99 cá thể dùng phác đồ PPOS.
+...
 
 ```{r}
 effs = comparisons(log_mod,
@@ -546,11 +439,7 @@ effs %>% ggplot() +
   theme_bw(10)
 ```
 
-Chú thích: Hình trên trình bày 2 biểu đồ mật độ phân phối cho phép so sánh đặc điễm phân phối của xác suất thai diễn tiến (Trục X) giữa 2 phác đồ: GnRHa (màu xanh) và PPOS (màu hồng). 2 đường thẳng không liên tục tương ứng với giá trị trung vị của xác suất này ở mỗi nhóm.
-
-Hình ảnh cho thấy có sự tương phản rõ nét giữa 2 phác đồ, với ưu thế nghiêng về phác đồ PPOS.
-
-Một biểu đồ khác cho phép hình dung về cán cân chênh lệch của hiệu quả giữa 2 phác đồ, đến cấp độ từng cá thể.
+...
 
 ```{r}
 effs %>% ggplot(aes(x=predicted_lo, y=predicted_hi))+
@@ -566,9 +455,7 @@ effs %>% ggplot(aes(x=predicted_lo, y=predicted_hi))+
 
 ```
 
-Chú thích: Đây là một biểu đồ tán xạ cho phép kiểm tra mức độ tương phản / chênh lệch giữa 2 phác đồ về xác suất thai diễn tiến. Trục X và Y trình bày 2 thang đo xác suất từ 0-1 cho mỗi phác đồ. Mỗi chấm tròn biểu thị cho một đơn vị khảo sát (cá thể bệnh nhân), đường phân giác của biểu đồ biểu thị cho giả thuyết là hai phác đồ tương đương hoàn toàn với nhau. Những điểm tròn nằm bên dưới đường phân giác này có hiệu quả GnRH_ant ưu thế hơn, trái lại với những điểm nằm bên trên đường này, phác đồ PPOS có hiệu ứng ưu thế hơn. Những điểm nằm rất gần và dọc theo đường này có hiệu quả tương đương giữa 2 phác đồ.
-
-Các biểu đồ tiếp theo trình bày về mối liên hệ giữa Tuổi, AFC và Thickness với xác suất thai diễn tiến, riêng cho mỗi nhóm phác đồ:
+...
 
 ```{r}
 preds = predictions(model = log_mod,
@@ -655,13 +542,7 @@ preds%>%ggplot(aes(x = Thickness,
 
 ## Mô hình hồi quy Binomial cho tỷ lệ OP/tổng số phôi
 
-Trong phần tiếp theo, ta sẽ phân tích loại kết quả thứ hai: tỷ lệ thai diễn tiến trên tổng số phôi đã chuyển (biến OP_cum).
-
-Mô hình được dựng bằng thư viện gamlss với cú pháp giống như mô hình GLM Binomial trong chương trước. Công thức của mô hình như sau: "cbind(OP_cum, n_ET-OP_cum) ~ Protocol * AFC + Thickness + Age" (Nhắc lại: mô hình GLM Binomial tổng quát cần 2 biến ở vị trí kết quả: số kết quả thành công là biến OP_cum, và số kết quả thất bại, là hiệu số giữa số phôi chuyển và số thai)
-
-tùy chỉnh family = BI(mu.link = "logit") tương ứng với phân phối Binomial với hàm liên kết logit cho tham số $\mu$
-
-Nội dung của mô hình này như sau:
+...
 
 ```{r}
 bi_mod = gamlss(cbind(OP_cum, n_ET-OP_cum) ~ 
@@ -672,7 +553,7 @@ bi_mod = gamlss(cbind(OP_cum, n_ET-OP_cum) ~
 summary(bi_mod)
 ```
 
-Cách thức diễn giải mô hình này hoàn toàn giống như mô hình logistic ở trên nên ta không cần nhắc lại ở đây. Ta sẽ đi thẳng đến công đoạn ước tính 3 trị số marginal effects cho phác đồ PPOS từ mô hình này:
+...
 
 ```{r}
 rd3 = avg_comparisons(
@@ -710,9 +591,7 @@ rr3%>%dplyr::select(c(1,2,3,4,6,7))%>%
   knitr::kable(digits = 3)
 ```
 
-Theo kết quả này, có liên hệ ý nghĩa giữa phác đồ PPOS và sự gia tăng của tỷ lệ thai diễn tiến cộng dồn. Cụ thể nhóm phác đồ PPOS có tỷ lệ thai diễn tiến cao hơn trung bình 8.37% (DR = 0.084, KTC95%: 0.002 - 0.165, p=0.043). Tỷ số Odds (OR) và tỷ số nguy cơ (RR) lần lượt là 1.44 và 1.267 đều cao hơn 1 cho thấy hiệu quả ưu thế hơn của phác đồ PPOS, cả hai đều có ý nghĩa thống kê.
-
-Ta thực hiện mô tả phân phối toàn thể của hiệu ứng này qua hai biểu đồ sau:
+...
 
 ```{r}
 effs = comparisons(bi_mod,
@@ -736,9 +615,8 @@ effs %>% ggplot() +
   scale_fill_manual(values = pals)+
   theme_bw(10)
 ```
-Hình ảnh này cho thấy mặc dù phần trùng lặp giữa phân phối của xác suất thai diễn tiến ở 2 phác đồ là khá cao, vẫn có một bộ phận cá thể cho thấy hiệu quả ưu thế hơn của phác đồ PPOS, và giá trị trung vị của 2 phân phối cách nhau một khoảng gần bằng 0.1.
 
-Tương tự, trên biểu đồ tương hợp về xác suất thai diễn tiến ở 2 phác đồ, phần lớn cá thể nằm ở vị trí phía trên đường phân giác, cho thấy sự chênh lệch về ưu thế nghiêng về phía phác đồ PPOS.
+...
 
 ```{r}
 effs %>% ggplot(aes(x=predicted_lo, y=predicted_hi))+
@@ -753,7 +631,7 @@ effs %>% ggplot(aes(x=predicted_lo, y=predicted_hi))+
   theme_bw()
 ```
 
-Cuối cùng, ta cũng khảo sát về liên hệ giữa Tuổi, AFC và Thickness với tỷ lệ thai diễn tiến cộng dồn tùy theo phác đồ.
+...
 
 ```{r}
 preds = predictions(model = bi_mod,
@@ -847,16 +725,8 @@ preds%>%ggplot(aes(x = Thickness,
 
 ## Diễn giải kết quả của phân tích
 
-Phân tích dữ liệu này cho phép rút ra một số kết luận như sau: 
-
-+ Khả năng đạt được thai diễn tiến có thể được khảo sát dưới nhiều hình thức: xác suất quan sát được một kết quả thành công (biến nhị giá 0,1) trên cá thể bệnh nhân, xác suất thành công cho mỗi đơn vị noãn - hay tỷ lệ thành công trên tổng số phôi được chuyền. Cách thức khảo sát có thể ảnh hưởng đến kết quả phân tích thống kê (trong trường hợp hiện thời, cả 2 cách khảo sát đều cho ra thông điệp tương đồng, tuy nhiên có sự khác biệt về giá trị OR, RR hoặc RD). 
-
-+ Dù khảo sát dưới hình thức nào, thì đều dẫn về công cụ chung là mô hình GLM với phân phối Binomial với 2 tham số $n$,$\mu$. Mô hình logistic cổ điển là trường hợp đặc biệt khi $n=1$. Cách diễn giải và suy luận thống kê là như nhau cho cả 2 mô hình.
-
-+ Mô hình logistic (hay GLM Binomial) cho phép suy luận thống kê về mối liên hệ giữa 1 biến độc lập và một kết quả xác suất. Ta có thể áp dụng mô hình này cho những kết cục lâm sàng nhị phân, hoặc tỷ lệ.
+...
 
 ## Thông điệp rút gọn làm hành trang
 
-(1) Trong quy trình thụ tinh nhân tạo, tuy có nhiều loại kết cục lâm sàng khác nhau nhưng chuỗi kết cục này đều có thể quy về cùng một khái niệm đó là khả năng (xác suất) thành công tương ứng với mỗi công đoạn.
-
-(2) Khi đã nhận ra bản chất này, ta sẽ thấy mô hình tuyến tính tổng quát với phân phối nhị thức (và dạng đặc biệt của nó là hồi quy logistic) là công cụ thống kê quan trọng nhất trong nghiên cứu hỗ trợ sinh sản, nó cho phép suy luận thống kê cho toàn bộ chuỗi kết cục kể từ sau công đoạn lấy noãn, bao gồm khả năng thụ tinh, tạo phôi, thụ thai, và sinh nở thành công.
+...
