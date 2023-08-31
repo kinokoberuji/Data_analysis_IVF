@@ -2,19 +2,11 @@
 
 ## Giới thiệu
 
-Với chuyên đề hỗ trợ sinh sản, ngoài mục tiêu đánh giá hiệu quả của can thiệp điều trị như đã làm trong những chương trước, ta còn quan tâm đến tình trạng bất thường về giải phẫu, sinh lý nội tiết, chức năng sinh sản... góp phần gây ra tình trạng hiếm muộn, ảnh hưởng đến khả năng thành công của can thiệp hoặc kết cục của thai kì sau can thiệp, như hội chứng buồng trứng đa nang (PCOS), rối loạn chuyển hóa glucose, suy giảm dự trữ buồng trứng, nguy cơ tai biến sản khoa... Các thực thể bệnh lý này có thể biểu hiện qua sự thay đổi giá trị của nhiều thông số xét nghiệm sinh lý, sinh hóa, giải phẫu bệnh, hình ảnh học ... ở điều kiện cơ bản, trong chu kỳ hỗ trợ sinh sản hoặc trong thai kì. 
-
-Như mọi chuyên khoa khác, Sản Phụ khoa và lĩnh vực hỗ trợ sinh sản cũng có những nghiên cứu với mục tiêu mô tả, với đối tượng nghiên cứu là các đặc điểm sinh lý bệnh học của quần thể bệnh nhân, hoặc ở mức độ sinh học phân tử, được khảo sát bằng tập hợp nhiều biến số định lượng.
-
-Thông thường, khi thực hiện thống kê mô tả cho biến định lượng, ta chỉ xét từng biến riêng lẻ (phân tích đơn biến), thí dụ như trong chương 1, ta đã ước lượng trung bình, trung vị, độ phân tán cho riêng biến LH.
-
-Bây giờ ta hãy hình dung về một bảng số liệu mà mỗi hàng tương ứng với 1 cá thể bệnh nhân, và mỗi cột tương ứng với một thông số (biến). Nếu ta có 1 dữ liệu gồm N bệnh nhân và K biến, với kích thước N và K lên đến hàng trăm, thậm chí hàng ngàn, đó là một không gian dữ liệu nhiều chiều vượt ra khỏi khả năng phân tích bình thường. 
-
-Trong chương này, chúng ta cùng tìm hiểu về phân tích nhân tố chính (PCA) [@husson2017] là một phương pháp cho phép xác định một góc độ quan sát tối ưu nội dung dữ liệu đa chiều. PCA còn có công dụng rút gọn và giản lược dữ liệu: Từ dữ liệu đầu vào gồm rất nhiều biến số và đơn vị quan sát, kỹ thuật PCA sẽ giản lược cấu trúc này xuống chỉ còn một vài nhân tố chính (gọi là chiều thông tin).
+...
 
 ## Bối cảnh của thí nghiệm
 
-Ta có tình huống như sau: một nhóm nghiên cứu muốn khảo sát về đặc tính và cấu trúc tương quan giữa 15 thông số lâm sàng trong 3 phân nhóm lâm sàng khác nhau: nhóm phụ nữ bình thường (Normal), nhóm phụ nữ có hội chứng buồng trứng đa nang (PCOS), và nhóm vừa có hội chứng buồng trứng đa nang vừa kèm rối loạn kháng insulin (Insuline resistance - IR).
+...
 
 ## Công cụ cần thiết
 
@@ -36,13 +28,10 @@ library(patchwork)
 library(GGally)
 ```
 
-+ Dữ liệu đầu vào cho phân tích PCA, có cấu trúc đa biến.
+...
 
-Trong thí dụ này, ta có dataset "PCOS_IR.csv" với 15 biến định lượng và 1 biến phân nhóm (PCOS, Normal và Insuline resistance - IR). Lưu ý là PCA chỉ áp dụng cho biến số định lượng.
+```{r,message = T,warning=T}
 
-Tập hợp 15 thông số cần phân tích bao gồm: tuổi của bệnh nhân (Age), chỉ số BMI, kết quả định lượng các loại hormones: AMH: (Anti-Müllerian Hormone), E2 (Estrogen), FSH (Follicle-Stimulating Hormone), LH (Luteinizing hormone), P (Progesterone hormone), PRL (prolactin hormone), T (Testosterone hormone), TSH (thyroid stimulating hormone), các chỉ số: AFC (antral follicle count), OSI (ovarian sensitivity index), kết quả insulin fasting blood test (F_INS), đường huyết (Gluc) và HOMA-IR (Homeostatic Model Assessment for Insulin Resistance).
-
-```{r,message = FALSE,warning=FALSE}
 df = read.csv('PCOS_IR.csv', 
               sep = ';', 
               dec = ',',
@@ -64,9 +53,7 @@ df%>%head(5)%>%
   knitr::kable(digits=2)
 ```
 
-Với một không gian dữ liệu đa chiều (có quá nhiều biến số) như hiện thời, rất khó để khảo sát toàn diện về đặc điềm phân phối và mối liên hệ giữa các biến.
-
-Thí dụ nếu ta muốn khảo sát trực quan bằng biều đồ thống kê, ta cũng chỉ có ít lựa chọn: hoặc khảo sát riêng lẻ từng biến (không gian 1 chiều) bằng biểu đồ Density plot (đường chéo trong hình bên dưới), hoặc khảo sát kết hợp từng cặp 2 biến bằng biểu đồ 2D density plot hoặc biểu đồ tán xạ trong không gian 2 chiều (nửa dưới và nửa trên trong hình). Theo cách này, ta cũng chỉ có thể mô tả đến mức cao nhất là không gian dữ liệu 3 chiều, đây cũng là giới hạn cao nhất của khả năng tưởng tượng của con người.
+...
 
 ```{r,cache =T}
 pal_fill = c("IR" = '#fcba03', 
@@ -112,25 +99,12 @@ ggpairs(data = df,
         )+
   theme_bw(5)
 ```
-Làm cách nào để có thể quan sát toàn bộ không gian dữ liệu tạo ra bởi 15 biến x 524 cá thể bệnh nhân ? Kỹ thuật PCA là giải pháp cho câu hỏi này.
 
-Phân tích PCA có công dụng giản lược cấu trúc dữ liệu đa chiều thành một tập hợp biến nhân tạo có ý nghĩa đại diện, gọi là thành phần chính hay chiều thông tin.
+...
 
 ## Xác định số thành phần chính tối ưu
 
-Đầu tiên, ta càn xác định số lượng thành phần chính thấp nhất mà vẫn cho phép trình bày được nhiều thông tin nhất từ không gian dữ liệu ban đầu.
-
-Ta làm điều này dựa vào biểu đồ Screeplot, biểu đồ này trình bày quan hệ giữa tỷ lệ phương sai có thể giải thích được và số thành phần chính. 
-
-Để dựng biểu đồ scree plot, ta làm từng bước như sau:
-
-1) Đầu tiên, tạo ma trận hiệp phương sai (covariance matrix) bằng hàm cov
-
-2) Tính eigen values từ covariance matrix
-
-3) Tính PVE = proportion of variance explained, là tỉ lệ giữa vector eigen values và tổng của vector eigen values
-
-4) Dùng hàm qplot để vẽ 2 biểu đồ screeplot, trục x chỉ số thành phần chính từ 1 đến cao nhất (toàn bộ biến số trong dataframe ban đầu), trục Y là giá trị PVE, hoặc PVE tích lũy (bằng hàm cumsum)
+...
 
 ```{r}
 df.cov = cov(df_num)
@@ -162,19 +136,11 @@ cumPVE <- qplot(c(1:n_feats), cumsum(PVE)) +
 PVEplot + cumPVE
 ```
 
-Diễn giải biểu đồ screeplot: Ta thấy chỉ cần 6 thành phần chính là có thể tải được đến 98% phương sai (gần như toàn bộ thông tin) trong dữ liệu gốc.
+...
 
 ## Phân tích PCA
 
-Phân tích PCA được thực hiện đơn giản bằng hàm PCA, dữ liệu đầu vào là 1 dataframe chứa toàn biến kiểu số (numeric, double hoặc int), các tham số tùy chỉnh bao gồm:
-
-+ ncp = số thành phần chính (ta chọn giá trị = 6)
-
-+ scale.unit = T: dữ liệu được chuẩn hóa (standardize) trước, công đoạn này đảm bảo các biến có cùng thang đo, đơn vị đo.
-
-+ graph = F: ta không muốn xuất ra ngay biểu đồ kết quả
-
-Kết quả của hàm PCA là một đối tương chứa nhiều thông tin bên trong, có thể tóm tắt bằng hàm summary 
+...
 
 ```{r,message = FALSE,warning=FALSE}
 res.pca <- PCA(df_num,
@@ -187,17 +153,7 @@ res.pca <- PCA(df_num,
 
 ## Trình bày kết quả PCA bằng biểu đồ Biplot
 
-Kết quả của phân tích PCA có thể tóm tắt bằng biểu đồ Biplot, còn gọi là biểu đồ tải lượng thông tin (loading plot).
-
-Biểu đồ tải lượng thông tin trình bày hình chiếu của các eigen vectors (15 biến) lên mặt phẳng 2 chiều tạo ra bời 2 vector thành phần chính đầu tiên (Components 1 và 2).
-
-Trên biểu đồ này, ta có thể kết hợp thêm 1 lớp biểu đồ tán xạ (scatter plot) để hiển thị tọa độ các đơn vị dữ liệu (524 bệnh nhân) hoặc 1 lớp biểu đồ mật độ phân phối 2 chiều (2D density plot) để so sánh tương phản về phân phối giữa 3 phân nhóm lâm sàng IR, Normal và PCOS
-
-Ta thực hiện lần lượt các bước như sau:
-
-1) Chuẩn bị phổ màu pal_fill cho 3 nhóm
-
-2) Chuẩn bị một hàm hỗ trợ, cho phép dùng dấu '-' để chèn 1 lớp biểu đồ ggplot nằm phía sau/bên dưới biểu đồ hiện hành (mặc định dùng dấu '+' để chèn lên phía trên)
+...
 
 ```{r}
 `-.gg` <- function(plot, layer) {
@@ -212,7 +168,7 @@ Ta thực hiện lần lượt các bước như sau:
 }
 ```
 
-3) Dựng biểu đồ biplot cơ bản bằng hàm fviz_pca_biplot
+...
 
 ```{r}
 title = '3 Clinical groups'
@@ -226,7 +182,7 @@ P = fviz_pca_biplot(res.pca,label="var",
   scale_fill_manual(values = pal_fill)
 ```
 
-4) Lần lượt chèn thêm 1 lớp biểu đồ tán xạ bằng hàm geom_jitter và 1 lớp biểu đồ density 2 chiều bằng hàm stat_density2d; sau đó dùng phổ màu đã xác định.
+...
 
 ```{r}
 P - geom_jitter(shape=21,
@@ -247,37 +203,11 @@ P - geom_jitter(shape=21,
   coord_fixed()
 ```
 
-Cách diễn giải biểu đồ biplot:
-
-Trục X và Y lần lượt trình bày thang đo của 2 thành phần chính/chiều thông tin đầu tiên (Dim 1 và Dim 2)
-
-Các mũi tên đại diện cho những biến số trong dữ liệu, gọi là eigen vectors
-
-Hướng của vector cho biết 1 biến tương quan thuận hay nghịch với chiều thông tin ở trục X hoặc Y, độ dài vector cho biết biến này đóng góp thông tin nhiều hay ít vào Dim 1 và Dim 2 (khi chiếu lên Dim 1 và Dim 2).
-
-Góc tạo ra giữa 2 vector cho biết chiều tương quan thuận hay nghịch giữa 2 biến, giữa 2 biến tương quan thuận nếu cùng hướng và tạo ra góc nhọn, tương quan nghịch nếu ngược hướng, và không tương quan nếu góc = 90°.
-
-Những biến tương quan mạnh với nhau sẽ gom lại thành cụm, cùng chỉ về một hướng, thậm chí trùng nhau.
-
-Thí dụ: HOMA_IR và Fasting Insuline tương quan với nhau,
-
-LH, AMH, AFC, E2 tương quan thuận với nhau và tương quan nghịch với Age, FSH,
-
-Fasting glucose, BMI và TSH tương quan thuận với nhau.
-
-Vị trí tương đối giữa tọa độ các vector và tọa độ các mảng màu của biểu đồ mật độ phân phối 2 chiều cho biết vai trò đóng góp của các biến cho phép phân lập giữa các nhóm lâm sàng này.
+...
 
 ## Phân tích vai trò của mỗi biến trong 2 thành phần chính
 
-Cuối cùng, ta có thể khảo sát trực quan mức độ đóng góp (vai trò) của những biến quan trọng nhất vào 2 thành phần chính (PC1 và PC2), bằng các bước sau:
-
-1) Áp dụng hàm fviz_contrib cho object res.pca để dựng biểu đồ cột phân tích tỉ lệ variance giải thích bởi từng biến:
-
-Các tùy chỉnh bao gồm:
-
-+ axes = thứ tự thành phần cần khảo sát (ở đây ta khảo sát PC1 và PC2)
-
-Lưu mỗi biểu đồ thành object riêng biệt d1, d2 rồi kết hợp chúng lại d1/d2 (theo chiều dọc) hoặc d1 + d2 (theo chiều ngang).
+...
 
 ```{r}
 d1=fviz_contrib(res.pca, 
@@ -309,15 +239,11 @@ d1 + d2
 
 ## Khảo sát đặc tính phân phối của mỗi thành phần chính
 
-Ngoài công dụng thăm dò cấu trúc dữ liệu một cách trực quan như trên, các thành phần chính sinh ra từ phân tích PCA có ý nghĩa như biến nhân tạo, truyền tải những thông tin quan trọng nhất từ tập hợp nhiều biến ban đầu. Chúng có thể được sử dụng như biến tiên lượng (predictor) trong những mô hình phân loại nhằm phân lập các nhóm lâm sàng.
-
-Thông tin về giá trị các PC được lưu trong ma trận "coord" của kết quả PCA (res.pca), ta có thể chuyển nó thành dataframe rồi mô tả, so sánh đặc tính phân phối của 4 PC đầu tiên quan trọng nhất giữa 3 phân nhóm lâm sàng IR, Norm và PCOS.
-
-Đây là bảng thống kê mô tả cho phép so sánh giá trị 4 thành phần chính giữa 3 phân nhóm:
+...
 
 ```{r}
 res.pca$ind$coord %>% 
-  as.tibble()%>%
+  as_tibble()%>%
   mutate(Group = df$Group) %>%
   gather(c(1:4), value = "Value", key = 'Components')%>%
   group_by(Components,Group)%>%
@@ -329,30 +255,32 @@ res.pca$ind$coord %>%
             p95 = quantile(Value, 0.95))%>%
   knitr::kable(digits = 2)
 ```
-Kết quả này có thể trình bày trực quan bằng biểu đồ sau
+...
 
 ```{r}
 res.pca$ind$coord %>% 
   as.tibble()%>%
   mutate(Group = df$Group) %>%
-  gather(c(1:4), value = "score", key = 'Components')%>%
+  gather(c(1:4), 
+         value = "score", 
+         key = 'Components')%>%
   ggplot()+
-  geom_density(aes(x = score, fill = Group), alpha = 0.5)+
-  facet_wrap(~ Components, scales = "free")+
+  geom_density(aes(x = score, 
+                   fill = Group), 
+               alpha = 0.5)+
+  facet_wrap(~ Components, 
+             scales = "free")+
   scale_fill_manual(values = pal_fill)+
   theme_bw(8)+
   theme(legend.position="bottom")
 ```
-Có thể thấy rằng chỉ cần 2 thành phần chính (chiều thông tin) Dim1 và Dim2 là đủ để phân biệt giữa 3 nhóm Norm, IR và PCOS một cách hiệu quả.
+
+...
 
 ## Kết luận
 
-PCA là một kỹ thuật rất hiệu quả cho mục tiêu thăm dò dữ liệu đa biến, khi dùng PCA ta chỉ ra cách quan sát không gian dữ liệu theo một góc nhìn tối ưu nhất, cho phép thu được nhiều thông tin có ích nhất cho mục tiêu phân biệt, khảo sát tương quan, vai trò đóng góp của từng đại lượng lâm sàng.
-
-Dù mục tiêu nghiên cứu của chúng ta chỉ đơn giản là mô tả đặc tính lâm sàng của một bệnh lý, hay khảo sát về mối liên hệ giữa các thông số hiện có, khảo sát chuyên biệt về vai trò một kỹ thuật xét nghiệm mới, hay thiết lập một mô hình chẩn đoán, ... trong mọi hoàn cảnh, ta đều có thể khai thác nhiều thông tin từ kết quả PCA. Lợi ích này càng trở nên rõ ràng hơn khi dữ liệu của bạn phức tạp, có rất nhiều biến số, và ta cần nhanh chóng xác định phương hướng để biết sẽ phải làm gì với chúng.
-
-Biểu đồ PCA truyền tải thông tin phong phú, cô đọng và lại rất đẹp về tính mỹ thuật, có thể dùng để trang trí cho Poster hội nghị, bài báo khoa học. Khi thuyết trình, chỉ cần 1 slide với biểu đồ PCA, có thể trình bày rất nhiều ý tưởng và thông tin.
+...
 
 ## Thông điệp rút gọn làm hành trang
 
-PCA là một kỹ thuật phân tích dữ liệu hiệu quả với 2 công dụng chính: mô tả cấu trúc dữ liệu đa chiều và giản lược cấu trúc dữ liệu.
+...
