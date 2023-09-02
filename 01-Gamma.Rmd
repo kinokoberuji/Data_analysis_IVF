@@ -58,6 +58,29 @@ df%>%sample_frac(0.1)%>%
   knitr::kable(digits = 2)
 ```
 
+Đoạn code này có mục đích đọc một file dữ liệu định dạng CSV có tên là "Five_protocols.csv" và thực hiện một số phép biến đổi và xử lý trên dữ liệu, sau cùng hiển thị một phần nhỏ của dữ liệu sau khi đã được xử lý.. Sau đây là giải thích từng phần:
+
+    df <- read.csv('Five_protocols.csv', sep = ';', dec= '.', fileEncoding = 'UTF-8-BOM'): Đọc file CSV có tên là "Five_protocols.csv". Các thông số:
+
+    sep = ';': Dấu phân tách giữa các cột là dấu chấm phẩy.
+    dec = '.': Dấu thập phân được sử dụng là dấu chấm.
+    fileEncoding = 'UTF-8-BOM': Mã hóa của file là UTF-8 với BOM (Byte Order Mark).
+
+    %>% na.omit(): Tiếp tục, các hàng có dữ liệu NA (Not Available, dữ liệu thiếu) sẽ bị loại bỏ bằng hàm na.omit().
+
+    df$Protocol = as.factor(df$Protocol): Biến Protocol trong dataframe df được chuyển thành loại factor. 
+    Loại dữ liệu factor thường được sử dụng trong phân tích thống kê khi biến định tính có ý nghĩa phân loại.
+
+    Phần sau cùng của script thực hiện các hành động sau:
+
+    df %>% sample_frac(0.1): Lấy một mẫu ngẫu nhiên từ df với tỷ lệ là 10% dữ liệu.
+    head(): Lấy 6 hàng đầu tiên của mẫu ngẫu nhiên.
+    knitr::kable(digits = 2): Sử dụng hàm kable từ package knitr để hiển thị dataframe. Số liệu sẽ được làm tròn đến 2 chữ số thập phân.
+
+Nói chung, script này giúp bạn đọc và xử lý dữ liệu từ một file CSV, chuyển một cột thành factor, và sau đó hiển thị một phần nhỏ của dữ liệu sau khi đã được xử lý.
+
+Lưu ý:
+
 Một cách mặc định, biến rời rạc loại factor sẽ được phân cấp theo thứ tự alphabet, mỗi bậc giá trị sẽ tương ứng với số thứ tự. Trong trường hợp này, thứ tự các loại protocol là:
 
 1 = Fol_long (sẽ được xem là nhóm tham chiếu khi phân tích hồi quy)
@@ -102,6 +125,30 @@ df%>%
     knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Đoạn code này dựa trên dataframe df và sử dụng toán tử %>% để chuyển kết quả của công đoạn trước làm đầu vào cho công đoạn sau. 
+Script này làm thống kê mô tả, nó tính toán các giá trị thống kê cho biến LH. Cụ thể, gồm các công đoạn như sau:
+
+    group_by(Protocol): Nhóm dữ liệu theo cột Protocol. Có nghĩa là các thao tác tiếp theo sẽ được áp dụng cho từng nhóm Protocol riêng biệt.
+
+    summarize(...): Cho từng nhóm được xác định bởi Protocol, tính toán các giá trị thống kê cho cột LH:
+
+    n = n(): Đếm số lượng các dòng dữ liệu trong mỗi nhóm.
+    mean = mean(LH, na.rm = T): Tính trung bình cộng của LH, loại bỏ các giá trị NA.
+    sd = sd(LH, na.rm = T): Tính độ lệch chuẩn của LH, loại bỏ các giá trị NA.
+    median = median(LH, na.rm = T): Tính trung vị của LH, loại bỏ các giá trị NA.
+    p5 = quantile(LH, 0.05, na.rm = T): Tính phân vị thứ 5 của LH, loại bỏ các giá trị NA.
+    p95 = quantile(LH, 0.95, na.rm = T): Tính phân vị thứ 95 của LH, loại bỏ các giá trị NA.
+    min = min(LH, na.rm = T): Tìm giá trị nhỏ nhất của LH, loại bỏ các giá trị NA.
+    max = max(LH, na.rm = T): Tìm giá trị lớn nhất của LH, loại bỏ các giá trị NA.
+
+    arrange(mean): Sắp xếp các nhóm dựa trên giá trị trung bình (mean) của LH từ thấp đến cao.
+
+    knitr::kable(digits = 3): Hiển thị kết quả dưới dạng bảng với 3 chữ số thập phân bằng hàm kable từ package knitr.
+
+Kết quả sẽ cho phép so sánh tổng quan về các giá trị thống kê của cột LH trong df giữa các nhóm Protocol.
+
 ...
 
 **2) So sánh trực quan bằng biểu đồ**
@@ -145,6 +192,30 @@ ggplot()+
   theme_bw(10)
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng ggplot2 để tạo một biểu đồ "density ridge" (biểu đồ mật độ dạng "dãy núi") cho biến LH được nhóm bởi Protocol. Cùng lúc đó, nó cũng hiển thị các điểm và đường khuynh hướng tại giá trị trung bình của LH cho từng Protocol.
+
+    Tạo DataFrame Cho Trung Bình: med_df là một dataframe mới chứa trung bình của LH cho từng Protocol.
+    
+    Xác Định Bảng Màu: pals là một vector chứa các mã màu hex, sau đây là các tên màu tự nhiên tương ứng:
+
+    "#b5d914": màu xanh lá.
+    "#f5bf0c": màu vàng.
+    "#f5940c": màu cam.
+    "#f50c84": màu hồng.
+    "#a00cf5": màu tím.
+
+    Cấu trúc Biểu Đồ: Sử dụng ggplot() để tạo một biểu đồ với các thành phần sau:
+
+    geom_density_ridges: Tạo các "dãy núi" dựa trên mật độ của dữ liệu.
+    geom_line và geom_point: Thêm đường và điểm đại diện cho trung bình LH của từng Protocol.
+    coord_flip: Đảo ngược các trục để Protocol hiển thị trên trục y và LH trên trục x.
+    scale_fill_manual: Đặt màu sắc của các "dãy núi" dựa trên vector pals.
+    scale_x_continuous: Đặt giới hạn và đánh dấu trục x.
+    labs: Đặt nhãn cho các trục.
+    theme_bw: Sử dụng theme đen trắng.
+
 ...
 
 ```{r}
@@ -168,6 +239,32 @@ ggplot()+
   coord_flip()+
   theme_bw(10)
 ```
+
+Giải thích từng phần:
+
+    ggplot(): Khởi tạo một đồ thị cơ bản.
+
+    geom_boxplot(data = df, aes(...)): Thêm một lớp boxplot với dữ liệu từ dataframe df. Trong đó:
+
+        aes(x = reorder(Protocol, LH), y = LH, fill = reorder(Protocol, LH)): Mô tả các trục và điểm dữ liệu. 
+        reorder(Protocol, LH) sắp xếp các giá trị của biến Protocol dựa trên giá trị trung bình của LH.
+
+        alpha = 0.5: Độ trong suốt của boxplot là 0.5.
+
+        show.legend = F: Không hiển thị legend.
+
+    geom_point(data = med_df, aes(...)): Thêm một lớp điểm từ dataframe med_df:
+        color = 'black', shape = 18, size = 5, alpha = 0.9: Điều chỉnh màu sắc, hình dạng, kích thước, và độ trong suốt của các điểm.
+
+    scale_fill_manual(values = pals): Sử dụng một bảng màu tùy chỉnh cho fill, được đặt tên là pals (ở trên có giải thích).
+
+    scale_y_continuous(limits = c(-0.5, 40), breaks = seq(0, 42, by = 5)): Điều chỉnh giới hạn và vị trí các điểm ngắt trên trục y.
+
+    labs(y = 'LH level (mIU/mL)', x = 'Protocols'): Đặt nhãn cho trục x và trục y.
+
+    coord_flip(): Hoán đổi trục x và trục y, biến nó thành một biểu đồ ngang.
+
+    theme_bw(10): Sử dụng theme trắng và đen, cỡ chữ là 10.
 
 ## Biện luận về tính phù hợp của phân phối Gamma
 
@@ -205,6 +302,29 @@ cdfcomp(list(fit_gauss, fit_gam),
   labs(x = 'LH on trigger day (mUI/mL)')+ 
   theme_bw()
 ```
+
+Giải nghĩa từng phần đoạn code:
+
+    fit_gam = fitdist(df$LH, 'gamma', optim.method = 'BFGS'):
+        fitdist là một hàm của thư viện fitdistrplus và được sử dụng để khớp một mô hình phân phối cho dữ liệu.
+        df$LH là dữ liệu về hormone LH (Luteinizing Hormone) từ dataframe df.
+        'gamma' là loại phân phối mà ta muốn áp dụng.
+        optim.method = 'BFGS' chỉ định phương pháp tối ưu hóa là BFGS.
+        Kết quả được lưu trong biến fit_gam.
+
+    fit_gauss = fitdist(df$LH, 'norm', optim.method = 'BFGS'):
+        Tương tự như trên nhưng phù hợp với phân phối Gaussian (phân phối chuẩn) và lưu kết quả trong fit_gauss.
+
+    denscomp(...):
+        Hàm này được sử dụng để đối chiếu trực quan các mô hình phân phối.
+        list(fit_gauss, fit_gam) chứa các mô hình phân phối.
+        legendtext = c("Gaussian", "Gamma") để đặt chú thích trong đồ thị.
+        plotstyle = 'ggplot' chỉ định phong cách đồ thị là ggplot.
+        fitcol, dempcol, fitlty, fitlwd là các tham số để tùy chỉnh màu sắc và đường kẻ của đồ thị.
+
+    labs(x = 'LH on trigger day (mUI/mL)')+ theme_bw():
+        labs và theme_bw là các hàm từ ggplot2, được sử dụng để đặt nhãn và áp dụng theme đen-trắng cho đồ thị.
+
 
 ...
 
@@ -262,6 +382,27 @@ df%>%
   summarize('mean' = mean(LH))%>% 
   knitr::kable(digits = 3)
 ```
+Giải thích:
+
+2 đoạn mã R trên sử dụng thư viện gamlss để xây dựng các mô hình tổng quát phân phối gamma (GA).
+
+Mô hình m0:
+
+    formula = LH ~ 1: Công thức này chỉ ra rằng chúng ta đang mô hình hóa biến kết quả LH nhưng không dùng biến độc lập nào cả.
+    (mô hình tối giản, hằng số)
+    data=df: Đây là dataframe chứa dữ liệu.
+    family = GA: chỉ định rằng chúng ta đang sử dụng phân phối Gamma.
+    trace=F: Không in các thông báo chi tiết trong quá trình tối ưu hóa.
+    parallel="multicore": Sử dụng tính toán song song.
+    ncpus = nC: Số lượng lõi CPU được sử dụng cho tính toán song song.
+
+Mô hình m1:
+
+    formula = LH ~ Protocol: Biến kết quả là LH và 1 biến độc lập là Protocol.
+    sigma.formula = ~ Protocol: Biến Protocol cũng được sử dụng để mô hình hóa tham số phân tán (sigma) của phân phối.
+
+Các tham số còn lại tương tự như trong mô hình đầu tiên (m0).
+
 
 ...
 
@@ -288,8 +429,25 @@ pw_comp %>%
   dplyr::select(-c(1,2,6,7))%>%
   knitr::kable(digits = 5)
 ```
+Giải nghĩa: Đoạn code này giúp bạn thực hiện phân tích hậu kiểm (so sánh bắt cặp tuần tự) giữa các phân nhóm trong biến Protocol, điều chỉnh giá trị p để kiểm tra ý nghĩa thống kê và cuối cùng là định dạng bảng để hiển thị kết quả.
 
+Chi tiết từng dòng code:
+
+    avg_comparisons(m1, what = 'mu', newdata = df, variables = list(Protocol = 'pairwise')):
+        Hàm avg_comparisons được sử dụng để thực hiện các so sánh giữa các nhóm trong biến Protocol.
+        what = 'mu': Thực hiện so sánh trên giá trị trung bình (mu) của phân phối Gamma.
+        newdata = df: Sử dụng dữ liệu từ dataframe df để thực hiện so sánh.
+        variables = list(Protocol = 'pairwise'): So sánh cặp đôi giữa các nhóm trong biến Protocol.
+
+    pw_comp$adj_p = p.adjust(pw_comp$p.value, method = 'bonferroni'):
+        p.adjust: Điều chỉnh giá trị p để kiểm tra ý nghĩa thống kê.
+        method = 'bonferroni': Sử dụng phương pháp điều chỉnh Bonferroni, một phương pháp điều chỉnh nghiêm ngặt để kiểm tra ý nghĩa thống kê khi có nhiều kiểm tra cùng lúc.
+
+    pw_comp %>% dplyr::select(-c(1,2,6,7)) %>% knitr::kable(digits = 5):
+        dplyr::select(-c(1,2,6,7)): Loại bỏ các cột 1, 2, 6, và 7 từ pw_comp. (phần này không bắt buộc)
+        knitr::kable(digits = 5): Sử dụng hàm kable từ thư viện knitr để định dạng dữ liệu đầu ra, với 5 chữ số thập phân.
 ...
+
 
 ```{r}
 m1%>%augment()%>%mutate(UL= .fitted +.se.fit*1.96,
@@ -333,6 +491,27 @@ augment(m1)%>%mutate(UL= .fitted +.se.fit*1.96,
   theme_bw()  
 ```
 
+Giải nghĩa từng phần của đoạn code:
+
+1) Tiền xử lý và tính toán
+
+    m1 %>% augment(): Sử dụng hàm augment từ thư viện broom để tạo ra một dataframe chứa các thông tin về giá trị dự báo, sai số chuẩn của giá trị dự báo ...,
+    mutate(UL= .fitted + .se.fit * 1.96, LL= .fitted - .se.fit * 1.96): Tính toán khoảng tin cậy 95% cho các giá trị dự báo (fitted). Đây là khoảng từ giá trị dự đoán trừ đi/cộng thêm 1.96 lần sai số chuẩn.
+    group_by(Protocol): Phân nhóm dữ liệu theo biến Protocol.
+    summarize_at('.fitted', median) -> m1_sum: Tính giá trị trung vị của giá trị dự báo .fitted cho từng nhóm Protocol và lưu kết quả vào biến m1_sum.
+
+2) Trực quan hóa
+
+    ggplot(): Khởi tạo đối tượng ggplot.
+    geom_jitter(): Thêm jitter plot để trực quan hóa dữ liệu LH (dữ liệu thực nghiệm, không phải dự báo) theo Protocol.
+    geom_density_ridges(): Thêm các đường density ridge để cho thấy phân phối của LH trong từng Protocol.
+    geom_errorbar(): Thêm các thanh để hiển thị khoảng tin cậy 95% cho giá trị dự báo của mỗi nhóm Protocol.
+    geom_line() và geom_point(): Thêm đường và điểm dựa trên giá trị trung vị của giá trị dự báo .fitted cho mỗi Protocol từ m1_sum.
+    scale_fill_manual() và scale_color_manual(): Tuỳ chỉnh màu sắc.
+    scale_x_continuous(): Điều chỉnh các điểm ngắt trên trục x.
+    labs(): Đặt nhãn cho các trục.
+    coord_flip(): Xoay (hoán đổi) trục x và y.
+    theme_bw(): Sử dụng theme đen trắng.
 ...
 
 ## Kết luận
