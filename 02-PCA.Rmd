@@ -53,6 +53,7 @@ df%>%head(5)%>%
   knitr::kable(digits=2)
 ```
 
+
 ...
 
 ```{r,cache =T}
@@ -100,6 +101,36 @@ ggpairs(data = df,
   theme_bw(5)
 ```
 
+Giải thích ý nghĩa:
+
+Đoạn code này sử dụng hàm ggpairs từ thư viện GGally để tạo đồ thị dạng "matrix" (ma trận biểu đồ), mỗi biểu đồ phản ánh mối quan hệ giữa hai biến khác nhau. Cụ thể: ta vẽ biểu đồ cặp cho các cột từ 2 đến 16 của df, sử dụng các hàm plotfunc* đã định nghĩa để tạo các loại biểu đồ tương ứng.
+
+    data = df: Sử dụng dataframe df làm nguồn dữ liệu.
+    columns=c(2:16): Chọn các cột từ 2 đến 16 từ dataframe để trực quan hóa.
+
+Hàm ggpairs cho phép bạn tùy chỉnh loại biểu đồ trong các ô theo: đường phân giác (diag), phía trên đường chéo (upper) và phía dưới đường chéo (lower).
+
+Trong đoạn mã này, đường chéo chính sẽ sử dụng biểu đồ mật độ (geom_density), được tạo ra bởi hàm plotfuncmid. Cụ thể, biểu đồ mật độ sẽ phản ánh sự phân bố của từng biến dựa trên các nhóm ("IR", "Norm", "PCOS").
+
+plotfuncmid: Hàm này tạo một biểu đồ mật độ để hiển thị phân phối của mỗi biến số. Mỗi nhóm (IR, Norm, PCOS) có một màu riêng và chúng được đặt chồng lên nhau với độ trong suốt.
+
+ggplot: Khởi tạo đối tượng biểu đồ.
+geom_density: Vẽ biểu đồ mật độ.
+aes(fill=Group): Điền màu dựa trên nhóm.
+alpha=0.3: Độ trong suốt của màu là 0.3.
+color="black": Đường viền màu đen.
+
+Hàm plotfuncLow: Hàm này tạo biểu đồ mật độ 2D giữa các cặp biến liên tục, tô màu dựa trên cột 'Group'. Biểu đồ này sẽ hiển thị dưới đường phân giác
+
+stat_density2d: Vẽ biểu đồ mật độ 2D.
+geom="polygon": Sử dụng hình đa giác để vẽ.
+alpha = ..level..: Độ trong suốt của màu dựa trên mật độ.
+
+plotfuncUp: Hàm này tạo biểu đồ scatter plot giữa các cặp biến liên tục, mỗi điểm có màu dựa trên cột 'Group'. Biểu đồ này sẽ hiển thị trên đường phân giác
+
+geom_point: Vẽ biểu đồ điểm.
+alpha = 0.3, size = 0.01: Độ trong suốt và kích thước của các điểm.
+
 ...
 
 ## Xác định số thành phần chính tối ưu
@@ -136,6 +167,48 @@ cumPVE <- qplot(c(1:n_feats), cumsum(PVE)) +
 PVEplot + cumPVE
 ```
 
+Giải thích: Đoạn code này tạo hai đồ thị: một đồ thị scree plot và một đồ thị biểu diễn tổng tích lũy của biến phương sai giải thích (PVE - Proportional Variance Explained).
+
+cov(df_num): Tính ma trận hiệp phương sai của các biến.
+
+eigen(df.cov): Tính giá trị eigen và vector eigen của ma trận hiệp phương sai.
+
+Giá trị eigen (λ) là một số vô hướng cho biết mức độ "phóng đại" hoặc "co lại" của vector eigen khi áp dụng phép biến đổi tuyến tính. Nói cách khác, khi phép biến đổi A được áp dụng vào vector eigen v, vector 
+v được "phóng đại" theo một tỷ lệ là λ.
+
+Vector Eigen v là vector không phải là vector không, mà khi áp dụng phép biến đổi tuyến tính A lên nó, nó chỉ bị "phóng đại" theo một tỷ lệ là giá trị eigen λ. Nói cách khác, hướng của vector riêng không thay đổi khi áp dụng phép biến đổi; chỉ có độ lớn của nó là thay đổi.
+
+Trong phân tích PCA,các giá trị eigen của ma trận hiệp phương sai cho biết mức độ phương sai mà mỗi thành phần chính có thể giải thích, và vector eigen cho biết cách chúng được cấu thành từ các biến gốc.
+
+
+n_feats = length(df.eigen$values): Đếm số lượng biến.
+
+PVE <- df.eigen$values / sum(df.eigen$values): Tính PVE để hiểu được các thành phần chính nào giải thích phần lớn phương sai của dữ liệu.
+
+PVEplot <- qplot(...): Tạo một scree plot để hiển thị PVE của từng thành phần chính.
+
+cumPVE <- qplot(...): Tạo một đồ thị về tổng tích lũy PVE khi thêm từng thành phần chính.
+
+PVEplot + cumPVE: Sử dụng thư viện patchwork để ghép hai đồ thị lại với nhau.
+
+
+Biểu đồ Scree Plot là một công cụ trực quan hữu ích trong phân tích thành phần chính (PCA). Nó biểu diễn giá trị eigen tương ứng với từng thành phần chính theo thứ tự giảm dần. Biểu đồ này giúp bạn đánh giá được số lượng thành phần chính cần giữ lại để giải thích một phần lớn sự biến đổi trong dữ liệu.
+
+Cụ thể hơn:
+
+Trục x thể hiện số thứ tự của các thành phần chính.
+Trục y thể hiện giá trị eigen hoặc Proportional Variance Explained (PVE), là phần trăm phương sai được giải thích bởi mỗi thành phần chính.
+
+Một số điểm cần lưu ý:
+
+Elbow Point: đường biểu diễn sẽ có một "khớp cổ tay" hoặc "điểm quỹ đạo", nơi mà độ dốc của đường biểu diễn thay đổi đáng kể. Điểm này thường được sử dụng như một tiêu chí để chọn số lượng thành phần chính cần giữ lại.
+
+Các thành phần có giá trị eigen lớn (hoặc PVE cao) giải thích một phần lớn phương sai của dữ liệu, trong khi các thành phần có giá trị riêng thấp giải thích ít phương sai hơn.
+
+Tổng PVE: Tổng Proportional Variance Explained bởi tất cả các thành phần là 100%. Thường người ta sẽ chọn một số lượng nhỏ các thành phần đầu tiên sao cho tổng PVE của chúng đạt đến một ngưỡng nhất định (ví dụ: 90% hoặc 95%).
+
+Dựa vào biểu đồ, bạn có thể quyết định số lượng thành phần chính cần giữ lại trong mô hình PCA của mình.
+
 ...
 
 ## Phân tích PCA
@@ -150,6 +223,10 @@ res.pca <- PCA(df_num,
 
 # summary(res.pca)
 ```
+
+Giải thích:
+
+res.pca <- PCA(...): Thực hiện PCA trên dữ liệu df_num với 6 thành phần chính, dữ liệu được chuẩn hóa (scale.unit = T), và không vẽ biểu đồ (graph = F).
 
 ## Trình bày kết quả PCA bằng biểu đồ Biplot
 
@@ -167,6 +244,8 @@ res.pca <- PCA(df_num,
   plot
 }
 ```
+
+Hàm này định nghĩa 1 toán tử '-' trong môi trường ggplot2, cho phép chèn 1 lớp biểu đồ xuống bên dưới biểu đồ hiện hành (thông thường ggplot dùng toán tử '+' để chèn lên trên)
 
 ...
 
@@ -203,6 +282,14 @@ P - geom_jitter(shape=21,
   coord_fixed()
 ```
 
+Giải thích: 
+
+P = fviz_pca_biplot(...): Tạo biểu đồ biplot từ kết quả PCA, thêm các ellipses, và đặt các label cho các biến (label="var").
+
+P - geom_jitter(...): thêm lớp geom_jitter để chèn 1 biểu đồ tán xạ bên dưới
+
+P - stat_density2d(...): Thêm lớp để vẽ biểu đồ mật độ 2 chiều bên dưới
+
 ...
 
 ## Phân tích vai trò của mỗi biến trong 2 thành phần chính
@@ -237,6 +324,30 @@ d2=fviz_contrib(res.pca,
 d1 + d2
 ```
 
+Giải thích: Đoạn code trên trực quan hóa đóng góp của các biến tới chiều thứ nhất (Dim 1) và thứ hai (Dim 2) trong không gian PCA.
+
+Hàm fviz_contrib() trong thư viện factoextra được sử dụng để trực quan hóa đóng góp của các biến (hoặc cá thể) đến các thành phần chính trong một phân tích thành phần chính (PCA). Cụ thể trong biểu đồ d1:
+
+    res.pca: Đây là kết quả của phân tích thành phần chính, được lưu trong đối tượng res.pca.
+
+    choice="var": Chọn "var" để trực quan hóa đóng góp của các biến, thay vì các cá thể (dòng dữ liệu).
+
+    axes = 1: Trực quan hóa đóng góp của các biến đến chiều thứ nhất của không gian PCA.
+
+    fill="#f53656" và color="black": Đặt màu nền và màu đường viền
+
+    labs(title = "Contributions to Dim 1", x = 'Variables'): Đặt tiêu đề và nhãn cho trục x.
+
+    geom_text(aes(label=round(contrib,2)), nudge_y=1.5, color="red4"): Thêm nhãn giá trị, nhãn này hiển thị đóng góp của mỗi biến, làm tròn đến 2 chữ số thập phân.
+
+    coord_flip(): Hoán đổi trục x và y, chuyển đổi biểu đồ thành biểu đồ bar ngang.
+
+    theme_bw(8): Áp dụng chủ đề trắng-đen.
+
+Tương tự, biểu đồ d2 trực quan hóa đóng góp của các biến đến chiều thứ hai của không gian PCA.
+
+Sau cùng, d1 + d2 sử dụng thư viện patchwork để kết hợp cả hai biểu đồ này lại với nhau, cho phép bạn so sánh đóng góp của các biến đến hai chiều đầu tiên của không gian PCA.
+
 ## Khảo sát đặc tính phân phối của mỗi thành phần chính
 
 ...
@@ -255,6 +366,40 @@ res.pca$ind$coord %>%
             p95 = quantile(Value, 0.95))%>%
   knitr::kable(digits = 2)
 ```
+
+Giải thích:
+
+Trích xuất tọa độ của các cá thể: res.pca$ind$coord %>% as_tibble()
+
+Trích xuất tọa độ của các cá thể (dòng) từ kết quả PCA và chuyển đổi chúng thành một tibble (một dạng của data frame).
+
+Thêm cột 'Group': mutate(Group = df$Group)
+Thêm cột Group từ data frame df gốc vào tibble.
+
+Chuyển đổi dữ liệu về dạng 'long': gather(c(1:4), value = "Value", key = 'Components')
+
+Chuyển đổi dữ liệu từ dạng 'wide' sang dạng 'long' bằng cách sử dụng hàm gather. Cột Components chứa tên của thành phần chính, và cột Value chứa giá trị tọa độ tương ứng.
+
+Nhóm dữ liệu: group_by(Components, Group)
+
+Nhóm dữ liệu theo cả Components và Group.
+Tính toán thống kê cơ bản: summarise(...)
+
+Tính toán một số thống kê cơ bản cho mỗi nhóm và mỗi thành phần chính:
+n = n(): Số lượng cá thể trong mỗi nhóm.
+
+Mean = mean(Value): Trung bình của giá trị tọa độ.
+sd = sd(Value): Độ lệch chuẩn của giá trị tọa độ.
+Median = median(Value): Trung vị của giá trị tọa độ.
+p5 = quantile(Value, 0.05): Phân vị 5% của giá trị tọa độ.
+p95 = quantile(Value, 0.95): Phân vị 95% của giá trị tọa độ.
+
+Xuất bảng dưới dạng đọc được: knitr::kable(digits = 2)
+
+Sử dụng hàm kable từ thư viện knitr để xuất dữ liệu dưới dạng bảng, với số chữ số thập phân là 2.
+
+Kết quả cuối cùng sẽ là một bảng thống kê với các giá trị được làm tròn đến 2 chữ số thập phân, giúp bạn dễ dàng so sánh phân phối của thành phần chính giữa các nhóm.
+
 ...
 
 ```{r}
@@ -274,7 +419,28 @@ res.pca$ind$coord %>%
   theme_bw(8)+
   theme(legend.position="bottom")
 ```
+Giải thích:
 
+Đoạn mã R trên sử dụng dplyr và ggplot2 từ bộ thư viện tidyverse để trực quan hóa phân phối của các giá trị điểm (score) tương ứng với từng thành phần chính (component) trong phân tích thành phần chính (PCA). Biểu đồ sẽ được tách ra theo từng thành phần chính và các giá trị điểm sẽ được nhóm theo biến Group.
+
+    Trích xuất tọa độ của các cá thể: res.pca$ind$coord %>% as.tibble()
+        Trích xuất ma trận tọa độ của các cá thể (rows) từ kết quả PCA (res.pca) và chuyển nó thành một tibble.
+
+    Thêm cột 'Group': mutate(Group = df$Group)
+        Thêm cột Group từ DataFrame gốc df vào tibble.
+
+    Chuyển đổi dữ liệu về dạng 'long': gather(c(1:4), value = "score", key = 'Components')
+        Sử dụng gather() để chuyển dữ liệu từ dạng 'wide' sang dạng 'long', nơi mỗi hàng tương ứng với một giá trị điểm của một cá thể trên một thành phần chính cụ thể. Cột mới Components chứa tên của thành phần chính, và cột score chứa giá trị điểm tương ứng.
+
+    Vẽ biểu đồ: ggplot() + geom_density(...) + facet_wrap(...) + ...
+        Sử dụng ggplot2 để vẽ biểu đồ mật độ của các giá trị điểm, phân loại theo Group và theo từng thành phần chính (Components).
+
+    Tùy chỉnh màu sắc và chủ đề: scale_fill_manual(values = pal_fill) + theme_bw(8) + theme(legend.position="bottom")
+        scale_fill_manual(values = pal_fill): Sử dụng palette màu được định nghĩa trước trong pal_fill.
+        theme_bw(8): Áp dụng chủ đề trắng-đen.
+        theme(legend.position="bottom"): Đặt vị trí của chú thích ở phía dưới cùng của biểu đồ.
+        
+        
 ...
 
 ## Kết luận
