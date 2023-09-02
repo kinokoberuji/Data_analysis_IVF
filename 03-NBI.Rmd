@@ -59,12 +59,23 @@ df%>%dplyr::sample_frac(0.1)%>%
   knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Dữ liệu được đọc từ một file CSV có tên 'POSEIDON_ART.csv', với ; làm dấu phân cách và , làm dấu thập phân.
+Các dòng có giá trị POSEIDON nhỏ hơn hoặc bằng 0 sẽ bị loại bỏ.
+
+Chuyển đổi kiểu dữ liệu: Biến POSEIDON được chuyển thành kiểu factor.
+
+Chọn mẫu ngẫu nhiên và hiển thị dữ liệu:
+
+Lấy ra một mẫu ngẫu nhiên từ df chiếm 10% dữ liệu.
+Hiển thị 6 dòng đầu tiên của mẫu này dưới dạng bảng với 3 chữ số sau dấu phẩy.
+
 ## Thống kê mô tả
 
 ...
 
 ```{r,message = T,warning=T}
-
 tot = nrow(df)
 
 df %>% 
@@ -79,6 +90,33 @@ df %>%
             ) %>% 
   knitr::kable(digits = 3)
 ```
+
+Giải thích:
+
+
+Tính tổng số dòng trong DataFrame df: Biến tot được gán giá trị là tổng số dòng của DataFrame df.
+
+Nhóm dữ liệu theo cột POSEIDON: Sử dụng hàm group_by để nhóm dữ liệu trong df dựa trên giá trị của cột POSEIDON.
+
+Tính toán và tóm tắt thông tin: Các hàm sau đây được sử dụng để tóm tắt thông tin cho từng nhóm (group):
+
+n = n(): Tính số lượng dòng trong mỗi nhóm.
+
+prop = 100*n/tot: Tính tỷ lệ phần trăm của số lượng dòng trong mỗi nhóm so với tổng số dòng tot.
+
+mean = mean(Collected, na.rm = T): Tính trung bình của cột Collected trong mỗi nhóm, bỏ qua các giá trị NA (Not Available).
+
+sd = sd(Collected, na.rm = T): Tính độ lệch chuẩn của cột Collected trong mỗi nhóm, bỏ qua các giá trị NA.
+
+median = median(Collected, na.rm = T): Tính trung vị của cột Collected trong mỗi nhóm, bỏ qua các giá trị NA.
+
+p5 = quantile(Collected, 0.05, na.rm = T): Tính phân vị thứ 5 của cột Collected trong mỗi nhóm, bỏ qua các giá trị NA.
+
+p95 = quantile(Collected, 0.95, na.rm = T): Tính phân vị thứ 95 của cột Collected trong mỗi nhóm, bỏ qua các giá trị NA.
+
+Hiển thị kết quả: Kết quả được hiển thị dưới dạng bảng với 3 chữ số sau dấu phẩy sử dụng knitr::kable().
+
+Kết quả sẽ là một bảng tóm tắt các thông số đã tính cho từng nhóm của biến POSEIDON. Bảng này sẽ có các cột như n, prop, mean, sd, median, p5, p95, và sẽ được sắp xếp theo các giá trị unique của POSEIDON.
 
 ...
 
@@ -115,10 +153,48 @@ P1 = df %>% ggplot(aes(x = Collected,
 P1
 ```
 
+Giải thích:
+
+Đoạn mã R này sử dụng ggplot2 để vẽ một loại biểu đồ có tên là "density ridge plot", hiển thị phân phối của số lượng "retrieved oocytes" (số trứng thu được) trong các nhóm POSEIDON. 
+
+Dưới đây là giải thích chi tiết:
+
+Cấu hình
+Đặt màu sắc: pals = c("#ffc403","#ff7403","#ff0357","#9203ff") định nghĩa một vector chứa các mã màu HEX. Mỗi màu sẽ được sử dụng cho một nhóm POSEIDON trong đồ thị.
+
+Cấu trúc cơ bản của ggplot
+Khởi tạo ggplot: ggplot(aes(x = Collected, y = POSEIDON, fill= POSEIDON)) khởi tạo một đồ thị ggplot với trục x là Collected và trục y là POSEIDON. Màu sắc (fill) sẽ dựa vào giá trị của POSEIDON.
+
+Geoms và Layers
+Thêm lớp density ridges: geom_density_ridges tạo các "ridge" (dải) phân phối dựa trên dữ liệu.
+
+stat = "binline": Sử dụng binning thay vì KDE (Kernel Density Estimation) để tính density. Kết quả sẽ tạo ra histogram 
+
+scale = 2: Quyết định mức độ "dày" của các dải.
+bins = 50: Số lượng bins sử dụng trong binning.
+alpha = 0.7: Độ trong suốt của các dải.
+draw_baseline = FALSE: Không vẽ đường cơ sở ở dưới các dải.
+show.legend = F: Không hiển thị legend.
+Thêm labels và scales:
+
+labs(): Đặt nhãn cho các trục.
+scale_fill_manual(): Điều chỉnh màu sắc (fill) dựa trên vector màu pals.
+scale_x_continuous(): Điều chỉnh các điểm ngắt (breaks) trên trục x.
+Thêm các yếu tố đồ họa và điều chỉnh:
+
+coord_flip(): Đảo trục x và y.
+theme_bw(): Sử dụng chủ đề đen trắng.
+geom_vline(): Thêm một đường thẳng dọc tại vị trí trung vị của Collected.
+
+theme(): Điều chỉnh kích thước và màu sắc của văn bản trên các trục.
+Hiển thị đồ thị
+
+Cuối cùng hiển thị biểu đồ đã tạo.
+
+Kết quả sẽ là một biểu đồ histogram hiển thị sự phân phối của số lượng "retrieved oocytes" trong các nhóm POSEIDON.
 ...
 
 ```{r}
-
 pals_2 = c("#b5e617","#ffc403","#ff7403","#ff0357","#9203ff")
 
 df2 = read.csv('POSEIDON_ART.csv',
@@ -148,6 +224,46 @@ df2%>%gather(c(AFC,Age,AMH), key = 'Parameter', value = "Value")%>%
   theme_bw(10)+
   facet_wrap(~Parameter, scales = "free", ncol = 2)
 ```
+Giải thích:
+
+Đoạn mã R này sử dụng ggplot2 để vẽ biểu đồ tán xạ "jitter plot" kết hợp với đồ thị hàm hồi quy tuyến tính "smoothing line", để mô tả mối quan hệ giữa các tham số (AFC, Age, AMH) và số lượng noãn thu được (Collected) trong các nhóm POSEIDON
+
+Đặt màu sắc: pals_2 = c("#b5e617","#ffc403","#ff7403","#ff0357","#9203ff") định nghĩa một vector chứa các mã màu HEX, sẽ được sử dụng cho mỗi nhóm POSEIDON.
+
+Đọc dữ liệu: Đọc file CSV POSEIDON_ART.csv vào DataFrame df2 với các thiết lập như dấu phân cách ;, dấu thập phân , và mã hóa UTF-8-BOM.
+
+Chuyển đổi dữ liệu: df2$POSEIDON = factor(df2$POSEIDON) chuyển đổi cột POSEIDON sang dạng factor.
+
+Tiền xử lý dữ liệu
+
+Chuyển đổi từ wide format sang long format: gather(c(AFC, Age, AMH), key = 'Parameter', value = "Value") chuyển đổi dữ liệu để có thể vẽ đồ thị facet.
+
+Cấu trúc cơ bản của ggplot
+
+Khởi tạo ggplot: ggplot() khởi tạo một đồ thị ggplot mà chưa có dữ liệu hay esthetics nào cả.
+
+Geoms và Layers
+Thêm jitter plot: geom_jitter tạo một biểu đồ jitter plot (tán xạ).
+
+aes(x = Value, y = Collected, col = POSEIDON): Định nghĩa aesthetics cho jitter plot: tô màu điểm theo phân nhóm POSEIDON
+
+alpha = 0.2, size = 1: Điều chỉnh độ trong suốt và kích thước của các điểm.
+
+Thêm smoothing line: geom_smooth tạo một đường để mô tả mối quan hệ giữa Value và Collected.
+
+method = 'glm': Sử dụng Generalized Linear Model để tạo đồ thị hàm tuyến tính.
+
+alpha = 0.3, show.legend = T: Điều chỉnh độ trong suốt và hiển thị legend.
+
+Điều chỉnh màu sắc và fill: scale_color_manual và scale_fill_manualđiều chỉnh màu sắc và fill cho các điểm và đồ thị.
+
+Thêm labels: labs(y="Number of retrieved oocytes", x = "Value") đặt nhãn cho các trục.
+
+Thêm các yếu tố đồ họa và điều chỉnh:
+
+theme_bw(10): Sử dụng chủ đề đen trắng với cỡ chữ 10.
+
+facet_wrap(~Parameter, scales = "free", ncol = 2): Tạo các "facet" (phần) dựa trên giá trị của cột Parameter, cho phép các trục có thang đo tự do và sắp xếp chúng thành 2 cột.
 
 ...
 
@@ -178,6 +294,31 @@ P2 = cdfcomp(list(fit_poisson, fit_negbin,fit_norm),
 
 P2 / P1
 ```
+
+Giải thích:
+
+Đoạn mã R này thực hiện các công việc sau:
+
+Khớp dữ liệu thực nghiệm với các mô hình phân phối: Sử dụng hàm fitdist từ thư viện fitdistrplus để ước lượng các thông số cho ba loại phân phối: Phân phối Poisson (pois), phân phối nhị thức âm (nbinom), và phân phối chuẩn (norm) từ dữ liệu trong cột Collected của DataFrame df.
+
+'optim.method = 'BFGS': chỉ định sử dụng phương pháp tối ưu hóa BFGS.
+
+Vẽ đồ thị PDF (Probability Density Function): Hàm denscomp từ fitdistrplus được sử dụng để vẽ đồ thị mật độ xác suất (PDF) của các mô hình phân phối.
+
+legendtext = c("Poisson", "Negative binomial","Gaussian"): Chú thích cho từng dòng.
+plotstyle = 'ggplot': Sử dụng ggplot2 cho việc vẽ đồ thị.
+fitcol: Màu sắc của các dòng.
+dempcol = c('grey'): Màu của dữ liệu thực nghiệm.
+fitlty = 1, fitlwd = 1: Loại và độ rộng của đường.
+Vẽ đồ thị CDF (Cumulative Distribution Function): Tương tự như trên, nhưng sử dụng hàm cdfcomp để vẽ đồ thị tích lũy phân phối (CDF).
+
+Kết hợp các biểu đồ: Cuối cùng, P2 / P1 sử dụng thư viện patchwork để kết hợp P1 (biểu đồ PDF) và P2 (biểu đồ CDF) thành một đồ thị duy nhất.
+
+fit_poisson, fit_negbin, và fit_norm giúp ta hiểu liệu dữ liệu có tuân theo một trong những phân phối này không, và nếu có, thì phân phối nào là phù hợp nhất.
+
+Các biểu đồ trực quan để so sánh mô hình phân phối đã khớp với dữ liệu thực nghiệm. Biểu đồ này giúp xác định phân phối nào là phù hợp nhất cho việc mô hình hóa cột Collected trong DataFrame df.
+
+
 ... 
 
 ## Phân tích hồi quy bằng mô hình GLM NBI
@@ -189,6 +330,22 @@ mod_1 = gamlss(data = df,
                sigma.formula =~ POSEIDON,
                family = NBI())
 ```
+
+Giải thích:
+
+Đoạn code này sử dụng thư viện gamlss trong R để xây dựng một mô hình phân phối nhị thức âm (Negative Binomial, viết tắt là NBI). 
+
+Xây dựng mô hình gamlss: Hàm gamlss được sử dụng để xây dựng một mô hình GLMM
+
+data = df: Sử dụng DataFrame df để lấy dữ liệu.
+
+formula = Collected ~ POSEIDON: Mô hình dự đoán biến kết quả Collected từ biến độc lập POSEIDON.
+
+sigma.formula =~ POSEIDON: Mô hình sẽ cũng cố gắng ước lượng tham số (sigma) dựa trên POSEIDON.
+
+family = NBI(): Sử dụng phân phối nhị thức âm.
+
+
 Kết quả của mô hình mod_1 như sau:
 
 ```{r}
@@ -217,6 +374,24 @@ abs$adj_p = p.adjust(abs$p.value,
 abs%>%dplyr::select(-c(2,6))%>%
   knitr::kable(digits = 3)
 ```
+
+Giải thích:
+
+Đoạn code này sử dụng mô hình gamlss đã được xây dựng (mod_1) để thực hiện phân tích so sánh giá trị trung bình giữa các nhóm POSEIDON và sau đó điều chỉnh giá trị p.
+
+avg_comparisons: Hàm này được sử dụng để so sánh các giá trị trung bình (mu) của biến phụ thuộc (Collected) giữa các nhóm POSEIDON.
+
+what = 'mu': Thực hiện so sánh trên giá trị trung bình (mu) của phân phối.
+
+newdata = df: Sử dụng DataFrame df để thực hiện so sánh.
+
+variables = list(POSEIDON = 'pairwise'): So sánh sẽ được thực hiện giữa tất cả các cặp nhóm trong POSEIDON.
+
+Điều chỉnh giá trị p bằng p.adjust: Giá trị p được điều chỉnh bằng cách sử dụng phương pháp Bonferroni.
+
+method = "bonferroni": Sử dụng phương pháp điều chỉnh Bonferroni.
+
+Sử dụng dplyr::select để loại bỏ cột thứ 2 và thứ 6 từ DataFrame. Tiếp theo, knitr::kable được sử dụng để hiển thị kết quả dưới dạng bảng với 3 chữ số sau dấu phẩy.
 
 ...
 
@@ -264,6 +439,28 @@ augment(mod_1)%>%mutate(UL= .fitted +.se.fit*1.96,
   coord_flip()+
   theme_bw()  
 ```
+
+Giải thích:
+
+Đoạn mã R này sử dụng mô hình gamlss (mod_1) để tạo ra dữ liệu về giá trị ước lượng của số lượng noãn thu được (Collected), sau đó vẽ một một biểu đồ so sánh giữa các nhóm POSEIDON
+
+Các bước chi tiết:
+Thêm cột mới cho DataFrame: Sử dụng augment(mod_1) để thêm các cột được tính toán từ mô hình vào dataframe. Cụ thể là .fitted (giá trị ước tính) và .se.fit (sai số chuẩn của giá trị ước tính).
+
+UL= .fitted +.se.fit*1.96 và LL=.fitted-.se.fit*1.96 tạo ra các giới hạn trên (Upper Limit) và dưới (Lower Limit) của khoảng tin cậy 95%.
+
+Tính giá trị trung bình cho mỗi nhóm: group_by(POSEIDON) và summarize_at('.fitted', median) được sử dụng để tính giá trị trung bình của .fitted cho mỗi nhóm POSEIDON. Kết quả được lưu vào biến m1_sum.
+
+Tạo biểu đồ:
+
+geom_jitter(): Vẽ các điểm dữ liệu với độ nhiễu nhỏ để tránh hiện tượng chồng lắp.
+
+geom_density_ridges(): Vẽ các đường density cho mỗi nhóm.
+
+geom_errorbar(): Vẽ dải tin cậy 95% dựa trên các giới hạn UL và LL đã tính.
+
+geom_path() và geom_point(): Vẽ đường và điểm cho giá trị trung bình của .fitted từ m1_sum
+
 ...
 
 ```{r}
@@ -275,6 +472,22 @@ mod_2 = gamlss(data = df2,
 summary(mod_2)
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng hàm gamlss từ thư viện gamlss để xây dựng một mô hình ước lượng biến kết quả là số noãn thu được (Collected) trong dataFrame df2. Mô hình dựa vào quy luật phân phối Negative Binomial Inflation (NBI).
+
+Các thành phần của hàm gamlss:
+
+data = df2: Cho biết rằng dữ liệu cho mô hình sẽ được lấy từ dataframe df2.
+
+formula = Collected ~ Age + AMH + AFC: Đây là công thức của mô hình,với biến kết quả là Collected và các biến độc lập là Age, AMH, và AFC.
+
+sigma.formula =~ Age + AMH + AFC: Điều này chỉ định mô hình ước lượng cả tham số sigma (có ý nghĩa phương sai) như một hàm từ các biến Age, AMH, và AFC. 
+
+Bằng cách mô hình hóa cả trung bình (mu) và phương sai (sigma), mô hình có thể bắt được cả tính trung bình và sự biến động của biến mục tiêu, tùy thuộc vào các biến độc lập.
+
+family = NBI(): Chỉ định rằng phân phối của biến mục tiêu Collected sẽ được mô hình hóa dựa trên phân phối Negative Binomial Type I. Phân phối này thích hợp cho kết quả số đếm với tính chất quá phân tán.
+
 ...
 
 ```{r}
@@ -285,6 +498,22 @@ abs = avg_comparisons(mod_2,
 abs%>%dplyr::select(-c(1,6))%>%
   knitr::kable(digits = 3)
 ```
+
+Giải thích:
+
+Đoạn mã này sử dụng hàm avg_comparisons để khảo sát marginal effect trên mô hình mod_2
+
+mod_2: Đây là mô hình mà bạn muốn thực hiện phân tích
+
+what = "mu": Bạn chỉ định rằng bạn muốn so sánh trung bình (mu) giữa các nhóm.
+
+Phân tích này cho phép so sánh bắt cặp tuần tự giá trị trung bình giữa các nhóm khác nhau, hay so sánh hiệu ứng/ảnh hưởng của mỗi bậc giá trị biến độc lập đối với biến kết quả.
+
+newdata = df2: Đây là dữ liệu mới mà bạn muốn sử dụng để dự đoán từ mô hình. Trong trường hợp này, nó cùng là dữ liệu đã được sử dụng để xây dựng mô hình (df2).
+
+dplyr::select(-c(1,6)): Đoạn mã này sử dụng hàm select từ thư viện dplyr để loại bỏ các cột 1 và 6 từ DataFrame abs.
+
+knitr::kable(digits = 3): Đây là hàm từ thư viện knitr dùng để tạo ra một bảng kết quả, với mỗi số được làm tròn đến 3 chữ số thập phân.
 
 ...
 
@@ -315,6 +544,25 @@ preds%>%ggplot(aes(x = Age,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+
+Giải thích:
+
+Đoạn code này nhằm tạo một biểu đồ khảo sát mối liên hệ giữa giá trị ước tính và khoảng tin cậy về "Số lượng noãn thu thập được" ('Number of retrieved eggs') theo "Tuổi" ('Age'). 
+
+predictions(model = mod_2, what = "mu", newdata = datagrid(...)): Hàm này tạo ra giá trị dự đoán từ mô hình mod_2 (mô hình đã được tạo trước đó) dựa trên dữ liệu mới được tạo ra từ datagrid, với 'Age' từ 20 đến 40, tăng dần 5 đơn vị.
+
+ggplot() + ...: Đây là các đoạn mã để tạo biểu đồ.
+
+stat_lineribbon: Tạo ra một dải băng (ribbon) thể hiện khoảng tin cậy của dự đoán. Các dải với độ rộng khác nhau (.95, .75, .50) cho thấy các khoảng tin cậy khác nhau.
+
+stat_dotsinterval: Thêm các điểm vào biểu đồ để thể hiện trung bình dự đoán và khoảng tin cậy của chúng.
+
+labs, scale_x_continuous, scale_y_continuous: Đặt tên cho các trục và điều chỉnh phạm vi của chúng.
+
+theme_bw, theme: Điều chỉnh chủ đề và kiểu chữ của biểu đồ.
+
+Biểu đồ này sẽ cho ta thấy hình ảnh về giá trị dự đoán về số lượng trứng thu được tùy thuộc vào độ tuổi và khoảng tin cậy cho những dự đoán này
+
 ...
 
 ```{r}
@@ -344,6 +592,8 @@ preds%>%ggplot(aes(x = AMH,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+Giải thích: cấu trúc và công dụng đoạn code này tương tự như trên, nhưng lần này thay vì Tuổi ta quan tâm đến biến AMH. Việc dự đoán được thực hiện cho các giá trị AMH từ 0 đến 10, cho phép ước lượng về sự thay đổi của số noãn thu được tùy theo mức AMH thấp hoặc cao.
+
 ...
 
 ```{r}
@@ -373,6 +623,8 @@ preds%>%ggplot(aes(x = AFC,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+Đoạn code vẽ biểu đồ này tương tự như trên, nhưng cho biến AFC
+
 ...
 
 ```{r}
@@ -406,6 +658,14 @@ preds%>%ggplot(aes(x = AFC,
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
+
+Giải thích:
+
+Đoạn R code này tạo ra một biểu đồ trình bày sự thay đổi của giá trị dự đoán và khoảng tin cậy của số lượng noãn thu được ('Number of retrieved eggs') dựa trên sự tổ hợp giữa yếu tố "AFC" (Antral Follicle Count) và "Age" (Tuổi). Đây là một phân tích đa biến: Vì AFC và Tuổi đều được sử dụng, biểu đồ này giúp chúng ta hiểu rõ hơn về mức độ các yếu tố này có thể ảnh hưởng đến số lượng trứng thu thập được.
+
+predictions(model = mod_2, what = "mu", newdata = datagrid(...)): Kết quả dự đoán từ mô hình mod_2 dựa trên dữ liệu mới. Đây là một dữ liệu có tính "phản thực tế" (counterfactual) với giả định AFC có giá trị từ 1 đến 30 (tăng dần 2.5 đơn vị) tổ hợp với các độ Tuổi [25, 30, 35, 40].
+
+facet_wrap(~Age, scales = "free"): Tạo các "facet" (biểu đồ con) dựa trên các giá trị Tuổi khác nhau. Mỗi "facet" có thể có tỷ lệ trục y riêng. Cách trình bày này có ý nghĩa phân tích hiệu ứng của sự tổ hợp giữa tuổi và AFC đối với số lượng noãn thu được. 
 
 ## Diễn đạt kết quả phân tích
 
