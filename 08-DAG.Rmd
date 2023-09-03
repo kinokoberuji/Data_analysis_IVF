@@ -47,6 +47,26 @@ df%>%head()%>%dplyr::select(c(1,16,8:15))%>%
   knitr::kable(digits = 2)
 ```
 
+Giải thích:
+
+read.csv(...): Hàm này đọc tập tin CSV và tạo ra một dataframe trong R.
+
+'Letrozole_PCOS.csv': Tên tập tin cần đọc.
+sep = ';': Dấu phân cách giữa các cột trong CSV là dấu chấm phẩy (;).
+dec= ',': Dấu thập phân là dấu phẩy (,), không phải dấu chấm (.).
+fileEncoding = 'UTF-8-BOM': Mã hóa của tập tin là UTF-8 với BOM (Byte Order Mark).
+%>% na.omit(): Câu lệnh này sẽ loại bỏ (omit) tất cả các hàng có giá trị NA (Not Available - Không có thông tin).
+
+factor(...): Chuyển đổi các cột được chỉ định thành dạng factor. Trong R, factor thường được sử dụng để lưu trữ dữ liệu phân loại.
+
+df %>% head() %>% dplyr::select(c(1,16,2:7)): Đoạn code này làm một số việc:
+
+head(): Hiển thị 6 dòng đầu tiên của dataframe.
+dplyr::select(c(1,16,2:7)): Chọn các cột 1, 16 và từ 2 đến 7 từ dataframe đó.
+knitr::kable(digits = 2): Sử dụng hàm kable từ gói knitr để tạo ra một bảng HTML hoặc Markdown, làm tròn tất cả các số đến 2 chữ số thập phân.
+
+Như vậy, đoạn code này đọc dữ liệu từ một tập tin CSV, loại bỏ các hàng với giá trị NA, chuyển đổi một số cột thành dạng factor, và sau đó hiển thị 6 dòng đầu tiên của dataframe với các cột đã chọn, dưới dạng bảng với 2 chữ số thập phân.
+
 ## Mô tả đơn giản
 
 ...
@@ -60,6 +80,19 @@ df%>%group_by(Method)%>%
             p0 = 1- p1,
             )%>%knitr::kable()
 ```
+
+Giải thích:
+
+df %>% group_by(Method): Dataframe df được nhóm lại theo cột Method. group_by là một hàm từ gói dplyr trong tidyverse, và nó sẽ nhóm dữ liệu theo một hoặc nhiều biến. Trong trường hợp này, ta đang nhóm dữ liệu theo cột Method.
+
+summarize(...): Hàm này sẽ tạo ra một bảng tóm tắt cho mỗi nhóm dữ liệu (Method trong trường hợp này) với các thống kê sau:
+
+n = n(): Đếm số lượng quan sát trong mỗi nhóm.
+LiveBirth = sum(LBirth == 1): Tổng số trường hợp có LBirth bằng 1 trong mỗi nhóm.
+Failure = sum(LBirth == 0): Tổng số trường hợp có LBirth bằng 0 trong mỗi nhóm.
+p1 = mean(LBirth): Tính giá trị trung bình của LBirth trong mỗi nhóm. Điều này cung cấp xác suất cho sự kiện LBirth bằng 1.
+p0 = 1 - p1: Xác suất cho sự kiện LBirth bằng 0, tính bằng cách lấy 1 trừ đi xác suất cho sự kiện LBirth bằng 1.
+%>% knitr::kable(): Cuối cùng, dataframe được tóm tắt sẽ được định dạng dưới dạng bảng HTML hoặc Markdown bằng hàm kable từ gói knitr.
 
 ...
 
@@ -145,6 +178,49 @@ dag%>%tidy_dagitty()%>%
   theme_dag()
 ```
 
+Giải thích:
+
+Đoạn R code này sử dụng các thư viện tidyverse, dagitty và ggdag để vẽ một đồ thị có hướng acyclic (DAG - Directed Acyclic Graph). DAG này mô tả các mối quan hệ giữa các biến trong một hệ thống sinh lý bệnh trong 1 thí nghiệm. Dưới đây là phân tích chi tiết từng phần:
+
+Biến coord_dag lưu trữ tọa độ (x, y) của các nút trong DAG. Các tên biến như Birth, FSH, LH, etc. đại diện cho các nút, và các giá trị tọa độ x và y của chúng được chỉ định.
+
+Tạo DAG
+
+Hàm dagify() từ thư viện dagitty được sử dụng để tạo ra một đồ thị có hướng không chu trình (DAG) bằng cách mô tả các mối quan hệ giữa các biế từ các biểu thức dạng Y ~ X1 + X2 + .... 
+
+Cú pháp Y ~ X1 + X2 + ... trong dagify() đặc tả mối quan hệ giữa các biến:
+
+Y: Biến phụ thuộc hoặc biến mục tiêu.
+X1 + X2 + ...: Biến độc lập hoặc các biến có ảnh hưởng lên Y.
+Ví dụ: Birth ~ BMI + Preg + Age có nghĩa là Birth (xác suất sinh sống) có thể bị ảnh hưởng bởi BMI, Preg, và Age.
+
+coords = coord_dag: Dùng để đặt tọa độ của mỗi nút trong đồ thị, nơi coord_dag là một danh sách chứa các giá trị tọa độ x và y.
+
+exposure = "Letroz" và outcome = "Birth": Thêm các nhãn cho biến can thiệp ("Letroz") và biến kết quả ("Birth").
+
+Tùy chỉnh và vẽ DAG
+
+tidy_dagitty(): Chuẩn bị dữ liệu DAG để có thể vẽ đồ thị.
+
+mutate(colors = recode(...))
+Dùng để đặt màu sắc cho mỗi nút dựa trên tên của chúng. recode() từ dplyr sẽ thay thế giá trị của name với một giá trị số tương ứng, được dùng để ánh xạ màu sắc.
+
+ggdag(edge_type = "diagonal")
+Sử dụng hàm ggdag() từ thư viện ggdag để vẽ DAG. edge_type = "diagonal" có nghĩa là các cạnh trong đồ thị sẽ được vẽ dưới dạng đường chéo.
+
+geom_dag_point(...) và geom_dag_text(...)
+geom_dag_point(aes(colour = factor(colors)), show.legend = F): Vẽ các điểm (nút) với màu sắc đã được tùy chỉnh, và không hiển thị chú thích màu sắc.
+
+geom_dag_text(text_size = 3, color = "black"): Thêm văn bản vào mỗi nút, với kích thước và màu sắc được tùy chỉnh.
+
+scale_color_brewer(palette = "Spectral")
+Sử dụng bảng màu "Spectral" từ thư viện RColorBrewer để tùy chỉnh màu sắc của các nút.
+
+theme_dag()
+Áp dụng một chủ đề tùy chỉnh cho DAG, để làm cho nó dễ nhìn và phân tích hơn.
+
+Tóm lại, toàn bộ quá trình này tạo ra một DAG mô tả các mối quan hệ giữa các biến một cách rõ ràng, tùy chỉnh các chi tiết hiển thị như màu sắc, vị trí và kích thước 
+
 ## Xác định tập hợp biến cần hiệu chỉnh
 
 ...
@@ -152,6 +228,16 @@ dag%>%tidy_dagitty()%>%
 ```{r}
 paths(dag)$paths[c(1:10)]
 ```
+
+Hàm paths() từ thư viện dagitty được sử dụng để tìm tất cả các đường dẫn có thể trong một DAG (Directed Acyclic Graph). Một "đường dẫn" trong DAG này là một chuỗi các cạnh liên kết các nút từ một nút bắt đầu đến một nút kết thúc, không chứa bất kỳ vòng lặp nào.
+
+Cụ thể hơn, paths(dag) sẽ trả về danh sách các đường dẫn có thể từ tất cả các nút đến tất cả các nút khác trong DAG được lưu trong biến dag.
+
+$paths: Là để truy cập đến phần tử "paths" trong kết quả trả về, có chứa thông tin về các đường dẫn.
+
+[c(1:10)]: Dùng để lọc 10 đường dẫn đầu tiên từ danh sách đó.
+
+Tóm lại, paths(dag)$paths[c(1:10)] sẽ trả về 10 đường dẫn đầu tiên có thể từ danh sách tất cả các đường dẫn trong DAG. Điều này có thể hữu ích để nhanh chóng xem xét hoặc phân tích các đường dẫn quan trọng trong một mô hình phức tạp mà bạn không muốn xem toàn bộ.
 
 ...
 
@@ -168,6 +254,29 @@ ggdag_adjustment_set(dag,
 
 adjustmentSets(dag, "Letroz","Birth")
 ```
+
+Giải thích:
+
+Đoạn code này sử dụng các hàm từ thư viện dagitty và ggdag để thực hiện hai việc chính: vẽ một Directed Acyclic Graph (DAG) và xác định tập điều chỉnh cho một quan hệ can thiệp-kết quả cụ thể trong DAG đó.
+
+Phần Vẽ DAG (ggdag_adjustment_set và các hàm liên quan)
+
+ggdag_adjustment_set(dag, ...): Hàm này vẽ một DAG (dag) với các tập điều chỉnh được hiển thị (đây là các hiệp biến (yếu tố gây nhiễu) cần được điều chỉnh để ước tính hiệu ứng can thiệp một cách không bị sai lệch).
+
+shadow = T: Hiển thị các bóng đổ cho các nút.
+node_size = 12: Kích thước của các nút là 12.
+exposure = "Letroz": Biến can thiệp được gán là "Letroz".
+outcome = "Birth": Biến kết quả được gán là "Birth".
+text_size = 3: Kích thước văn bản của các nhãn trên đồ thị là 3.
+theme_dag(): Áp dụng một chủ đề tùy chỉnh cho DAG để làm cho nó dễ nhìn hơn.
+
+scale_color_manual(values = c("#f54278","#cbcfd1")): Tùy chỉnh màu sắc của các nút.
+
+theme(legend.position = "bottom"): Đặt vị trí của chú thích ở phía dưới đồ thị.
+
+Xác Định Tập Điều Chỉnh (adjustmentSets)
+
+adjustmentSets(dag, "Letroz", "Birth"): Hàm này tìm các tập hợp biến cần được điều chỉnh tối thiểu cho biến can thiệp "Letroz" và biến kết quả "Birth". Một tập điều chỉnh là một tập hợp các biến mà khi điều chỉnh, chúng sẽ cắt đứt mọi lộ trình gây nhiễu (confounding paths) giữa biến can thiệp và biến kết quả, giúp cho việc ước lượng hiệu ứng can thiệp chính xác, không bị sai lệch (bias).
 
 ## Ước lượng bằng mô hình hồi quy logistic
 
@@ -201,6 +310,48 @@ or %>%
   mutate(contrast = "OR")%>%
   knitr::kable(digits = 3)
 ```
+Giải thích:
+
+Đoạn code này đang thực hiện một phân tích logistic regression (glm với family = binomial) trên một tập dữ liệu df để dự đoán giá trị của biến phụ thuộc LBirth dựa trên các biến độc lập như Method, Age, BMI, COS, FSH, LH, nOOC, Inserm, nEmbryo, Stage, Transf, và Thickness.
+
+Sau đó, code này sử dụng hàm avg_comparisons từ thư viện marginaleffects để tính toán các hiệu ứng biên trung bình cho biến Method.
+
+Cuối cùng, nó sử dụng hàm kable từ thư viện knitr để hiển thị bảng dữ liệu đẹp hơn.
+
+Dưới đây là giải thích chi tiết:
+
+Phân tích Logistic Regression (hàm glm)
+
+LBirth: Biến phụ thuộc, mà ta muốn dự đoán.
+Method, Age, BMI, ...: Các biến độc lập.
+family = binomial: Chỉ định đây là mô hình logistic regression.
+
+Tính toán hiệu ứng biên trung bình bằng hàm avg_comparisons()
+
+variables = "Method": Chỉ định biến Method là biến cần phân tích hiệu ứng biên.
+
+Hàm avg_comparisons trong thư viện marginaleffects được sử dụng để tính toán các hiệu ứng biên trung bình (average marginal effects - AME) của một hoặc nhiều biến độc lập trong mô hình.
+
+Cơ chế: Hàm này sẽ tính toán sự thay đổi dự đoán trung bình của biến phụ thuộc khi biến độc lập thay đổi 1 đơn vị, giữ nguyên các biến khác. Trong trường hợp của logistic regression, điều này thường được thực hiện bằng cách tính toán đạo hàm riêng của hàm logit.
+
+fit1: Mô hình đã được khớp, thường là một đối tượng mô hình như glm, lm, v.v.
+variables: Biến độc lập mà ta quan tâm để tính toán hiệu ứng biên.
+newdata: Tập dữ liệu mới để tính toán hiệu ứng biên, thường sử dụng tập dữ liệu đã dùng để khớp mô hình.
+
+Tính Odds Ratios (OR)
+
+Trong đoạn code có sử dụng các thông số transform_pre = "lnoravg" và transform_post = "exp" khi gọi hàm avg_comparisons. Điều này có mục đích tính toán Odds Ratios (OR) từ mô hình logistic regression.
+
+Cơ chế: OR là tỷ số Odds (odds ratio) cho thay đổi của xác suất quan sát được kết quả khi biến độc lập thay đổi 1 đơn vị. Trong logistic regression, OR có thể tính nhanh bằng hàm exp(hệ số hồi quy β) .
+
+transform_pre = "lnoravg": 
+
+Bước lnoravg (Log-Natural of Average Odds Ratios): Một biến đổi được áp dụng trước khi tính hiệu ứng biên. Ở đây, lnoravg tính toán logarit tự nhiên của tỷ số odds trung bình (Average Odds Ratios). Bản chất, bước này giữ lại dạng logarit của tỷ số odds trong tính toán
+
+
+transform_post = "exp": 
+
+Đây là bước biến đổi sau cùng áp dụng lên kết quả hiệu ứng biên. exp() chuyển đổi logarit của tỷ số odds trung bình (log-odds) trở lại thành Odds Ratios (OR).
 
 ...
 
