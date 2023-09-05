@@ -52,6 +52,24 @@ df%>%dplyr::sample_frac(0.3)%>%
   head()%>%
   knitr::kable(digits = 2)
 ```
+Giải thích:
+
+df = read.csv('PPOS_OP.csv', sep = ';', dec = ',', fileEncoding = 'UTF-8-BOM'): Đọc file CSV có tên PPOS_OP.csv vào dataframe df.
+
+sep = ';': Sử dụng dấu chấm phẩy (;) như là dấu phân cách giữa các trường.
+dec = ',': Sử dụng dấu phẩy (,) như là dấu phân cách cho phần thập phân.
+fileEncoding = 'UTF-8-BOM': Định rõ bảng mã cho file là UTF-8 với BOM (Byte Order Mark).
+%>% na.omit(): Loại bỏ các dòng có giá trị NA (dữ liệu thiếu) từ dataframe df.
+
+df$Protocol = factor(df$Protocol): Chuyển cột Protocol của df thành kiểu factor, có thể hữu ích khi vẽ biểu đồ hoặc thực hiện các phân tích thống kê.
+
+df %>% dplyr::sample_frac(0.3) %>% head() %>% knitr::kable(digits = 2): Một chuỗi các hàm được kết nối bằng toán tử pipe (%>%).
+
+dplyr::sample_frac(0.3): Lấy một mẫu ngẫu nhiên từ df, chứa 30% số dòng của dataframe gốc.
+head(): Lấy 6 dòng đầu tiên của mẫu ngẫu nhiên.
+knitr::kable(digits = 2): Xuất 6 dòng đó thành bảng với định dạng của thư viện knitr, giới hạn số chữ số thập phân trong các số là 2.
+
+Đoạn code này làm một quy trình xử lý dữ liệu cơ bản trong R, từ việc đọc dữ liệu, xử lý dữ liệu thiếu, đến việc chọn mẫu và hiển thị cấu trúc dữ liệu.
 
 ...
 
@@ -81,6 +99,29 @@ df%>%group_by(Protocol)%>%
             )%>%knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Đoạn code này làm thống kê mô tả cho biến OP_cum (tần suất thai diễn tiến tích lũy)
+
+getmode <- function(v) { ... }: Định nghĩa một hàm getmode để tính mode (yếu vị: giá trị xuất hiện nhiều nhất) của một vector v.
+
+uniqv <- unique(v): Lấy các giá trị duy nhất trong vector v.
+uniqv[which.max(tabulate(match(v, uniqv)))]: Tìm giá trị xuất hiện nhiều nhất (mode) trong v.
+df %>% group_by(Protocol) %>% ...: Sử dụng toán tử %>% (pipe) để thực hiện một chuỗi các thao tác trên dataframe df.
+
+group_by(Protocol): Nhóm dữ liệu theo trường Protocol.
+summarize(...): Tính toán các thống kê sau khi đã nhóm dữ liệu.
+
+n = n(): Đếm số lượng dòng trong từng nhóm.
+Sum = sum(OP_cum): Tính tổng của cột OP_cum trong từng nhóm.
+mean = mean(OP_cum): Tính giá trị trung bình của cột OP_cum trong từng nhóm.
+Median = median(OP_cum): Tính trung vị của cột OP_cum trong từng nhóm.
+Mode = getmode(OP_cum): Tính mode của cột OP_cum trong từng nhóm sử dụng hàm getmode đã định nghĩa.
+SD = sd(OP_cum): Tính độ lệch chuẩn của cột OP_cum trong từng nhóm.
+p5 = quantile(OP_cum, 0.05): Tính phân vị thứ 5 của cột OP_cum trong từng nhóm.
+p95 = quantile(OP_cum, 0.95): Tính phân vị thứ 95 của cột OP_cum trong từng nhóm.
+%>% knitr::kable(digits = 3): Cuối cùng, sử dụng hàm kable từ package knitr để định dạng và xuất dữ liệu dưới dạng bảng, với số chữ số thập phân được giới hạn là 3.
+
 ...
 
 **b) Nếu xét về tỷ lệ thai diễn tiến trên tổng số phôi chuyển:**
@@ -96,6 +137,7 @@ df%>%group_by(Protocol)%>%
             )%>%knitr::kable(digits = 3)
 ```
 
+Đoạn code này làm tương tự như trên, nhưng cho biến OP_rate (tỷ lệ số thai diễn tiến / tổng số phôi đã chuyển)
 ...
 
 **c) Tỷ số xác suất thành công/thất bại (Odds)**
@@ -121,6 +163,22 @@ odd_df%>%
   knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Tính giá trị Odds:
+
+df %>% mutate(Odds = OP_rate/(1-OP_rate)) -> odd_df:
+
+mutate(Odds = OP_rate/(1-OP_rate)): Tính toán Odds từ cột OP_rate trong dataframe df. Odds được tính bằng cách lấy OP_rate chia cho 1 - OP_rate.
+-> odd_df: Kết quả của việc tính toán Odds được lưu vào một dataframe mới có tên là odd_df.
+
+odd_df$Odds[!is.finite(odd_df$Odds)] <- NA:
+
+Thay thế các giá trị không hợp lệ (ví dụ, Inf hoặc NaN) trong cột Odds của odd_df bằng NA.
+
+Sau đó làm thống kê mô tả như trên:
+odd_df %>% group_by(Protocol) %>% ... %>% knitr::kable(digits = 3):
+
 ...
 
 **d) Nếu xét giá trị thành công hay thất bại tuyệt đối (biến nhị giá OP_bin)**
@@ -135,6 +193,21 @@ df%>%group_by(Protocol)%>%
             Odds = Rate/(1-Rate),
             )%>%knitr::kable(digits = 3)
 ```
+Giải thích:
+
+df %>% group_by(Protocol): Sử dụng dataframe df và nhóm dữ liệu theo cột Protocol. Các bước xử lý sau đó sẽ được thực hiện riêng lẻ cho từng nhóm Protocol.
+
+summarize(n = n(), Rate = mean(OP_bin), Freq = sum(OP_bin), Odds = Rate/(1-Rate)): Dùng hàm summarize để tạo một dataframe tóm tắt với các chỉ số sau:
+
+n = n(): Đếm số lượng dòng trong từng nhóm Protocol.
+
+Rate = mean(OP_bin): Tính trung bình của cột OP_bin trong từng nhóm, kết quả sẽ là tỷ lệ trung bình của OP_bin.
+
+Freq = sum(OP_bin): Tính tổng của cột OP_bin trong từng nhóm, kết quả sẽ là số lần OP_bin xuất hiện trong mỗi nhóm.
+
+Odds = Rate/(1-Rate): Tính tỷ số Odds từ tỷ lệ Rate. Tỷ số Odds thể hiện cơ hội của sự kiện xảy ra so với cơ hội của sự kiện không xảy ra.
+
+%>% knitr::kable(digits = 3): Sử dụng hàm kable từ thư viện knitr để xuất dataframe tóm tắt này dưới dạng bảng, với số chữ số thập phân được làm tròn đến 3 chữ số.
 
 ...
 
@@ -184,7 +257,47 @@ p3 = df%>%
 
 p3 + p1/p2
 ```
+Giải thích:
 
+pals = c("#0faaf2","#f20f4f"): Định nghĩa một vector màu pals với hai mã màu HEX.
+
+Biểu Đồ p1
+
+p1 = df %>% ggplot(...): Tạo một biểu đồ jitter sử dụng dữ liệu từ df.
+aes(y = OP_cum, x = Protocol, fill= Protocol): Ánh xạ các trường dữ liệu vào các thuộc tính của biểu đồ.
+
+geom_jitter(aes(fill = Protocol), ...): Tạo các điểm jitter, điều chỉnh màu, hình dạng, và kích thước của các điểm.
+
+labs(y="Cummulated OP", x = "Protocol"): Đặt nhãn cho các trục.
+
+scale_fill_manual(values = pals, name = "Protocol"): Điều chỉnh màu sắc theo pals.
+
+scale_y_continuous(breaks = c(0,1,2,3)): Điều chỉnh các điểm ngắt trên trục y.
+
+theme_bw(10) + theme(...): Chọn theme và điều chỉnh kích thước và màu sắc của chữ.
+
+Biểu Đồ p2
+
+p2 = df %>% ggplot(...): Tạo một biểu đồ density ridges.
+
+geom_density_ridges(...): Tạo các dải mật độ.
+
+coord_flip(): Hoán đổi trục x và y.
+
+Biểu Đồ p3
+
+p3 = df %>% ...: Tạo một biểu đồ cột được tóm tắt từ dữ liệu, chỉ ra tỷ lệ của 'Success' và 'Failure'.
+
+group_by(Protocol) %>% summarise(...): Nhóm dữ liệu theo Protocol và tóm tắt.
+
+gather(c(2,3),key = "OP", value = "Rate"): Chuyển dữ liệu từ dạng wide format sang long format.
+
+geom_bar(aes(fill = OP), stat = "identity"): Tạo biểu đồ cột.
+
+Kết Hợp Biểu Đồ
+
+p3 + p1/p2: Sử dụng patchwork để kết hợp các biểu đồ p1, p2, và p3 với nhau.
+Mỗi biểu đồ có mục đích trực quan cụ thể của riêng nó, và chúng được kết hợp lại để cung cấp một cái nhìn tổng quan về dữ liệu.
 ...
 
 ```{r}
@@ -236,6 +349,42 @@ p6 = df%>%mutate(odd = OP_rate/(1-OP_rate))%>%
                 
 p4+p6+p5
 ```
+
+Giải thích:
+
+Đoạn code này sử dụng thư viện ggplot2 (một phần của tidyverse) để tạo ba biểu đồ (p4, p5, và p6), rồi kết hợp chúng lại với nhau. Sau đây là phân tích chi tiết:
+
+Biểu đồ p4:
+
+df %>% gather(c(1, 3, 6), key = "Factor", value = "value"): Chuyển đổi dữ liệu từ dạng rộng sang dạng dài, gộp các cột thứ 1, 3, và 6 từ dataframe df, thành 2 cột chứa tên biến và chứa giá trị, đặt tên cho cột chứa tên biến là Factor và cột chứa giá trị là value.
+
+ggplot(aes(x = value, y = OP_bin)): Tạo một biểu đồ ggplot với trục x là value và trục y là OP_bin.
+
+geom_smooth(...): Thêm đường "smooth" (làm mượt) vào biểu đồ.
+
+aes(fill = Protocol, col = Protocol): Tô màu cho dải băng khoảng tin cậy và đặt màu cho đồ thị hàm hồi quy theo Protocol.
+
+method = "glm" và method.args = list(family = "binomial"): Sử dụng hồi quy logistic.
+
+show.legend = F: Ẩn chú thích.
+
+scale_y_continuous(limits = c(0,1)): Giới hạn trục y trong khoảng từ 0 đến 1 (xác suất)
+
+scale_fill_manual(...) và scale_color_manual(...): Tùy chỉnh màu sắc.
+
+facet_wrap(~Factor, ncol=1, scales = "free_x"): Tạo các "facet" (biểu đồ nhỏ) dựa trên Factor, với 1 cột và có thể có trục x riêng lẻ.
+
+Biểu đồ p5:
+
+Quy trình tạo p5 tương tự p4 nhưng sử dụng OP_rate (tỷ lệ) thay vì OP_bin (xác suất) và family = "quasibinomial" thay vì family = "binomial".
+
+Biểu đồ p6:
+df %>% mutate(odd = OP_rate/(1-OP_rate)): Thêm cột odd là tỷ lệ giữa xác suất thành công/thất bại từ OP_rate.
+
+Tiếp theo, quy trình tạo p6 tương tự p4, nhưng sử dụng odd thay vì OP_bin hay OP_rate.
+
+Kết hợp ba biểu đồ:
+p4 + p6 + p5: Kết hợp ba biểu đồ lại với nhau bằng thư viện patchwork.
 
 ...
 
@@ -296,6 +445,21 @@ log_mod = glm(OP_bin ~  Protocol*AFC + Thickness + Age,
 
 summary(log_mod)
 ```
+Giải thích: 
+
+Đoạn code này sử dụng hàm glm (Generalized Linear Model) trong R để khớp một mô hình hồi quy logistic. Dưới đây là phân tích từng phần của đoạn code:
+
+log_mod = glm(OP_bin ~ Protocol*AFC + Thickness + Age, data = df, family = "binomial"): Khởi tạo mô hình glm và lưu nó vào biến log_mod.
+
+OP_bin ~ Protocol*AFC + Thickness + Age: Công thức này biểu diễn mô hình. Ước lượng biến kết quả/phụ thuộc là OP_bin (nhị phân), theo những biến độc lập là Protocol, AFC, Thickness, và Age.
+
+Protocol*AFC có nghĩa là cả Protocol và AFC sẽ được bao gồm trong mô hình cũng như hiệu ứng tương tác giữa chúng (Protocol:AFC).
+
+data = df: Dữ liệu sẽ được lấy từ dataframe df.
+
+family = "binomial": Quy luật phân phối mà mô hình sẽ sử dụng là binomial, làm cho nó trở thành mô hình logistic regression.
+
+summary(log_mod): Hiển thị thông tin tóm tắt của mô hình
 
 **Diễn giải nội dung kết quả thô của mô hình:**
 
@@ -314,6 +478,17 @@ rd = avg_comparisons(
 
 rd %>% knitr::kable(digits = 3)
 ```
+Giải thích:
+
+Sử dụng hàm avg_comparisons từ thư viện marginaleffects để tính hiệu ứng biên trung bình (average marginal effects) của biến Protocol từ mô hình log_mod.
+
+dplyr::select(c(2:6,8,9)): Chọn các cột từ 2 đến 6, cột 8 và cột 9 từ kết quả.
+
+mutate(contrast = "RD"): Thêm một cột mới có tên là contrast và gán cho tất cả các dòng giá trị "RD".
+
+rd %>% knitr::kable(digits = 3): In kết quả ra dạng bảng với định dạng của knitr, và làm tròn tất cả các số đến 3 chữ số sau dấu phẩy.
+
+Risk Difference (RD) là một trị số thống kê để đánh giá sự khác biệt về tỷ lệ một sự kiện xảy ra giữa hai nhóm khác nhau. Trong hoàn cảnh của mô hình hồi quy logistic, RD được tính sau khi có mô hình và nó thể hiện sự khác biệt trong xác suất dự đoán bởi mô hình giữa hai nhóm.
 
 ...
 
@@ -347,7 +522,49 @@ rr = avg_comparisons(
 rbind(or,rr) %>% knitr::kable(digits = 3)
 ```
 
-Alternative for latest version:
+Giải thích:
+
+Hàm avg_comparisons trong thư viện marginaleffects được sử dụng để tính toán các hiệu ứng biên trung bình (average marginal effects - AME) của một hoặc nhiều biến độc lập trong mô hình.
+
+Cơ chế: Hàm này sẽ tính toán sự thay đổi dự đoán trung bình của biến phụ thuộc khi biến độc lập thay đổi 1 đơn vị, giữ nguyên các biến khác. Trong trường hợp của logistic regression, điều này thường được thực hiện bằng cách tính toán đạo hàm riêng của hàm logit.
+
+log_mod: tên của mô hình, thường là một đối tượng mô hình như glm, gamlss, lmer...
+
+variables: Biến độc lập mà ta quan tâm để tính toán hiệu ứng biên.
+
+newdata: Tập dữ liệu mới để tính toán hiệu ứng biên, thường sử dụng tập dữ liệu đã dùng để khớp mô hình.
+
+Tính Odds Ratios (OR)
+
+Trong đoạn code có sử dụng các thông số transform_pre = "lnoravg" và transform_post = "exp" khi gọi hàm avg_comparisons. Điều này có mục đích tính toán Odds Ratios (OR) từ mô hình logistic regression.
+
+Cơ chế: OR là tỷ số Odds (odds ratio) cho thay đổi của xác suất quan sát được kết quả khi biến độc lập thay đổi 1 đơn vị. Trong logistic regression, OR có thể tính nhanh bằng hàm exp(hệ số hồi quy β) .
+
+transform_pre = "lnoravg": 
+
+Bước lnoravg (Log-Natural of Average Odds Ratios): Một biến đổi được áp dụng trước khi tính hiệu ứng biên. Ở đây, lnoravg tính toán logarit tự nhiên của tỷ số odds trung bình (Average Odds Ratios). Bản chất, bước này giữ lại dạng logarit của tỷ số odds trong tính toán
+
+Ở đây, "lnoravg" có thể được hiểu là "log of average Odds Ratios".
+
+transform_post = "exp": 
+
+Đây là bước biến đổi sau cùng áp dụng lên kết quả hiệu ứng biên. exp() chuyển đổi logarit của tỷ số odds trung bình (log-odds) trở lại thành Odds Ratios (OR).
+
+Đối với Risk ratio (RR): 
+
+Giá trị lnratioavg là log-Risk Ratios trung bình, có thể được tính từ các dự đoán của mô hình logistic theo 5 bước:
+
+1) Tính dự đoán của tỷ lệ nguy cơ (risk) cho từng nhóm của biến Protocol.
+
+2) Tính Risk Ratios bằng cách lấy tỷ lệ nguy cơ (risk) trong nhóm can thiệp và chia cho tỷ lệ nguy cơ (risk) trong nhóm đối chứng.
+
+3) Lấy logarit tự nhiên của Risk Ratios để có log-Risk Ratios.
+
+4) Tính trung bình của log-Risk Ratios qua toàn bộ dữ liệu hoặc một tập con của dữ liệu (tuỳ thuộc vào cách bạn thiết lập).
+
+5) Sau khi có được giá trị lnratioavg, bạn có thể áp dụng exp để chuyển đổi nó về dạng Risk Ratios không có log.
+
+Lưu ý: Ở phiên bản mới nhất (ngày 04/09/2023) của thư viện marginaleffects, tác giả thay đổi tên 2 đối số của hàm avg_comparisons: transform_pre thành "comparison" và transform_post thành "transform", công dụng vẫn như cũ.
 
 ```{r}
 or = avg_comparisons(
@@ -415,6 +632,7 @@ rr2%>%
   knitr::kable(digits = 3)
 ```
 
+Giải thích: đoạn code này tương tự như trên, nhưng thay vì khảo sát biến Protocol, ta tính RD, OR và RR cho những biến liên tục là AFC, Age và Thickness
 ...
 
 ```{r}
@@ -438,7 +656,31 @@ effs %>% ggplot() +
   scale_fill_manual(values = pals)+
   theme_bw(10)
 ```
+Giải thích:
 
+Đoạn code này sử dụng mô hình hồi quy logistic đã được tạo ra (log_mod) và thư viện ggplot2 để vẽ đồ thị phân bố xác suất dự đoán cho kết cục thai diễn tiến (OP) ở cấp độ cá thể.
+
+comparisons: Tính toán các hiệu ứng so sánh từ mô hình log_mod.
+
+variables = "Protocol": Biến để so sánh.
+
+newdata = datagrid(...): Tạo một bảng dữ liệu mới để đánh giá các hiệu ứng so sánh. datagrid sử dụng mô hình và dữ liệu gốc để tạo ra các giả định 'counterfactual' (phản thực tế).
+
+Một thí dụ về dữ liệu phản thực tế: giả sử một cá thể có AFC,Age và Thickness như sau được áp dụng phác đồ PPOS thay vì GnRH_ant thì kết quả sẽ ra sao ?...
+
+geom_density(...): Vẽ đồ thị mật độ của các giá trị predicted.
+
+geom_vline(...): Vẽ các đường dọc
+
+predicted_lo và predicted_hi tương ứng với giá trị xác suất dự báo cho nhóm "low" và "high", với low và high là thứ bậc của biến nhị phân Protocol. Theo thứ tự alphabet, ta có hi = PPOS và low = GnRh_ant
+
+labs(): Tùy chỉnh nhãn các trục và tiêu đề.
+
+scale_x_continuous(): Tùy chỉnh trục x.
+
+scale_fill_manual(): Tùy chỉnh màu sắc.
+
+theme_bw(): Sử dụng chủ đề đen trắng với kích thước kí tự là 10.
 ...
 
 ```{r}
@@ -454,6 +696,25 @@ effs %>% ggplot(aes(x=predicted_lo, y=predicted_hi))+
   theme_bw()
 
 ```
+Giải thích: Đoạn code này khai thác kết quả ước lượng xác suất OP từ mô hình logistic và vẽ một biểu đồ cho phép đánh giá trực quan ưu thế của 1 loại protocol so với loại còn lại.
+
+effs %>% ggplot(...): khởi tạo một biểu đồ ggplot2 để trực quan hóa các hiệu ứng tính toán từ dữ liệu đầu vào là effs
+
+aes(x=predicted_lo, y=predicted_hi): Đặt trục x là giá trị dự đoán bậc thấp (nhóm GnRH_ant) và trục y là giá trị dự đoán bậc cao (nhóm PPOS).
+
+geom_abline(slope = 1, intercept = 0, linetype = 2): Vẽ một đường chéo có độ dốc là 1 và cắttrục y tại điểm 0, đường này có linetype=2 (nghĩa là đường nét đứt).
+
+geom_point(...): Vẽ các điểm dữ liệu.
+
+coord_fixed(): cố định tỷ lệ giữa trục x và trục y.
+
+scale_x_continuous(limits = c(0,1)) và scale_y_continuous(limits = c(0,1)): Đặt giới hạn cho trục x và trục y từ 0 đến 1.
+
+scale_color_viridis_c('OP prob'): Sử dụng bảng màu viridis cho các điểm dữ liệu, với màu sắc được ánh xạ từ xác suất của 'OP'.
+
+labs(...) và theme_bw(): Đặt nhãn và chọn theme cho biểu đồ.
+
+Ý Nghĩa: Biểu đồ được tạo ra có trục x là xác suất của 'OP' khi sử dụng "GnRHa" và trục y là xác suất của 'OP' khi sử dụng "PPOS". Nó giúp bạn so sánh xác suất của việc 'OP' xảy ra giữa hai nhóm điều trị, và giúp bạn đánh giá liệu có sự chênh lệch đáng kể nào giữa chúng hay không.
 
 ...
 
@@ -486,6 +747,25 @@ preds%>%ggplot(aes(x = Age,
 
 ```
 
+Giải thích:
+
+này sử dụng dữ liệu từ một mô hình hồi quy logistic (log_mod) để tạo ra các dự đoán, sau đó vẽ biểu đồ để minh họa sự thay đổi của giá trị dự đoán này dựa trên độ tuổi và phương pháp điều trị (Protocol).
+
+Tạo dữ liệu mới để dự đoán: Sử dụng datagrid để tạo một bộ dữ liệu mới với các giá trị có thể của Age từ 20 đến 40 (cách nhau 5 năm) và Protocol là "GnRHa" hoặc "PPOS".
+
+Tính các dự đoán: Sử dụng predictions để tính toán các dự đoán từ mô hình log_mod trên newdata.
+
+Vẽ biểu đồ
+
+Khởi tạo biểu đồ: Sử dụng ggplot với trục x là Age và trục y là estimate (các dự đoán từ mô hình).
+
+Thêm "Half-Eye Plot": Sử dụng stat_halfeye để thêm dạng biểu đồ half-eye, một loại biểu đồ giống như biểu đồ KDE plot.
+
+Thêm Ribbon Plot: Sử dụng stat_lineribbon để thêm dạng biểu đồ ribbon, hiển thị các khoảng tin cậy.
+
+Phần còn lại là để chỉnh sửa các nhãn và kiểu dáng của biểu đồ.
+
+
 ```{r}
 preds = predictions(model = log_mod,
                     newdata = datagrid(model=log_mod, 
@@ -514,6 +794,8 @@ preds%>%ggplot(aes(x = AFC,
         axis.title = element_text(size = 10, color = "black"))
 ```
 
+Giải thích: làm tương tự cho AFC
+
 ```{r}
 preds = predictions(model = log_mod,
                     newdata = datagrid(Thickness = seq(8,20,4),
@@ -540,6 +822,8 @@ preds%>%ggplot(aes(x = Thickness,
         axis.title = element_text(size = 10, color = "black"))
 ```
 
+Và tương tự cho Thickness
+
 ## Mô hình hồi quy Binomial cho tỷ lệ OP/tổng số phôi
 
 ...
@@ -553,6 +837,22 @@ bi_mod = gamlss(cbind(OP_cum, n_ET-OP_cum) ~
 summary(bi_mod)
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng thư viện gamlss trong R để xây dựng một mô hình phân phối binomial (nhị thức). Mô hình này được dùng để mô phỏng biến kết quả là tần suất của 2 kết cục: cbind(OP_cum, n_ET-OP_cum), với các biến dự báo Protocol, AFC, Thickness, và Age. Với family = BI(mu.link = "logit"), mô hình sử dụng phân phối binomial với liên kết logit cho tham số mu, tức là, trung bình của phân phối.
+
+Xây dựng mô hình
+
+gamlss(...): Sử dụng hàm gamlss từ thư viện gamlss để xây dựng mô hình. gamlss là viết tắt của Generalized Additive Models for Location Scale and Shape, một cách tiếp cận linh hoạt để mô phỏng phân phối của dữ liệu.
+
+cbind(OP_cum, n_ET-OP_cum): Cột biến kết quả là một ma trận 2 cột. Cột đầu tiên (OP_cum) là tần suất thành công, và cột thứ hai (n_ET-OP_cum) là tần suất thất bại. Cộng lại, chúng cho bạn số lượng tổng cộng của các thử nghiệm độc lập (đơn vị ở đây là bệnh nhân/lượt chuyển phôi).
+
+~ Protocol * AFC + Thickness + Age: Đây là công thức của mô hình, với các biến dự báo là Protocol, AFC, Thickness, và Age. Protocol * AFC có nghĩa là có tương tác giữa Protocol và AFC.
+
+data = df: Sử dụng dữ liệu từ dataframe df.
+
+family = BI(mu.link = "logit"): Sử dụng phân phối binomial (BI) cho biến kết quả. mu.link = "logit" chỉ ra rằng hàm liên kết cho tham số mu (trung bình của phân phối) là hàm logit.
+
 ...
 
 ```{r}
@@ -561,7 +861,7 @@ rd3 = avg_comparisons(
   newdata = df,
   what = "mu",
   variables = "Protocol")%>%
-  mutate(contrast = "DR")
+  mutate(contrast = "RD")
 
 or3 = avg_comparisons(
   bi_mod,
@@ -591,6 +891,32 @@ rr3%>%dplyr::select(c(1,2,3,4,6,7))%>%
   knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng hàm avg_comparisons từ thư viện marginaleffects để ước lượng ưu thế của phác đồ PPOS so với nhóm tham chiếu là GnRH_a dựa trên mô hình binomial (bi_mod). Có ba loại so sánh được tính toán: Khác biệt nguy cơ (RD), Odds Ratio (OR), và Risk Ratio (RR).
+
+Khác biệt nguy cơ (Risk difference, RD)
+
+Độ nguy cơ tương đối không cần có các transform. Nó chỉ đơn giản là xác định sự khác biệt giữa các cấp của biến Protocol qua tham số mu (trung bình của phân phối binomial).
+
+what = "mu": Tính các giá trị dự đoán cho tham số mu từ mô hình bi_mod.
+variables = "Protocol": So sánh các giá trị dự đoán của mu giữa các cấp của biến Protocol.
+
+newdata = df: sử dụng dataframe df như là nguồn dữ liệu.
+what = "mu": chúng ta quan tâm đến tham số mu của phân phối binomial.
+variables = "Protocol": sự so sánh sẽ được thực hiện giữa các cấp của biến Protocol.
+
+Odds Ratio (OR)
+
+transform_pre = "lnoravg": Trước khi so sánh, hàm này sẽ tính log-Odds Ratio trung bình giữa các cấp độ của biến Protocol. Log-Odds Ratio là tỷ số giữa Odds của một sự kiện trong một nhóm và Odds của sự kiện đó trong nhóm tham chiếu. Tính trung bình cho toàn bộ dữ liệu.
+
+transform_post = "exp": Sau khi có log-Odds Ratio, hàm exp được áp dụng để chuyển nó về dạng Odds Ratio.
+
+Risk Ratio (RR)
+
+transform_pre = "lnratioavg": Trước khi so sánh, hàm này sẽ tính log-Risk Ratio trung bình giữa các cấp của biến Protocol. Risk Ratio là tỷ số giữa xác suất của một sự kiện trong một nhóm và xác suất của sự kiện đó trong nhóm tham chiếu. Tính trung bình cho toàn bộ dữ liệu.
+
+transform_post = exp": Sau khi có log-Risk Ratio, hàm exp được áp dụng để chuyển nó về dạng Risk Ratio.
 ...
 
 ```{r}
@@ -616,6 +942,7 @@ effs %>% ggplot() +
   theme_bw(10)
 ```
 
+Giải thích: Phần này tương tự như mô hình logistic ở trên
 ...
 
 ```{r}
@@ -630,6 +957,8 @@ effs %>% ggplot(aes(x=predicted_lo, y=predicted_hi))+
   labs(x = "Probability of OP by GnRH_ant", y = "Probability of OP by PPOS")+
   theme_bw()
 ```
+
+Giải thích: Phần này tương tự như mô hình logistic ở trên
 
 ...
 
@@ -663,6 +992,8 @@ preds%>%ggplot(aes(x = Age,
 
 ```
 
+Giải thích: Phần này tương tự như mô hình logistic ở trên
+
 ```{r}
 preds = predictions(model = bi_mod,
                     what = "mu",
@@ -693,6 +1024,8 @@ preds%>%ggplot(aes(x = AFC,
 
 ```
 
+Giải thích: Phần này tương tự như mô hình logistic ở trên
+
 ```{r}
 preds = predictions(model = bi_mod,
                     what = "mu",
@@ -722,6 +1055,8 @@ preds%>%ggplot(aes(x = Thickness,
         axis.title = element_text(size = 10, color = "black"))
 
 ```
+
+Giải thích: Phần này tương tự như mô hình logistic ở trên
 
 ## Diễn giải kết quả của phân tích
 
