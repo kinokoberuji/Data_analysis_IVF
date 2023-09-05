@@ -32,6 +32,13 @@ df = read.csv('Blastocyte_quality.csv',
 names(df)
 ```
 
+
+Giải thích:
+
+df = read.csv('Blastocyte_quality.csv', sep = ';', dec = ',', fileEncoding = 'UTF-8-BOM') %>% na.omit(): Đọc dữ liệu từ file CSV với dấu phân cách là ;, dấu thập phân là , và loại bỏ các dòng có giá trị NA.
+
+names(df): In ra tên của các cột trong dataframe df.
+
 ## Kế hoạch phân tích: 
 
 ...
@@ -55,6 +62,21 @@ df$Trigger%<>% as.factor()%>%
 
 df$ClinPreg = as.factor(df$ClinPreg)
 ```
+
+Giải thích:
+
+Biến Đổi Dữ liệu
+
+df$Blast_ICM = as.factor(df$Blast_ICM): Chuyển đổi cột Blast_ICM thành loại dữ liệu factor.
+df$Blast_TE = as.factor(df$Blast_TE): Chuyển đổi cột Blast_TE thành loại dữ liệu factor.
+
+%<>% là toán tử "compound assignment" từ thư viện magrittr, nó áp dụng một hàm cho một biến và gán kết quả trở lại vào chính biến đó.
+
+df$Prim_Inf %<>% as.factor() %>% recode_factor(., 0= "Primary",1 = "Secondary"): Chuyển đổi cột Prim_Inf thành factor, sau đó mã hóa lại các giá trị của nó từ 0 và 1 thành "Primary" và "Secondary".
+
+df$Trigger %<>% as.factor() %>% recode_factor(., a= "Agonist",h= "hCG",d = "Dual"): Chuyển đổi cột Trigger thành factor, sau đó mã hóa lại các giá trị của nó.
+
+df$ClinPreg = as.factor(df$ClinPreg): Chuyển đổi cột ClinPreg thành loại dữ liệu factor.
 
 ...
 
@@ -209,6 +231,18 @@ train_data <- training(init_split)
 test_data <- testing(init_split)
 ```
 
+Giải thích:
+
+set.seed(12345): Đảm bảo khả năng tái lập kết quả của các quy trình ngẫu nhiên.
+
+Phân chia Dữ liệu
+
+init_split = df %>% initial_split(prop = 0.7): Chia dữ liệu gốc dataframe df thành tập huấn luyện và tập kiểm định với tỷ lệ 70%-30%.
+
+train_data <- training(init_split): Lấy tập huấn luyện.
+
+test_data <- testing(init_split): Lấy tập kiểm định.
+
 ## Thiết lập mô hình phân loại
 
 ### Bước 3a) Công đoạn sơ chế dữ liệu
@@ -221,6 +255,11 @@ train_recipe <-
          data = train_data) %>% 
   step_dummy(all_nominal_predictors())
 ```
+
+Giải thích: 
+
+train_recipe: Tạo recipe để định rõ quy trình tiền xử lý dữ liệu. Ở đây, ta muốn chuyển đổi các biến định danh thành dạng "dummy variables".
+
 
 ### Khởi tạo mô hình XGBoost
 
@@ -236,6 +275,26 @@ xgboost_model <- boost_tree(
   engine = "xgboost")
 ```
 
+Giải thích:
+
+Khởi tạo một mô hình XGBoost
+
+xgboost_model: Định nghĩa một mô hình XGBoost với các tham số (hyper parameter) được đặc tả.
+
+Chi tiết về các tùy chỉnh trong hàm:
+
+mode = "classification": Chỉ định loại mô hình mà bạn muốn xây dựng. Ở đây, nó được đặt là "classification" cho bài toán phân loại.
+
+trees = 500: Số lượng "trees" hay số lượng vòng lặp boosting. Mô hình sẽ được huấn luyện với 500 cây quyết định.
+
+tree_depth = 5: Độ sâu tối đa của từng cây quyết định. Một độ sâu lớn có thể làm mô hình phức tạp hơn và dễ bị overfit, trong khi độ sâu thấp có thể làm mô hình không đủ mạnh để học dữ liệu.
+
+sample_size = 0.8: Tỷ lệ dữ liệu được lấy mẫu từ tập huấn luyện để xây dựng mỗi cây. Tùy chỉnh này là một phần của kỹ thuật "bagging" (tái chọn mẫu rồi kết hợp), giúp giảm overfit.
+
+learn_rate = 0.01: Tốc độ học (learning rate), kiểm soát mức độ cập nhật mô hình sau mỗi cây. Giá trị nhỏ sẽ làm cho mô hình cập nhật chậm, có thể cần nhiều vòng lặp hơn nhưng thường sẽ cho kết quả tốt hơn.
+
+engine = "xgboost": Thư viện mà bạn muốn sử dụng để thực hiện XGBoost. Ở đây, nó được đặt là "xgboost".
+
 ### Tạo workflow
 
 ...
@@ -245,6 +304,8 @@ clinpreg_wf <- workflow() %>%
   add_recipe(train_recipe) %>%
   add_model(xgboost_model)
 ```
+
+Tạo một workflow bằng cách kết hợp recipe và mô hình.
 
 ...
 
@@ -271,6 +332,13 @@ cv_res = clinpreg_wf%>%
                                      ))
 ```
 
+
+Cross-validation (kiểm định chéo)
+
+kfcv = vfold_cv(df, v = 10, repeats = 10): Thực hiện k-fold cross-validation (kiểm định chéo 10-khối, 10 lần lặp lại).
+
+cv_res: Sử dụng workflow để fit mô hình trên các khối dữ liệu và tính toán các chỉ số đánh giá.
+
 ...
 
 ```{r}
@@ -289,6 +357,9 @@ cv_res_extract %>%
     knitr::kable(digits = 3)
 ```
 
+Tổng kết Kết quả Cross-validation
+
+cv_res_extract %>% group_by(.metric) %>% summarize(...): Tính toán các giá trị thống kê cho từng chỉ số đánh giá.
 ...
 
 ```{r}
@@ -301,6 +372,10 @@ cv_res_extract %>%
   scale_fill_brewer(palette = "Reds", direction = -1)+
   theme_bw()
 ```
+
+Biểu đồ Kết quả
+
+Một biểu đồ lvplot (geom_lv) hiển thị sự phân bố của các chỉ số đánh giá.
 
 ...
 
@@ -315,6 +390,9 @@ fit <- clinpreg_wf %>%
 fit_xgb = extract_fit_engine(fit)
 ```
 
+Dự đoán và Đánh giá
+fit <- clinpreg_wf %>% fit(train_data): Áp dụng toàn bộ workflow vào tập huấn luyện.
+
 ...
 
 ```{r}
@@ -327,6 +405,8 @@ fit_xgb$evaluation_log %>%
   labs(x = "Iterations", y = "binary logloss")+
   theme_bw(10)
 ```
+
+Vẽ biểu đồ training curve
 
 ...
 
@@ -348,6 +428,10 @@ conf_mat(valid_out,
          estimate = pred)
 ```
 
+valid_pred_p và valid_pred_c: Dự đoán xác suất và lớp từ tập kiểm định.
+
+conf_mat: Tính toán confusion matrix.
+
 ```{r}
 bind_rows(f_meas(valid_out,truth,pred),
           bal_accuracy(valid_out,truth,pred),
@@ -362,6 +446,28 @@ bind_rows(f_meas(valid_out,truth,pred),
   knitr::kable(digits = 3)
 ```
 
+bind_rows(...): Tính toán và hiển thị các chỉ số đánh giá hiệu năng trên tập kiểm định.
+
+Cụ thể, các chỉ số sau đây sẽ được tính toán:
+
+f_meas: F-measure, một chỉ số đánh giá tổng quan cho mô hình phân loại, xein xem ý nghĩa trong sách in.
+
+bal_accuracy: độ chính xác cân bằng - Balanced Accuracy. Chỉ số này là hữu ích khi dữ liệu không cân đối.
+
+sens: Sensitivity hoặc True Positive Rate (xem ý nghĩa trong sách in)
+
+spec: Specificity hoặc True Negative Rate,
+
+precision: Tỷ lệ true positive trên tổng số dự đoán positive.
+
+npv: Negative Predictive Value, tỷ lệ true negative trên tổng số dự đoán negative.
+
+ppv: Positive Predictive Value, giống như precision, là tỷ lệ true positive trên tổng số dự đoán positive.
+
+roc_auc: Diện tích dưới đường cong ROC (Receiver Operating Characteristic curve), một chỉ số đánh giá khả năng phân loại của mô hình. Giá trị càng gần 1, mô hình càng tốt.
+
+Các chỉ số này được tính toán dựa trên các dự đoán và giá trị thực tế từ tập kiểm tra (test_data), và sau đó được kết hợp vào một bảng dữ liệu duy nhất bằng hàm bind_rows. 
+
 ...
 
 ```{r}
@@ -372,6 +478,7 @@ two_class_curve <- roc_curve(valid_out,
 autoplot(two_class_curve)
 ```
 
+Đoạn code này vẽ biểu đồ ROC
 ...
 
 ## Phân tích hậu kiểm bằng kỹ thuật SHAP
@@ -413,6 +520,18 @@ X_test <- bake(
 )
 ```
 
+Đoạn code này sử dụng hàm bake từ thư viện tidymodels để áp dụng các bước tiền xử lý đã được định nghĩa trong train_recipe lên tập dữ liệu train_data và test_data:
+
+prep(train_recipe): Hàm prep chuẩn bị "recipe" cho việc áp dụng các bước tiền xử lý. Nói cách khác, nó nhận diện các tham số cần thiết từ tập dữ liệu huấn luyện (train_data) để có thể áp dụng các bước tiền xử lý đó lên bất kỳ tập dữ liệu nào khác.
+
+has_role("predictor"): Chỉ định rằng chúng ta chỉ muốn lấy các cột có vai trò là "predictor" (yếu tố dự báo) từ tập dữ liệu, tức là ta loại trừ những biến không phải là yếu tố dự báo
+
+new_data = train_data và new_data = test_data: Đây là tập dữ liệu mà các bước tiền xử lý sẽ được áp dụng lên.
+
+composition = "matrix": Chỉ định rằng đầu ra cần phải là một matrix. Điều này là cần thiết đối với nhiều thuật toán học máy như XGBoost, vì chúng yêu cầu đầu vào dưới dạng ma trận.
+
+Kết quả là, X_train và X_test sẽ là các ma trận chứa dữ liệu đã qua tiền xử lý từ train_data và test_data. Những cột trong những ma trận này sẽ tương ứng với các biến dự đoán ("predictors") và đã được xử lý theo các bước tiền xử lý định nghĩa trong train_recipe.
+
 ...
 
 ```{r, cache =T}
@@ -421,6 +540,15 @@ shap_data <- shap.prep(fit_xgb,
 
 head(shap_data)
 ```
+
+
+Giải thích
+
+Đoạn code trên sử dụng SHAP (SHapley Additive exPlanations) để giải thích các dự đoán của mô hình XGBoost (được lưu trong biến fit_xgb). 
+
+shap.prep: Hàm này chuẩn bị dữ liệu SHAP từ mô hình XGBoost.
+fit_xgb: Đây là mô hình XGBoost đã được huấn luyện.
+X_train: Ma trận dữ liệu đầu vào để tính SHAP score (đây cũng là dữ liệu vốn được sử dụng để huấn luyện mô hình) 
 
 ...
 
@@ -432,6 +560,12 @@ shap.plot.summary(shap_data)+
                        high = "#e30750")
 ```
 
+
+
+
+Vẽ biểu đồ SHAP Summary
+
+Biểu đồ này hiển thị mức độ đóng góp/tầm quan trọng của từng biến đầu vào của mô hình. Mỗi dòng trên biểu đồ đại diện cho một biến (yếu tố dự báo). Các điểm trên dòng có màu tương ứng với giá trị của biến trên thang đo chuẩn hóa: cao (màu đỏ) hoặc thấp (màu xanh).
 ...
 
 ```{r, cache =T}
