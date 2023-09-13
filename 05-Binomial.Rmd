@@ -44,6 +44,26 @@ df$p1 = df$blast/df$oocytes
 df%>%head()%>%knitr::kable()
 ```
 
+Giải thích:
+
+Đoạn code này đọc dữ liệu từ tập tin CSV, xóa các hàng có dữ liệu thiếu, chuyển định dạng dữ liệu cho biến factor, thêm 1 biến tỷ lệ tạo blastocytes thành công (p1) và sau cùng hiển thị 6 dòng đầu tiên của data frame đã được xử lý.
+
+Nội dung chi tiết:
+
+df = read.csv('Dual_trigger.csv', sep = ';', dec = ',', fileEncoding = 'UTF-8-BOM'): Dòng này đọc một tập tin CSV có tên là 'Dual_trigger.csv' vào một data frame tên là df.
+
+    sep = ';': Định rõ rằng dấu phân cách giữa các cột là dấu chấm phẩy (;).
+    dec = ',': Định rõ rằng dấu phân cách thập phân là dấu phẩy (,).
+    fileEncoding = 'UTF-8-BOM': Định rõ bảng mã của tập tin là UTF-8 với BOM (Byte Order Mark).
+
+%>%na.omit(): Dùng pipe (%>%) để nối tiếp kết quả công đoạn trước vào hàm na.omit() để xóa các hàng có giá trị NA (Not Available) từ df.
+
+df$Trigger = factor(df$Trigger): Chuyển đổi cột Trigger trong df thành dạng factor. Điều này thường được làm cho biến phân loại.
+
+df$p1 = df$blast/df$oocytes: Tạo một cột mới tên là p1, có ý nghĩa như tỷ lệ tạo blastocyte thành công, giá trị của p1 được tính bằng cách chia cột blast (số lượng blastocytes) cho cột oocytes (số noãn) trong data frame df.
+
+df%>%head()%>%knitr::kable(): Hiển thị 6 dòng đầu tiên của df dưới dạng một bảng được định dạng bởi hàm kable() từ package knitr.
+
 ## Kế hoạch phân tích
 
 ...
@@ -61,6 +81,22 @@ df%>%group_by(Trigger)%>%
             p95 = quantile(p1, 0.95),
             )%>%knitr::kable(digits = 3)
 ```
+
+Giải thích:
+
+Đoạn code này thực hiện phân tích thống kê mô tả trên data frame df đã được xử lý ở đoạn code trước. Cụ thể, gồm các hành động sau:
+
+    df%>%group_by(Trigger): Sử dụng toán tử pipe %>% để áp dụng hàm group_by cho cột Trigger trong df. Mục tiêu là phân chia dữ liệu thành 3 nhóm theo các bậc giá trị trong cột Trigger.
+
+    summarize(...): Dùng hàm summarize để tính toán các giá trị thống kê cơ bản cho mỗi phân nhóm (Trigger).
+        n = n(): Tính số lượng quan sát trong mỗi nhóm.
+        mean = mean(p1): Tính giá trị trung bình của cột p1 (tỷ lệ tạo blastocyte) trong mỗi nhóm.
+        SD = sd(p1): Tính độ lệch chuẩn (SD) của cột p1 trong mỗi nhóm.
+        p5 = quantile(p1, 0.05): Tính phân vị thứ 5 của cột p1 trong mỗi nhóm.
+        p95 = quantile(p1, 0.95): Tính phân vị thứ 95 của cột p1 trong mỗi nhóm.
+
+    %>%knitr::kable(digits = 3): Sử dụng hàm kable từ thư viện knitr để hiển thị kết quả được tổng kết từ hàm summarize dưới dạng bảng với 3 chữ số thập phân.
+
 ...
 
 ```{r}
@@ -90,6 +126,44 @@ df %>% ggplot(aes(x = blast,
         axis.title = element_text(size = 10, color = "black"))
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng thư viện ggplot2 trong tidyverse để vẽ một biểu đồ tần suất so sánh số lượng blastocyte (cột blast trong data frame df), giữa 3 nhóm được phân chia dựa trên biến Trigger.
+
+    pals = c("d" = "#fc035e", "h" = "#b814ff", "a" = "#fcb103"): Định nghĩa một vector phổ màu với mã màu HEX.
+    
+        "d" = "#fc035e": Màu hồng đậm cho nhóm "d"
+        "h" = "#b814ff": Màu tím cho nhóm "h"
+        "a" = "#fcb103": Màu vàng cam cho nhóm "a"
+
+    df %>% ggplot(aes(x = blast, y = Trigger, fill= Trigger)): Khởi tạo một đồ thị ggplot với trục x là blast, trục y là Trigger và tô màu (fill) theo giá trị biến Trigger.
+
+    geom_density_ridges(...): Thêm lớp "ridge density" vào đồ thị.
+        stat = "binline": Sử dụng thuật toán "binline" để tạo biểu đồ tần suất
+        scale = 1: Đặt tỷ lệ cho 3 biểu đồ tần suất (scale <1 sẽ thu nhỏ mỗi biểu đồ để tránh hiện tượng chồng lắp)
+        bins = 50: Số lượng bins trong phép đếm dữ liệu.
+        alpha = 0.7: Độ trong suốt của màu sắc.
+        draw_baseline = FALSE: Không vẽ đường cơ sở.
+
+    labs(x="Number of Blastocytes", y = "Trigger type"): Đặt tên cho các trục x và y.
+
+    scale_fill_manual(values = pals, name = "Trigger"): Áp dụng các màu sắc được định nghĩa trước trong pals cho cột Trigger.
+
+    scale_x_continuous(breaks = seq(0,30,5)): Đặt các điểm ngắt cho trục x từ 0 đến 30 với khoảng cách là 5.
+
+    coord_flip(): Hoán đổi trục x và y.
+
+    theme_bw(10): Sử dụng theme trắng đen với cỡ chữ là 10.
+
+    geom_vline(...): Thêm một đường kẻ dọc tại điểm trung vị của blast.
+        xintercept = median(df$blast): Điểm trung vị của cột blast.
+        linetype=2: Kiểu đường kẻ là đứt đoạn.
+        col="blue": Màu sắc là màu xanh dương.
+
+    theme(...): Tinh chỉnh các chi tiết về cỡ chữ, màu sắc của trục và tiêu đề.
+
+Tổng hợp lại, đoạn code này tạo một biểu đồ mật độ dạng đỉnh (ridge density plot) để hiển thị phân phối của số lượng "Blastocytes" trong 3 nhóm kỹ thuật "Trigger", với màu sắc và chi tiết đồ họa được tinh chỉnh cẩn thận.
+
 ...
 
 ```{r}
@@ -102,13 +176,31 @@ df %>% ggplot(aes(y = p1,
   scale_y_continuous(breaks = seq(0,1,0.2))+
   coord_flip() +
   theme_bw(10) +
-  geom_vline(xintercept = median(df$p1),
-             linetype=2,
-             col="blue")+
   theme(axis.text = element_text(size = 10, color = "black"),
         axis.title = element_text(size = 10, color = "black"))
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng thư viện ggplot2 trong tidyverse để vẽ một boxplot ngang, so sánh phân phối của cột p1 (tỷ lệ tạo blastocyte) giữa 3 phân nhóm được xác định bởi cột Trigger (Trigger type). Dưới đây là giải thích từng phần:
+
+    ggplot(aes(y = p1, x = Trigger, fill= Trigger)): Khởi tạo một đồ thị ggplot, với trục y là p1, trục x là Trigger, và màu sắc của boxplot sẽ được tô theo Trigger.
+
+    geom_boxplot(alpha = 0.7): Thêm một boxplot với độ trong suốt là 0.7.
+
+    labs(y="Blastocyte formation rate", x = "Trigger type"): Đặt tên cho các trục y và x.
+
+    scale_fill_manual(values = pals, name = "Trigger"): Sử dụng mã màu từ pals để tô màu cho các nhóm Trigger.
+
+    scale_y_continuous(breaks = seq(0,1,0.2)): Điều chỉnh các điểm ngắt trên trục y từ 0 đến 1 với khoảng cách là 0.2.
+
+    coord_flip(): Đảo ngược trục x và trục y, biến đổi boxplot từ dạng dọc sang dạng ngang.
+
+    theme_bw(10): Sử dụng chủ đề màu trắng và đen cho đồ thị.
+
+    theme(...): Điều chỉnh kích thước và màu sắc của văn bản trên các trục.
+
+Kết quả là một boxplot ngang, với các box được điều chỉnh màu sắc dựa trên nhóm Trigger. Boxplot này cũng có các tiêu đề trục, điểm ngắt trên trục y, và một đường kẻ dọc tại điểm trung vị của dữ liệu.
 ...
 
 ## Dựng mô hình hồi quy GLM Binomial
@@ -124,6 +216,24 @@ bi_mod = gamlss(cbind(blast, oocytes-blast) ~
 
 summary(bi_mod)
 ```
+Giải thích:
+
+Đoạn code này sử dụng hàm gamlss từ thư viện gamlss trong R để khớp một mô hình hồi quy tuyến tính tổng quát. Đây là mô hình ước lượng kết quả tỷ lệ, sử dụng phân phối nhị thức binomial với link function là logit. Dưới đây là phân tích chi tiết từng phần:
+
+    gamlss(cbind(blast, oocytes-blast) ~ Trigger * (Age + AFC), ...): Khởi tạo mô hình gamlss. Trong mô hình này, biến kết quả (outcome variable) ghép từ số lượng blastocyte (blast) và số noãn không tạo được blastocyte (hiệu số oocytes-blast). Kết quả này sẽ tuân theo uy luật phân phối binomial. Các biến độc lập trong mô hình là Trigger, Age, và AFC, cũng như tất cả các tương tác giữa chúng.
+    
+        cbind(blast, oocytes-blast): Tạo một ma trận với cột đầu tiên là blast và cột thứ hai là oocytes-blast. Đây là cách đặc tả dữ liệu binomial trong R.
+        
+        Trigger * (Age + AFC): Cụ thể hóa mô hình để bao gồm Trigger, Age, và AFC cũng như tương tác giữa Trigger và cả Age lẫn AFC.
+
+    data = df: Dùng data frame df làm nguồn dữ liệu để khớp mô hình.
+
+    family = BI(mu.link = "logit"): Định nghĩa phân phối và link function cho mô hình. Trong trường hợp này, phân phối là Binomial (BI) và link function là logit.
+
+    trace = F: Không hiển thị quy trình tối ưu hóa khi khớp mô hình (F là viết tắt của FALSE).
+
+    summary(bi_mod): Xuất ra một bảng tóm tắt thống kê của mô hình, bao gồm các ước lượng hệ số, sai số chuẩn, và các giá trị p liên quan đến tính có ý nghĩa thống kê của từng hệ số.
+
 ...
 
 ```{r}
@@ -135,6 +245,8 @@ plogis(-1.0593442)
 ```{r}
 plogis(-1.0593442 + 0.3033475)
 ```
+
+Giải thích: hàm plogis cho phép hoán chuyển hệ số hồi quy về 1 giá trị xác suất
 
 ...
 
@@ -151,6 +263,22 @@ dif_p = avg_comparisons(
 
 dif_p %>% knitr::kable(digits = 3)
 ```
+Giải thích:
+
+Đoạn code này sử dụng thư viện marginaleffects để thực hiện một phân tích hậu kiểm (post-hoc) dựa vào quy trình ước lượng các hiệu ứng biên trung bình (average marginal effects) nhằm so sánh bắt cặp tuần tự giá trị tỷ lệ tạo blastocyte trung bình giữa 3 nhóm kỹ thuật kích hoạt trưởng thành noãn (Trigger) từ mô hình gamlss (được lưu trong bi_mod). 
+
+Cụ thể, gồm các bước sau:
+
+    avg_comparisons(bi_mod, what = "mu", variables = list(Trigger = 'pairwise')): Sử dụng hàm avg_comparisons để tính toán các so sánh trung bình giữa các nhóm trong biến Trigger.
+        bi_mod: là mô hình gamlss được khớp trước đó.
+        
+        what = "mu": chỉ định rằng ta quan tâm đến tham số 'mu' (tham số vị trí trong phân phối binomial, tương đương với tỷ lệ thành công trung bình).
+        
+        variables = list(Trigger = 'pairwise'): chỉ định rằng ta muốn thực hiện các so sánh 'pairwise' (tức là so sánh từng cặp) giữa các nhóm trong biến Trigger.
+
+    dplyr::select(-c(1,7)): Loại bỏ cột 1 và 7 từ kết quả. Những cột này không cung cấp thông tin cần quan tâm.
+
+    dif_p %>% knitr::kable(digits = 3): Hiển thị bảng kết quả với 3 chữ số thập phân.
 
 ...
 
@@ -177,6 +305,21 @@ or %>% mutate(contrast = 'OR')%>%
   knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Đoạn code này cũng sử dụng hàm avg_comparisons từ thư viện marginaleffects để tính toán Odds Ratio (OR) để đo lường ưu thế giữa mỗi kỹ thuật Trigger so với một kỹ thuật khác. Dưới đây là giải thích chi tiết:
+
+    bi_mod: là mô hình đã khớp.
+    what = "mu": chọn tham số 'mu' để tính toán (tương đương với trung bình của phân phối binomial).
+    variables = list(Trigger = 'pairwise'): thực hiện so sánh theo từng cặp (pairwise) giữa các nhóm trong biến Trigger.
+    transform_pre = "lnoravg": Trước khi tính toán so sánh trung bình, áp dụng phép biến đổi logarithm cho odds ratio (OR), kết quả tạo ra log(OR). 'lnoravg' là viết tắt của 'Log Odds Ratio Average'.
+    transform_post = "exp": Sau khi có được log odds ratio, áp dụng hàm exp để quay trở lại giá trị của odds ratio (OR).
+    
+Lưu ý: Ở phiên bản mới nhất (ngày 04/09/2023) của thư viện marginaleffects, tác giả thay đổi tên 2 đối số của hàm avg_comparisons: transform_pre thành "comparison" và transform_post thành "transform", công dụng vẫn như cũ.
+
+    dplyr::select(-c(1)): Loại bỏ cột thứ nhất từ kết quả (có lẽ không có thông tin cần thiết).
+    or %>% mutate(contrast = 'OR'): Thêm một cột mới tên là 'contrast' với tất cả các giá trị là 'OR' (Odds Ratio).
+    knitr::kable(digits = 3): Hiển thị kết quả dưới dạng bảng với 3 chữ số thập phân.
 ...
 
 ```{r}
@@ -202,6 +345,26 @@ rr %>%mutate(contrast = 'RR')%>%
   knitr::kable(digits = 3)
 ```
 
+Đoạn code này cũng sử dụng hàm avg_comparisons từ thư viện marginaleffects để tính Risk Ratio (RR) từ mô hình gamlss (bi_mod). Đây là một cách để đo lường tương quan giữa việc áp dụng một kỹ thuật Trigger và tỷ lệ thành công trong việc tạo ra blastocyte.
+
+    avg_comparisons(bi_mod, what = "mu", variables = list(Trigger = 'pairwise'), transform_pre = "lnratioavg", transform_post = exp): Đây là cách tính toán Risk Ratio trong phiên bản cũ của thư viện.
+
+        transform_pre = "lnratioavg": Trước khi tính toán các so sánh trung bình, áp dụng hàm biến đổi lấy logarit tự nhiên của tỷ lệ trung bình giữa các nhóm.
+        
+        transform_post = exp: Sau khi có được log-ratios, áp dụng hàm exp để quay trở lại dạng tỷ số RR.
+
+    Phiên bản mới của đoạn code có tham số comparison = "lnratioavg" và transform = exp: công dụng tương đương
+  
+        comparison = "lnratioavg": Áp dụng hàm biến đổi lấy logarit tự nhiên của tỷ lệ trung bình giữa các nhóm trước khi thực hiện các so sánh.
+        
+        transform = exp: Biến đổi kết quả từ log-ratios về dạng tỷ số RR
+
+    dplyr::select(-c(1)): Loại bỏ cột đầu tiên trong kết quả vì không cung cấp thông tin quan trọng.
+
+    rr %>%mutate(contrast = 'RR'): Thêm một cột mới vào data frame rr có tên là contrast và giá trị là 'RR' để chỉ rõ rằng các giá trị này là Risk Ratios.
+
+    knitr::kable(digits = 3): Xuất ra kết quả dưới dạng bảng với 3 chữ số sau dấu phẩy.
+  
 ...
 
 ```{r}
@@ -231,6 +394,23 @@ or %>% mutate(contrast = 'OR')%>%
   knitr::kable(digits = 3)
 ```
 
+Giải thích:
+
+Đoạn code này cũng ước lượng OR để khảo sát ưu thế của mỗi kỹ thuật Trigger, nhưng trong một bối cảnh dữ liệu có tính phản thực tế (Counterfactual), đó là OR sẽ được tính cho những mức AFC (Antral Follicle Count) khác nhau.
+
+
+    avg_comparisons(...): Hàm này được sử dụng để tính toán các so sánh trung bình, giống như trong đoạn code trước. Tuy nhiên, có một số tham số được thêm vào:
+
+        by = "AFC": Điều này có nghĩa là các so sánh được thực hiện tách biệt cho từng giá trị của AFC.
+
+        newdata = datagrid(AFC = c(2,5,10,20), grid_type = 'counterfactual'): Tạo một dữ liệu phản thực tế, với các mức giá trị cụ thể của AFC để thực hiện các so sánh. 
+        grid_type = 'counterfactual' có nghĩa là đây là các giá trị AFC có ý nghĩa giả định mà bạn quan tâm, không nhất thiết phải xuất hiện trong dữ liệu gốc.
+
+        transform_pre = "lnoravg" và transform_post = "exp": Đây là các phép biến đổi trước và sau khi tính toán so sánh. "lnoravg" có nghĩa là tính log odds ratio trung bình, và "exp" là phép mũ, biến log odds ratio thành odds ratio.
+
+    Đoạn code thứ hai (# Alternative for latest version) là phiên bản cập nhật của đoạn code trên với cú pháp khác nhau. Ở đây, thay vì sử dụng transform_pre và transform_post, đoạn code sử dụng comparison = "lnoravg" và transform = "exp" để thực hiện cùng một quy trình biến đổi.
+
+    or %>% mutate(contrast = 'OR')%>% knitr::kable(digits = 3): Thêm một cột mới tên là contrast với giá trị 'OR' cho tất cả các dòng, và sau đó hiển thị kết quả dưới dạng bảng với 3 chữ số sau dấu phẩy.
 ...
 
 ```{r}
@@ -262,6 +442,24 @@ preds%>%ggplot()+
   theme_bw()
 ```
 
+Giải thích:
+
+Đoạn code này sử dụng kết quả dự đoán từ mô hình gamlss đã khớp (bi_mod) để tạo ra một biểu đồ phân phối của tỷ lệ blastocytes (tỷ lệ tạo ra các tế bào blastocytes) cho các nhóm khác nhau của biến Trigger. Cụ thể, các bước trong đoạn code này là:
+
+    predictions(bi_mod, ...) : Tính toán các dự đoán từ mô hình gamlss đã khớp.
+        what = "mu": Chúng ta quan tâm đến dự đoán của tham số "mu" (tương đương với tỷ lệ trung bình của blastocytes).
+        newdata = datagrid(Trigger = c('d','a','h'), grid_type = "counterfactual"): Tạo ra một tập dữ liệu mới (newdata) để thực hiện các dự đoán, với các giá trị cụ thể của Trigger là 'd', 'a', và 'h'.
+        new_data = df: Dữ liệu gốc (df) được sử dụng để tính toán các hiệu chỉnh cho dự đoán.
+
+    preds%>%ggplot()+ ...: Vẽ biểu đồ dựa trên các dự đoán.
+        stat_halfeye(...): Vẽ một "half-eye" plot, một loại biểu đồ phân phối tương tự như kernel density plot, để hiển thị các dự đoán và khoảng tin cậy.
+            point_interval = 'median_qi': Hiển thị trung vị và khoảng tin cậy.
+        stat_lineribbon(...): Vẽ các "ribbon" (dải băng màu) để hiển thị phạm vi dự đoán.
+        labs(...): Đặt nhãn cho các trục.
+        scale_fill_manual(values = pals, name = "Trigger"): Sử dụng các mã màu HEX đã định trước trong pals để tô màu cho các nhóm Trigger.
+        scale_y_continuous(breaks = c(seq(0,0.4,0.05))): Đặt các "breaks" (điểm đánh dấu) trên trục y từ 0 đến 0.4 với khoảng cách là 0.05.
+        theme_bw(): Sử dụng chủ đề trắng-đen cho biểu đồ.
+        
 ...
 
 ```{r}
@@ -288,6 +486,26 @@ preds%>%ggplot()+
   facet_wrap(~AFC, scales = "free")+
   theme_bw()
 ```
+
+Giải thích:
+
+Đoạn code này sử dụng mô hình gamlss đã khớp (bi_mod) để ước tính giá trị dự đoán cho biến kết quả của tỷ lệ tạo blastocyte trung bình (mu, trung bình của phân phối binomial) dựa trên một lưới dữ liệu mới (datagrid) cho AFC với các giá trị cụ thể là 1, 5, 10, 15, 20, 30. Sau đó, vẽ một biểu đồ để trình bày các dự đoán này. Cụ thể như sau:
+
+    predictions(model = bi_mod, what = "mu", newdata = datagrid(...)): Sử dụng hàm predictions để tính toán các giá trị dự đoán mu từ mô hình bi_mod cho dữ liệu phản thực tế gồm các giá trị AFC cụ thể (giả định) trong datagrid.
+
+    preds%>%ggplot(): Khởi tạo một đồ thị ggplot với dữ liệu dự đoán.
+
+    stat_halfeye(...): Vẽ một "half-eye plot," một loại biểu đồ hiển thị phân bố dự đoán và khoảng tin cậy. Phần .width = c(0.75, 0.95) chỉ định độ rộng của các khoảng tin cậy, và point_interval = 'median_qi' chỉ định rằng trung vị và khoảng tin cậy sẽ được hiển thị.
+
+    stat_lineribbon(...): Thêm một "line ribbon" vào biểu đồ, thể hiện phân bố của các dự đoán với các độ rộng khoảng tin cậy khác nhau (được chỉ định bởi .width = c(.95, .75, .50)).
+
+    labs(y="Rate of blastocytes", x = "Trigger"): Đặt nhãn cho các trục y và x.
+
+    scale_fill_manual(values = pals, name = "Trigger"): Sử dụng màu sắc được chỉ định trước trong vector pals cho các nhóm Trigger.
+
+    facet_wrap(~AFC, scales = "free"): Chia biểu đồ thành các "facet" (phân nhóm) dựa trên giá trị của AFC, với từng "facet" có thang đo tự do.
+
+    theme_bw(): Sử dụng chủ đề đen-trắng cho biểu đồ.
 
 **Diễn giải kết quả của phân tích** : 
 
