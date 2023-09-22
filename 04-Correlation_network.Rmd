@@ -40,6 +40,33 @@ df%>%filter(.$Group!="PCOS")%>%
   knitr::kable(digits = 2)
 ```
 
+Giải thích: Đoạn code này tải dữ liệu và thực hiện thống kê mô tả.
+
+Đọc dữ liệu từ file CSV: Sử dụng read.csv để đọc file PCOS_IR.csv. Các tham số khác như sep, dec, và fileEncoding được sử dụng để xác định cấu trúc và mã hóa của file.
+
+Sau đó, chuyển đổi Group là 1 biến định tính thành factor
+
+Lọc các dòng không có Group là "PCOS": filter(.$Group!="PCOS")
+
+Tạo một biến mới Class: Nếu Group là "Norm", Class sẽ là "Normal". Ngược lại, nó sẽ là "PCOS":
+
+Chuyển dạng dữ liệu từ wide-format sang long-format với gather; 
+gather là một hàm từ thư viện tidyverse dùng để chuyển dữ liệu từ dạng "wide format" sang "long format". Trong "wide format", mỗi biến là một cột riêng. Trong "long format", chúng ta có hai cột mới: một cho tên biến ("key") và một cho giá trị của biến đó ("value").
+
+Ở đây, ta chuyển các cột từ 2 đến 16 của df vào dạng long, với cột "Features" chứa tên biến và cột "Value" chứa giá trị tương ứng. Các cột khác trong dataframe (không nằm trong phạm vi từ 2 đến 16) sẽ không bị ảnh hưởng và sẽ được giữ lại như cột nhân bản trong mỗi dòng mới được tạo ra.
+
+Nhóm dữ liệu theo Class và Features, rồi tính toán các thống kê cơ bản: 
+
+n: Số lượng quan sát trong mỗi nhóm.
+Mean: Giá trị trung bình của cột "Value" trong mỗi nhóm.
+sd: Độ lệch chuẩn của cột "Value" trong mỗi nhóm.
+Median: Giá trị trung vị của cột "Value" trong mỗi nhóm.
+p5: Phân vị thứ 5 của cột "Value" trong mỗi nhóm.
+p95: Phân vị thứ 95 của cột "Value" trong mỗi nhóm.
+Mỗi nhóm ở đây được xác định bởi một sự kết hợp duy nhất của Class và Features.
+
+Sử dụng knitr::kable để hiển thị dữ liệu trong định dạng bảng, với số thập phân được làm tròn đến 2 chữ số sau dấu phẩy.
+
 ## Ma trận tương quan
 
 ...
@@ -68,6 +95,30 @@ cormat_neg = cor(method="pearson",
                  as.matrix(neg_df))
 ```
 
+Giải thích:
+
+Đoạn code này tạo hai dataframe riêng biệt (neg_df và pos_df) từ dataframe gốc df dựa trên giá trị của cột Group.
+
+Sau đó, tính toán ma trận tương quan Pearson cho cả neg_df và pos_df để hiểu mối liên hệ giữa các biến trong mỗi nhóm.
+
+Tạo neg_df
+
+Lọc các dòng có Group là "Norm": Sử dụng dplyr::filter để lọc ra các dòng trong dataframe df có giá trị trong cột Group là "Norm".
+
+Chọn các cột cần thiết: Sử dụng dplyr::select để chỉ giữ lại các cột có tên là Age, BMI, AMH, AFC, OSI, Gluc, F_INS, HOMA_IR, LH, FSH, E2, P, PRL, T, TSH.
+
+Kết quả của những bước trên sẽ được lưu vào neg_df.
+
+Tạo pos_df
+
+Các bước để tạo pos_df giống như neg_df, chỉ khác ở điểm là chúng ta lọc các dòng có Group là "IR" thay vì "Norm".
+
+Tính toán ma trận tương quan
+
+Tính toán ma trận tương quan cho pos_df: Sử dụng hàm cor để tính toán ma trận tương quan Pearson giữa các biến trong pos_df. Đầu tiên, as.matrix(pos_df) chuyển pos_df thành một ma trận, một định dạng dữ liệu thích hợp cho hàm cor.
+
+Tính toán ma trận tương quan cho neg_df: Cũng như trên, nhưng sử dụng neg_df thay vì pos_df.
+
 ...
 
 ```{r}
@@ -87,7 +138,28 @@ cormat_pos %>% corrplot(.,order="hclust",
                      col=rev(brewer.pal(n=10, 
                                         name="Spectral")))
 ```
+Giải thích:
 
+Đoạn mã R này nhằm vẽ một biểu đồ ma trận tương quan bằng cách sử dụng hai thư viện: corrplot và RColorBrewer. Dưới đây là giải thích chi tiết về từng phần của đoạn mã:
+
+    Thư viện được sử dụng:
+        library(corrplot): một công cụ dùng để vẽ biểu đồ ma trận tương quan.
+        library(RColorBrewer): một thư viện cung cấp phổ màu để trực quan hóa giá trị hệ số tương quan trong biểu đồ.
+
+    Ma trận tương quan:
+        cormat_pos: đây là một ma trận tương quan mà ta cần hiển thị, là kết quả của việc tính toán tương quan giữa các biến trong pos_df (nhóm PCOS)
+
+        order="hclust": Sắp xếp các biến dựa vào thuật toán phân cụm, nhằm nhóm các biến có mức độ tương quan tương tự lại gần nhau.
+        type="lower": Chỉ vẽ phần dưới của ma trận tương quan (bỏ qua phần trên vì trùng lặp).
+        method="color": Sử dụng màu sắc để biểu diễn mức độ tương quan.
+        diag = F: Không vẽ đường chéo chính của ma trận.
+        addCoef.col = "black": Thêm giá trị hệ số tương quan vào biểu đồ với màu đen.
+        tl.col="black": Đặt màu của tiêu đề cột và hàng là màu đen.
+        title = "PCOS": Đặt tiêu đề cho biểu đồ là "PCOS".
+        tl.srt=45: Xoay tiêu đề cột và hàng 45 độ.
+        tl.cex=0.8: Điều chỉnh kích thước của tiêu đề cột và hàng (cỡ chữ là 80% so với mặc định).
+        number.cex = 0.5: Điều chỉnh kích thước của số liệu tương quan (cỡ chữ là 50% so với mặc định).
+        col=rev(brewer.pal(n=10, name="Spectral")): Sử dụng bộ màu "Spectral" từ thư viện RColorBrewer với 10 màu sắc và đảo ngược thứ tự màu sắc.
 ...
 
 ```{r}
@@ -105,6 +177,7 @@ cormat_neg%>%corrplot(.,order="hclust",
                                       name="Spectral")))
 ```
 
+Giải thích: Ý nghĩa của đoạn code này tương tự như trên, nhưng áp dụng cho ma trận tương quan cormat_neg (nhóm đối chứng bình thường)
 ...
 
 ```{r}
@@ -146,6 +219,22 @@ corrplot(cormat_pos,
          )
 ```
 
+Giải thích ý nghĩa:
+
+Đầu tiên, ta tạo 1 hàm cor.mtest:
+
+    Mục đích: Hàm này được định nghĩa để thực hiện kiểm định ý nghĩa thống kê của mối tương quan cho mỗi cặp biến trong một ma trận và trả về 1 ma trận chứa giá trị p.
+    
+    Dữ liệu đầu vào: Ma trận mat và các tham số khác để truyền vào hàm cor.test.
+    
+    Xử lý trong hàm:
+        Chuyển mat thành ma trận.
+        Khởi tạo ma trận p.mat với các giá trị là NA và đường chéo chính bằng 0.
+        Sử dụng hai vòng lặp lồng nhau để thực hiện kiểm định tương quan cho mỗi cặp cột trong ma trận và lưu giá trị p vào p.mat.
+    Xuất kết quả: Ma trận giá trị p cho mỗi cặp biến.
+    
+Tiếp theo, ta sử dụng hàm cor.mtest để tính giá trị p cho ma trận tương quan của pos_df và neg_df.
+
 ...
 
 ```{r}
@@ -165,6 +254,15 @@ corrplot(cormat_neg,
          )
 ```
 
+Giải thích: tiếp theo đoạn trên, đoạn code này vẽ biểu đồ ma trận tương quan cho cormat_pos và chỉ hiển thị các giá trị có ý nghĩa thống kê.
+
+    Các tùy chỉnh chính:
+        col= pals::coolwarm(100): Sử dụng bộ màu coolwarm với 100 màu.
+        method="pie": Hiển thị mức độ tương quan dưới dạng biểu đồ hình tròn (pie chart), diện tích được tô màu tương ứng với hệ số tương quan.
+        type="upper": Chỉ vẽ phần trên của ma trận.
+        p.mat = corsig_pos: Sử dụng ma trận giá trị p từ corsig_pos.
+        sig.level = 0.05: Mức độ ý nghĩa thống kê là 0.05.
+        insig = "blank": Không hiển thị các giá trị không có ý nghĩa thống kê.
 ...
 
 ## Sơ đồ mạng lưới tương quan
@@ -205,6 +303,43 @@ graph_pos<-graph_from_data_frame(reduced_pos,
 
 plot(graph_pos)
 ```
+Giải thích:
+
+Đoạn mã R này thực hiện các bước để tạo ra một biểu đồ mạng lưới tương quan từ ma trận tương quan và giá trị p tương ứng. Dưới đây là giải thích chi tiết:
+
+Bước 1: Xử lý ma trận tương quan
+
+    Ta gán ma trận tương quan cormat_pos vào biến m.
+    Đặt đường chéo chính của ma trận m bằng 0 (điều này loại bỏ giá trị tương quan của một biến với chính nó).
+    Tạo dataframe cor_pos_df từ phần trên của ma trận m (bỏ qua phần dưới và đường chéo chính).
+
+Bước 2: Xử lý ma trận giá trị p
+
+    Tương tự như trên nhưng áp dụng cho ma trận giá trị p corsig_pos.
+    Tạo dataframe sig_pos_df từ phần trên của ma trận m.
+    
+Bước 3: Kết hợp thông tin tương quan và giá trị p
+
+    Thêm cột sig từ sig_pos_df vào cor_pos_df.
+    Xóa dataframe sig_pos_df.
+    Đổi tên các cột của cor_pos_df để phản ánh ý nghĩa của chúng.
+    
+Bước 4: Lọc dữ liệu
+
+    Lọc ra các giá trị tương quan có ý nghĩa thống kê (giá trị p nhỏ hơn 0.05).
+    Thêm hai cột mới:
+        Strength: Phân loại mối quan hệ dựa trên giá trị tuyệt đối của hệ số tương quan (Mạnh nếu > 0.5, Yếu nếu ngược lại).
+        Direction: Xác định hướng của mối quan hệ (Dương nếu hệ số tương quan dương, Âm nếu ngược lại).
+        
+        
+Bước 5: Vẽ biểu đồ mạng lưới tương quan
+
+        Tải thư viện igraph để vẽ biểu đồ mạng.
+        Tạo biểu đồ mạng từ dataframe reduced_pos sử dụng hàm graph_from_data_frame.
+        Vẽ biểu đồ mạng sử dụng hàm plot.
+
+Kết quả cuối cùng là một biểu đồ mạng lưới tương quan, trong đó mỗi đỉnh biểu diễn một biến và mỗi cạnh biểu diễn mối quan hệ tương quan giữa hai biến. Màu sắc và độ dày của các cạnh có thể thể hiện độ mạnh và hướng của mối quan hệ.
+
 ...
 
 ```{r}
@@ -216,16 +351,41 @@ pos_net <- asNetwork(graph_pos)
 
 plot(pos_net,displaylabel=T,
      label.cex=0.8)
-```
 
-...
-
-```{r}
 set.vertex.attribute(pos_net, "Physio",
                      c("A","A","Ov","Ov","Ov",
                        "Glu","H","H","Glu","Glu",
                        "H","H","H","H"))
 ```
+Giải thích:
+
+Đoạn mã R này liên quan đến việc chuyển đổi một đối tượng đồ thị (graph) của thư viện igraph sang đối tượng mạng (network) của thư viện network và sau đó vẽ nó. Dưới đây là giải thích chi tiết:
+
+    Thư viện được sử dụng:
+        library(intergraph): Thư viện này cung cấp chức năng để chuyển đổi giữa các đối tượng đồ thị từ các thư viện khác nhau như igraph và network.
+        
+        library(network): Thư viện này cung cấp các công cụ và chức năng cho việc tạo, biểu diễn và phân tích các đối tượng mạng.
+        
+        library(statnet): statnet là một gói R với công dụng phân tích mạng lưới.
+        
+Bước 1: Chuyển đổi định dạng đồ thị
+
+Ở đây, ta sử dụng hàm asNetwork từ thư viện intergraph để chuyển đổi đối tượng đồ thị graph_pos (được tạo từ thư viện igraph) thành một đối tượng mạng pos_net tương thích với thư viện network.
+
+Bước 2: Vẽ đồ thị
+
+    Sử dụng hàm plot để vẽ biểu đồ mạng pos_net.
+    displaylabel=T: Hiển thị nhãn (tên) của các đỉnh trên biểu đồ.
+    label.cex=0.8: Điều chỉnh kích thước của nhãn (cỡ chữ) thành 80% so với mặc định.
+    
+...
+
+Bước 3: Đặt thuộc tính cho đỉnh
+
+    Hàm set.vertex.attribute được sử dụng để thêm hoặc chỉnh sửa thuộc tính của các đỉnh trong mạng.
+    pos_net: Đối tượng mạng cần chỉnh sửa.
+    "Physio": Tên của thuộc tính cần thêm hoặc chỉnh sửa, tương ứng với ý nghĩa sinh lý của mỗi thông số
+    c("A","A","Ov",...): Danh sách các giá trị cho thuộc tính "Physio" cho từng đỉnh. Mỗi giá trị trong danh sách này sẽ được gán cho một đỉnh theo thứ tự.
 
 ...
 
@@ -270,6 +430,8 @@ set.vertex.attribute(neg_net, "Physio",
                        "Glu","H","H","H"))
 ```
 
+Giải thích: Đoạn code này có ý nghĩa tương tự như trên, nhưng áp dụng cho ma trận tương quan cormat_neg của nhóm Normal
+
 ## Phân tích cấu trúc mạng lưới tương quan
 
 ...
@@ -278,6 +440,32 @@ set.vertex.attribute(neg_net, "Physio",
 summary(pos_net,
         print.adj=F)
 ```
+
+Giải thích: thông tin từ hàm summary cung cấp một cái nhìn tổng quan về cấu trúc và thuộc tính của mạng pos_net, bao gồm số lượng đỉnh, số lượng cạnh, thuộc tính của các đỉnh và cạnh, và một số thông tin thống kê khác.
+
+Dưới đây là giải thích chi tiết:
+
+    Thuộc tính của Mạng (Network attributes):
+        vertices = 14: Mạng có 14 đỉnh.
+        directed = FALSE: Mạng không có hướng (nghĩa là các cạnh không có hướng từ một đỉnh này đến một đỉnh khác).
+        hyper = FALSE: Mạng không phải là hypergraph (nghĩa là mỗi cạnh không thể kết nối nhiều hơn hai đỉnh).
+        loops = FALSE: Mạng không có vòng lặp (nghĩa là không có cạnh nào kết nối một đỉnh với chính nó).
+        multiple = FALSE: Mạng không có liên kết lặp lại (nghĩa là không có nhiều hơn một cạnh giữa bất kỳ cặp đỉnh nào).
+        bipartite = FALSE: Mạng không phải là mạng hai phần.
+        total edges = 31: Tổng số cạnh (liên kết) trong mạng là 31.
+        missing edges = 0: Không có cạnh bị thiếu.
+        non-missing edges = 31: Có 31 cạnh không bị thiếu.
+        density = 0.3406593: Mật độ của mạng là khoảng 0.34. Mật độ mạng là tỉ lệ giữa số cạnh thực tế và số cạnh tối đa có thể có trong mạng.
+
+    Thuộc tính của Đỉnh (Vertex attributes):
+        Physio: Đây là một thuộc tính dạng ký tự cho các đỉnh. Có 2 đỉnh có giá trị "A", 3 đỉnh có giá trị "Glu", 6 đỉnh có giá trị "H", và 3 đỉnh có giá trị "Ov".
+        vertex.names: Mỗi đỉnh có một tên (dạng ký tự). Có 14 tên hợp lệ cho 14 đỉnh.
+
+    Thuộc tính của Cạnh (Edge attributes):
+        Direction: Đây là một thuộc tính dạng ký tự cho các cạnh. Có 10 cạnh có giá trị "Inv" và 21 cạnh có giá trị "Pro".
+        r: Đây là một thuộc tính dạng số cho các cạnh, biểu diễn hệ số tương quan. Giá trị trung bình là khoảng 0.1474 và giá trị tối đa là 0.9928.
+        sig: Đây là một thuộc tính dạng số cho các cạnh, biểu diễn giá trị p. Giá trị trung bình là khoảng 0.01012 và giá trị tối đa là 0.04268.
+        Strength: Đây là một thuộc tính dạng ký tự cho các cạnh. Có 3 cạnh có giá trị "Strong" và 28 cạnh có giá trị "Weak".
 ...
 
 ```{r}
@@ -285,6 +473,7 @@ summary(neg_net,
         print.adj=FALSE)
 ```
 
+Kết quả trên có cấu trúc tương tự nhưng dành cho network của nhóm Normal
 ...
 
 ```{r}
@@ -298,6 +487,21 @@ diameter= function(network) {
 diameter(pos_net)
 diameter(neg_net)
 ```
+
+Giải thích:
+
+Đoạn mã R này định nghĩa một hàm để tính đường kính của một mạng lưới và sau đó áp dụng hàm đó lên hai mạng pos_net và neg_net. Dưới đây là giải thích chi tiết:
+
+    Hàm diameter:
+        Mục đích: Hàm này được định nghĩa để tính và trả về đường kính của một mạng. Trong ngữ cảnh của network analysis, đường kính của một đồ thị (hoặc một thành phần liên thông) là khoảng cách lớn nhất giữa bất kỳ cặp đỉnh nào trong đồ thị đó.
+        Input: Đối tượng mạng network.
+        Xử lý trong hàm:
+            component.largest(network, result="graph"): Tìm thành phần liên thông lớn nhất của mạng.
+            geodist(): Tính khoảng cách địa lý giữa các đỉnh trong thành phần liên thông lớn nhất. Kết quả được lưu vào biến gd.
+            max(gd$gdist): Tìm giá trị lớn nhất (đường kính) từ các khoảng cách đã tính.
+        Output: Đường kính của mạng.
+        
+Sau đó, ta áp dụng hàm diameter lần lượt lên hai mạng pos_net và neg_net để tính đường kính cho mỗi mạng.
 ...
 
 ```{r}
@@ -307,6 +511,16 @@ gtrans(pos_net)
 ```{r}
 gtrans(neg_net)
 ```
+
+Giải thích:
+
+Hàm gtrans() được sử dụng để tính toán hệ số chuyển tiếp (transitivity coefficient) của một đồ thị/mạng. Hệ số chuyển tiếp thường được hiểu là một biểu diễn của khả năng "clustering" - gom cụm của mạng.
+
+Hãy xem xét một cách trực quan: giả sử bạn có một đỉnh A kết nối với hai đỉnh khác B và C. Nếu B và C cũng kết nối với nhau, thì chúng ta nói rằng một "tam giác" đã được hoàn thành. Hệ số chuyển tiếp đo lường tỷ lệ các tam giác như vậy so với tất cả các tam giác có thể thành lập trong mạng lưới.
+
+T = 3 * số tam giác thực tế / số bộ ba đỉnh
+
+Nếu T=1T=1, điều này có nghĩa là mỗi khi hai đỉnh kết nối với một đỉnh chung, chúng cũng kết nối với nhau, tạo thành một tam giác. Nếu T=0T=0, điều này có nghĩa là không có tam giác nào trong đồ thị.
 
 ...
 
@@ -355,6 +569,50 @@ cent_df = tibble(Vertex = c(neg_net %v% "vertex.names",
                      )
 ```
 
+Giải thích:
+
+Đoạn mã R này thực hiện các công việc liên quan đến việc tính toán và trình bày các chỉ số trung tâm (centrality measures) cho hai mạng pos_net và neg_net. Dưới đây là giải thích chi tiết:
+
+    Tạo dataframe cent_df:
+        Vertex: Tên của các đỉnh từ cả hai mạng neg_net và pos_net.
+        Physio: Thuộc tính ý nghĩa sinh lý học cho mỗi đỉnh.
+        Status: Trạng thái của mỗi đỉnh, chỉ ra liệu đỉnh đó thuộc mạng nào (Normal hoặc PCOS).
+        Degree: Độ (degree) của mỗi đỉnh trong mạng, chỉ số này cho biết số lượng cạnh kết nối đến mỗi đỉnh.
+        Closeness: Chỉ số closeness centrality của mỗi đỉnh.
+        Beetweeness: Chỉ số betweenness centrality của mỗi đỉnh.
+        Eigen: Chỉ số eigenvector centrality của mỗi đỉnh.
+        BonPow: Chỉ số Bonacich power centrality của mỗi đỉnh.
+        InfoCent: Chỉ số information centrality của mỗi đỉnh.
+
+Các chỉ số trung tâm (centrality measures) được sử dụng trong phân tích mạng nhằm xác định những đỉnh (hoặc nút) có vai trò quan trọng/thiết yếu trong mạng. Mỗi chỉ số trung tâm đều mang một ý nghĩa đặc biệt:
+
+    Degree (mức độ liên kết):
+        Ý nghĩa: degree của một đỉnh là số lượng cạnh kết nối với nó.
+        
+        Tầm quan trọng: Đỉnh với giá trị degree cao thường có nhiều liên kết và có thể được coi là "phổ biến" hoặc "hoạt động" trong mạng.
+
+    Closeness (Độ gần gũi):
+        Ý nghĩa: Độ gần gũi của một đỉnh là nghịch đảo của tổng khoảng cách từ đỉnh đó đến tất cả các đỉnh khác trong mạng.
+        Tầm quan trọng: Đỉnh với độ gần gũi cao thường gần với tất cả các đỉnh khác và có thể nhanh chóng "liên kết" với nhau.
+
+    Betweenness (Độ trung gian):
+        Ý nghĩa: Độ trung gian của một đỉnh là số lượng đường đi ngắn nhất giữa tất cả các cặp đỉnh mà đi qua đỉnh đó.
+        Tầm quan trọng: Đỉnh với độ trung gian cao thường nằm trên nhiều đường đi ngắn nhất và có vai trò như một "cầu nối" giữa các phần khác nhau của mạng.
+
+    Eigenvector (Vector eigen):
+        Ý nghĩa: Đỉnh có giá trị vector eigen cao nếu nó kết nối với nhiều đỉnh khác mà chúng cũng có giá trị vector eigen cao.
+        Tầm quan trọng: Đỉnh với giá trị vector eigen cao thường kết nối với các đỉnh "quan trọng" khác.
+
+    Bonacich Power (Sức ảnh hưởng Bonacich):
+        Ý nghĩa: Là một sự mở rộng của eigenvector centrality, nhưng cho phép đánh trọng số dựa trên "quyền lực" hoặc "ảnh hưởng" của các đỉnh liên quan.
+        Tầm quan trọng: Đỉnh với giá trị BP cao có thể coi là có ảnh hưởng hoặc "quyền lực" cao trong mạng, đặc biệt khi nó liên quan đến các đỉnh khác cũng quan trọng.
+
+    Information Centrality (Trung tâm thông tin):
+        Ý nghĩa: Dựa trên khả năng truyền đạt thông tin qua mạng. Một đỉnh có giá trị cao nếu nó giữ vai trò quan trọng trong việc truyền đạt thông tin.
+        Tầm quan trọng: Đỉnh với giá trị này cao có thể coi là một điểm truy cập quan trọng cho thông tin trong mạng.
+
+Những chỉ số trên giúp chúng ta xác định những đỉnh nào quan trọng trong mạng dựa trên các tiêu chí khác nhau. Ví dụ, một đỉnh có thể không có nhiều liên kết (degree thấp) nhưng nó có thể nằm ở vị trí chiến lược giữa các cụm khác nhau (độ trung gian cao).
+
 ...
 
 ```{r}
@@ -371,6 +629,9 @@ cent_df%>%
             p95 = quantile(Value, 0.95))%>%
   knitr::kable(digits = 2)
 ```
+
+Xử lý và trình bày dữ liệu: Mã trên biến đổi dữ liệu để có được một bảng tổng hợp với các chỉ số trung tâm và các giá trị thống kê liên quan như trung vị và phân vị 5% và 95%.
+
 
 ```{r}
 cent_df%>%
@@ -391,6 +652,10 @@ cent_df%>%
              scales="free")
 ```
 
+    Mã này tạo ra một biểu đồ biểu diễn các chỉ số trung tâm cho mỗi đỉnh trên cả hai mạng.
+    facet_wrap: Sử dụng để tạo ra các biểu đồ con dựa trên các chỉ số trung tâm khác nhau.
+    Kết quả là một biểu đồ multi-panel, trong đó mỗi panel biểu diễn một chỉ số trung tâm cho tất cả các đỉnh trong cả hai mạng.
+
 ```{r}
 cent_df%>%
   gather(Degree:InfoCent,
@@ -406,6 +671,20 @@ cent_df%>%
              ncol=2,
              scales="free")
 ```
+
+Đoạn code này cũng vẽ biểu đồ nhưng ở dạng boxplot để mô tả phân phối thay vì chỉ hiển thị điểm trung vị. Dữ liệu được phân nhóm theo ý nghĩa sinh lý và nhóm PCOS/Normal
+
+Sử dụng hàm gather từ thư viện tidyr để chuyển đổi dữ liệu từ định dạng rộng sang dạng dài. Cụ thể, các cột từ "Degree" đến "InfoCent" sẽ được chuyển thành hai cột mới: "Score" (chứa tên của chỉ số trung tâm) và "Centrality" (chứa giá trị của chỉ số trung tâm).
+
+    Sử dụng hàm ggplot từ thư viện ggplot2 để vẽ biểu đồ.
+    Mỗi boxplot sẽ biểu diễn sự phân phối của "Centrality" cho mỗi loại ý nghĩa sinh lý "Physio", và màu sắc của boxplot sẽ phụ thuộc vào nhóm PCOS hay Normal (biến "Status").
+    
+Thêm các thành phần vào biểu đồ:
+
+    geom_boxplot(alpha=0.7): Thêm các biểu đồ hộp vào biểu đồ. Tham số alpha=0.7 làm cho các boxplot có độ trong suốt, giúp khi các boxplot chồng lên nhau vẫn có thể nhìn thấy.
+    theme_bw(): Áp dụng chủ đề màu sắc nền trắng và đen cho biểu đồ.
+    coord_flip(): Lật trục của biểu đồ, chuyển từ biểu đồ dọc sang biểu đồ ngang.
+    facet_wrap(~Score, ncol=2, scales="free"): Chia biểu đồ thành nhiều phần nhỏ dựa trên giá trị của cột "Score". Mỗi phần biểu diễn một chỉ số trung tâm. ncol=2 chỉ định rằng có 2 cột biểu đồ con trên mỗi hàng. scales="free" cho phép mỗi biểu đồ con có thang đo riêng.
 
 ```{r}
 cent_df%>%
@@ -441,6 +720,26 @@ gplot(pos_net,
       displaylabels=TRUE)
 ```
 
+Giải thích:
+
+Đoạn mã R này thực hiện việc xác định các "cutpoints" trong mạng pos_net và sau đó vẽ mạng đó với các cutpoints được tô màu để phân biệt.
+
+    Cutpoints:
+        Một "cutpoint" (hoặc điểm cắt) trong một đồ thị là một đỉnh mà, khi loại bỏ nó, đồ thị sẽ trở thành ít liên thông hơn. Trong ngữ cảnh phân tích mạng lưới, một cutpoint có thể được xem xét như một "phần tử trung gian" hoặc có ý nghĩa "cầu nối" giữa các tiểu nhóm khác nhau.
+        
+Sử dụng hàm cutpoints từ thư viện network để xác định các cutpoints trong mạng pos_net.
+    mode="graph": Xác định rằng mạng không có hướng.
+    return.indicator=TRUE: Trả về một vector chỉ định (indicator) cho mỗi đỉnh, trong đó giá trị 1 biểu thị đỉnh đó là một cutpoint và giá trị 0 nếu không phải.
+    
+        Sử dụng hàm gplot từ thư viện network để vẽ mạng pos_net.
+        label=pos_net%v%"vertex.names": Hiển thị tên của mỗi đỉnh.
+        label.cex=.8: Điều chỉnh kích thước của nhãn.
+        pad=1: Điều chỉnh khoảng cách giữa các đỉnh và biên của hình.
+        vertex.col=cp_pos+1: Đặt màu cho mỗi đỉnh dựa trên vector chỉ định cutpoints. Các cutpoints sẽ có màu khác biệt so với các đỉnh khác.
+        jitter=FALSE: Không áp dụng hiệu ứng giật (jittering) khi vẽ đỉnh.
+        displaylabels=TRUE: Hiển thị nhãn của mỗi đỉnh trên biểu đồ.
+
+Kết quả là một biểu đồ của mạng pos_net với các cutpoints được tô màu để phân biệt. Điều này giúp người xem nhận biết được những đỉnh nào trong mạng đóng vai trò quan trọng trong việc kết nối các phần khác nhau của mạng.
 ...
 
 ## Yếu tố mỹ thuật
@@ -500,6 +799,33 @@ gplot(pos_net,
       main="Kamadakawai")
 ```
 
+Giải thích:
+
+Đoạn mã này trình bày cách vẽ mạng pos_net sử dụng sáu kiểu bố cục (layouts) khác nhau thông qua hàm gplot từ thư viện network. Dưới đây là giải thích chi tiết:
+
+Thiết lập khung hiển thị:
+
+        par là một hàm cơ bản trong R dùng để thiết lập các thông số vẽ biểu đồ.
+        mar=c(0,0,2,0): Thiết lập lề của biểu đồ; c(bottom, left, top, right).
+        mfrow=c(2,3): Chia khung hiển thị thành một lưới 2x3, tức là sẽ có 6 biểu đồ sẽ được vẽ theo thứ tự từ trên xuống dưới và từ trái qua phải.
+
+    Vẽ mạng với các kiểu bố cục khác nhau:
+        Circle: Tất cả các đỉnh sẽ được sắp xếp theo hình tròn.
+        Random layout: Các đỉnh sẽ được sắp xếp một cách ngẫu nhiên.
+        Fruchterman-Reingold: Một kiểu bố cục dựa trên thuật toán tối ưu hóa năng lượng.
+        Spring: Cũng giống như Fruchterman-Reingold nhưng thường sử dụng mô phỏng lực đàn hồi.
+        Eigenstructure: Bố cục dựa trên giá trị và vector eigen của ma trận liên kết.
+        Kamadakawai: Một thuật toán tối ưu hóa dựa trên khoảng cách giữa các đỉnh.
+
+    Đối với mỗi bố cục:
+        gmode="graph": Xác định rằng mạng không có hướng.
+        mode: Xác định kiểu bố cục sẽ sử dụng.
+        edge.col: Màu sắc của các cạnh.
+        vertex.col: Màu sắc của các đỉnh.
+        vertex.cex: Kích thước của các đỉnh.
+        main: Tiêu đề của biểu đồ.
+
+Kết quả là một lưới gồm 6 biểu đồ biểu diễn mạng pos_net với sáu kiểu bố cục khác nhau. Việc so sánh giữa các bố cục giúp người xem có cái nhìn đa chiều về mạng và chọn lựa bố cục phù hợp cho việc trình bày
 ...
 
 ```{r}
@@ -551,6 +877,31 @@ gplot(pos_net,
       coord=coords)
 ```
 
+Giải thích:
+
+Đoạn mã này vẽ ba biểu đồ của mạng pos_net với mỗi biểu đồ tập trung vào việc trực quan hóa một chỉ số trung tâm cụ thể: độ liên kết (degree), độ gần gũi (closeness), và độ trung gian (betweenness).
+
+Thiết lập khung hiển thị:
+
+    par là hàm trong R dùng để thiết lập các thông số vẽ biểu đồ.
+    mar=c(0,0,1,0): Thiết lập lề của biểu đồ; c(bottom, left, top, right).
+    mfrow=c(2,2): Chia khung hiển thị thành một lưới 2x2. Mặc dù chỉ có 3 biểu đồ, nhưng lưới này tạo ra một ô trống cho biểu đồ thứ tư.
+    
+Lấy tọa độ cho các đỉnh:
+    
+    Vẽ mạng pos_net và lưu trữ tọa độ của các đỉnh vào biến coords. Tọa độ này sẽ được sử dụng lại trong ba biểu đồ sau.
+
+Tính các chỉ số trung tâm: degree, closeness, và betweenness là các hàm từ thư viện network được sử dụng để tính các chỉ số trung tâm tương ứng cho mạng pos_net.
+
+Vẽ ba biểu đồ tập trung vào từng chỉ số trung tâm:
+    
+    Mỗi lần gọi hàm gplot, một biểu đồ của mạng pos_net được vẽ với nhấn mạnh một chỉ số trung tâm cụ thể.
+        vertex.cex: Kích thước của các đỉnh được điều chỉnh dựa trên giá trị của chỉ số trung tâm (độ liên kết, độ gần gũi, độ trung gian).
+        vertex.col: Màu sắc của các đỉnh được điều chỉnh dựa trên giá trị của chỉ số trung tâm. Hàm rgb tạo ra một màu dựa trên ba thành phần: đỏ (red), xanh lục (green), và xanh dương (blue).
+        coord=coords: Sử dụng tọa độ đã được lưu trước đó để vẽ mạng.
+
+Kết quả là ba biểu đồ mạng, mỗi biểu đồ nhấn mạnh một chỉ số trung tâm cụ thể. Điều này giúp người xem có cái nhìn trực quan về sự phân bố và ảnh hưởng của các đỉnh trong mạng dựa trên từng chỉ số trung tâm.
+
 ...
 
 ```{r}
@@ -594,6 +945,32 @@ plot(pos_net,
      edge.label.col=edge_val_pal[edge_val],
      mode="kamadakawai")
 ```
+
+Giải thích:
+
+Đoạn mã này vẽ hai biểu đồ mạng (pos_net) với các thông số khác nhau dựa trên thuộc tính của liên kết (cạnh). Cụ thể, biểu đồ đầu tiên tô màu các cạnh dựa trên thuộc tính "Direction" (hướng tương quan) của chúng, trong khi biểu đồ thứ hai tô màu dựa trên giá trị "r" (giá trị hệ số tương quan) của các cạnh. Dưới đây là giải thích chi tiết:
+
+Thiết lập khung hiển thị:
+
+    Thiết lập lề của biểu đồ và chia khung hiển thị thành một lưới 1x2 để hiển thị hai biểu đồ cạnh nhau.
+
+Chuẩn bị dữ liệu và palette màu:
+
+Biểu đồ 1:
+    
+    edge_dir: Chuyển thuộc tính "Direction" của các cạnh trong mạng thành một yếu tố (factor).
+    edge_dir_pal: Tạo một bảng màu với hai màu là "blue" và "red" để biểu diễn hai hướng khác nhau của thuộc tính "Direction".
+    
+Biểu đồ 2:
+
+        edge_val: Làm tròn giá trị "r" của các cạnh trong mạng đến 2 chữ số thập phân và chuyển chúng thành yếu tố (factor).
+        edge_val_pal: Tạo một bảng màu sử dụng hàm coolwarm từ thư viện pals với số lượng màu bằng với số lượng giá trị duy nhất của edge_val.
+
+Vẽ biểu đồ:
+
+    Cả hai biểu đồ đều sử dụng kiểu bố cục "kamadakawai".
+    Các đỉnh được tô màu và điều chỉnh kích thước dựa trên giá trị cls.
+    Các cạnh được tô màu và gắn nhãn dựa trên thuộc tính "Direction" (biểu đồ 1) hoặc giá trị "r" (biểu đồ 2). Màu sắc và nhãn của mỗi cạnh được xác định từ edge_dir_pal và edge_val_pal tương ứng.
 
 ```{r}
 edge_val_pos <- as.factor(round(pos_net%e%"r",2))
@@ -647,6 +1024,38 @@ plot(neg_net,gmode="graph",
 
 title("Normal")
 ```
+Giải thích:
+
+Đoạn mã này vẽ 2 hai biểu đồ mạng pos_net (PCOS) và neg_net (Normal) với các đặc điểm cụ thể cho từng đỉnh và cạnh. 
+
+Xác định giá trị cạnh:
+
+Lấy giá trị "r" (hệ số tương quan) của mỗi cạnh trong hai mạng, làm tròn chúng và chuyển chúng thành yếu tố.
+
+Chọn bảng màu cho giá trị cạnh:
+
+Sử dụng bảng màu "coolwarm" từ thư viện pals để ánh xạ màu cho mỗi giá trị cạnh.
+
+Tính toán độ liên kết (degree) của mỗi đỉnh:
+
+Thiết lập khung hiển thị và vẽ biểu đồ:
+
+    Thiết lập một lưới 1x2 để vẽ hai biểu đồ cạnh nhau.
+
+Vẽ biểu đồ cho pos_net (PCOS):
+
+    plot: Hàm dùng để vẽ biểu đồ.
+    gmode="graph": Xác định rằng mạng không có hướng.
+    mode="kamadakawai": Sử dụng bố cục Kamada-Kawai để xác định vị trí của các đỉnh.
+    vertex.col: Màu của các đỉnh dựa trên độ liên kết của chúng.
+    vertex.cex: Kích thước của các đỉnh dựa trên độ của chúng (sử dụng log để điều chỉnh).
+    edge.col: Màu sắc của các cạnh dựa trên giá trị của chúng.
+    edge.label: Hiển thị giá trị của mỗi cạnh.
+    title("PCOS"): Đặt tiêu đề cho biểu đồ.
+
+Vẽ biểu đồ cho neg_net (Normal):
+
+    Cấu trúc và logic tương tự như biểu đồ PCOS, nhưng áp dụng cho mạng neg_net và có tiêu đề "Normal".
 
 ## Thông điệp rút gọn làm hành trang
 
