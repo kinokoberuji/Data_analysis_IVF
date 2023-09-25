@@ -1,4 +1,4 @@
-Rmarkdown và dữ liệu cho giáo trình "Phân tích dữ liệu cho nghiên cứu hỗ trợ sinh sản bằng ngôn ngữ R" (2023). 
+Nội dung thực hành gồm mã lập trình và dữ liệu cho giáo trình "Phân tích dữ liệu cho nghiên cứu hỗ trợ sinh sản bằng ngôn ngữ R" (2023). 
 Các bạn có toàn quyền chia sẻ và khai thác dữ liệu, tái sử dụng và cải tiến mã lập trình cho mục đích học tập và nghiên cứu. 
 
 Nếu có nhu cầu hỗ trợ kỹ thuật, xin liên hệ với :
